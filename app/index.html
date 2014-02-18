@@ -63,6 +63,43 @@
       </p>
     </div>
 
+    <!-- Feedback form -->
+    <div class="feedbackmodal modal">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <form action="post">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+              <h4 class="modal-title">Webwallet Feedback</h4>
+            </div>
+
+            <div class="modal-body">
+              <div class="form-group">
+                <label class="control-label" for="feedback">Your idea, experience, or a problem:</label>
+                <textarea class="form-control" name="entry.1434484052" id="feedback" required></textarea>
+              </div>
+              <div class="form-group">
+                <label class="control-label" for="email">
+                  If you want, leave your email! We will get back to you.</label>
+                <input type="email" class="form-control" name="entry.1413017719" id="email">
+              </div>
+
+              <p class="text-muted">
+                <strong>Note:</strong>
+                Your feedback is submitted and stored using Google Forms.
+                We don't transmit any information except your feedback, email, and the page URL.
+              </p>
+            </div>
+
+            <div class="modal-footer">
+              <button type="button" class="btn btn-lg btn-default" data-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-lg btn-primary">Submit</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
     <!-- build:js scripts/libs.js -->
     <script src="bower_components/jquery/jquery.js"></script>
     <script src="bower_components/jquery.atmosphere/jquery.atmosphere.js"></script>
