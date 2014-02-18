@@ -6,7 +6,7 @@ angular.module('webwalletApp')
   .value('atmosphere', window.jQuery.atmosphere);
 
 angular.module('webwalletApp')
-  .value('backendEndpoint', 'http://test-api.bitsofproof.com:8080');
+  .value('backendEndpoint', 'http://api.bitsofproof.com:8083');
 
 angular.module('webwalletApp')
   .config(function ($httpProvider) {
@@ -50,11 +50,11 @@ angular.module('webwalletApp')
     };
 
     self.send = function (rawTx) {
-      var txbytes = utils.hex2bytes(rawTx),
+      var txbytes = utils.hexToBytes(rawTx),
           txhash = Crypto.SHA256(Crypto.SHA256(txbytes, {asBytes: true}), {asBytes: true}),
           data = {
-            transaction: Crypto.util.bytesToBase64(txbytes),
-            transactionHash: Crypto.util.bytesToBase64(txhash)
+            transaction: utils.bytesToBase64(txbytes),
+            transactionHash: utils.bytesToBase64(txhash)
           };
       $log.debug('Sending', rawTx);
       return $http.post(api('send'), data);

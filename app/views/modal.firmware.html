@@ -1,18 +1,110 @@
 <div class="modal">
-  <div class="modal-dialog modal-sm">
-    <div class="modal-content">
-      <div class="modal-body">
+  <div class="modal-dialog modal-md"
+       ng-switch="state">
 
+    <div class="modal-content"
+         ng-switch-when="initial">
+      <div class="modal-body">
         <h3>Your device firmware is out of date.</h3>
         <p>Please plug your device in the bootloader mode.</p>
+
+        <strong class="h5">Current firmware:</strong>
+        {{version[0]}}.{{version[1]}}.{{version[2]}}
+        <br>
+
+        <strong class="h5">Available firmware:</strong>
+        {{firmware.version[0]}}.{{firmware.version[1]}}.{{firmware.version[2]}}
+        <br>
 
         <h5 ng-if="firmware.changelog">Changelog:</h5>
         <pre ng-if="firmware.changelog">{{firmware.changelog}}</pre>
       </div>
       <div class="modal-footer"
            ng-if="!firmware.required">
-        <button type="button" ng-click="$hide()">
+        <button type="button" class="btn btn-default"
+                ng-click="cancel()">Ask me next time</button>
       </div>
     </div>
+
+    <div class="modal-content"
+         ng-switch-when="device-bootloader">
+      <div class="modal-body">
+        <p>Do you really want to update the device firmware?</p>
+
+        <strong class="h5">Current firmware:</strong>
+        {{version[0]}}.{{version[1]}}.{{version[2]}}
+        <br>
+
+        <strong class="h5">Available firmware:</strong>
+        {{firmware.version[0]}}.{{firmware.version[1]}}.{{firmware.version[2]}}
+        <br>
+
+        <h5 ng-if="firmware.changelog">Changelog:</h5>
+        <pre ng-if="firmware.changelog">{{firmware.changelog}}</pre>
+
+      </div>
+      <div class="modal-footer"
+           ng-if="!firmware.required">
+        <button type="button" class="btn btn-primary"
+                ng-click="update()">Yes, update</button>
+        <button type="button" class="btn btn-default"
+                ng-click="cancel()">Cancel</button>
+      </div>
+    </div>
+
+    <div class="modal-content"
+         ng-switch-when="device-normal">
+      <div class="modal-body">
+        <div class="alert alert-warning text-center">
+          <h4>Plugged device is not in bootloader mode.</h4>
+          <p>Please keep both buttons pressed while plugging in.</p>
+        </div>
+      </div>
+      <div class="modal-footer"
+           ng-if="!firmware.required">
+        <button type="button" class="btn btn-default"
+                ng-click="cancel()">Cancel</button>
+      </div>
+    </div>
+
+    <div class="modal-content"
+         ng-switch-when="update-downloading">
+      <div class="modal-body">
+        <div class="alert alert-info text-center">
+          <h4>Downloading firmware</h4>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-content"
+         ng-switch-when="update-flashing">
+      <div class="modal-body">
+        <div class="alert alert-info text-center">
+          <h4>Flashing firmware</h4>
+          <p>If asked, please confirm the update on your device.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-content"
+         ng-switch-when="update-success">
+      <div class="modal-body">
+        <div class="alert alert-success text-center">
+          <h4>Update was successful</h4>
+          <p>Please unplug the device.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-content"
+         ng-switch-when="update-error">
+      <div class="modal-body">
+        <div class="alert alert-danger text-center">
+          <h4>Update failed</h4>
+          <p>{{error}}</p>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>

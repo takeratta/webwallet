@@ -65,7 +65,7 @@ angular.module('webwalletApp')
           ret;
 
       // credit outputs
-      ret = self.transactions.filter(function (tx) {
+      ret = (self.transactions || []).filter(function (tx) {
         return tx.analysis && tx.analysis.type === 'recv';
       });
 
@@ -75,7 +75,7 @@ angular.module('webwalletApp')
         // the wallet, instead of loading from the balance
         var utxos, balance;
 
-        utxos = self.utxos.filter(function (utxo) {
+        utxos = (self.utxos || []).filter(function (utxo) {
           return utxo.transactionHash === tx.hash;
         });
 
@@ -135,8 +135,7 @@ angular.module('webwalletApp')
               var val = {
                 prev_hash: inp.sourceHash,
                 prev_index: inp.ix,
-                script_sig: Crypto.util.bytesToHex(
-                  Crypto.util.base64ToBytes(inp.script)),
+                script_sig: utils.bytesToHex(utils.base64ToBytes(inp.script)),
               };
               if (inp.sequence > 0)
                 val.sequence = inp.sequence;
@@ -145,8 +144,7 @@ angular.module('webwalletApp')
             outputs: tx.outputs.map(function (out) {
               return {
                 amount: out.value,
-                script_pubkey: Crypto.util.bytesToHex(
-                  Crypto.util.base64ToBytes(out.script))
+                script_pubkey: utils.bytesToHex(utils.base64ToBytes(out.script))
               };
             })
           };
@@ -170,6 +168,9 @@ angular.module('webwalletApp')
 
       function buildTx(feeAttempt) {
         var tx = self._constructTx(address, amount, feeAttempt);
+
+        if (!tx)
+          return $q.reject(new Error('Not enough funds'));
 
         return device.measureTx(tx).then(function (res) {
           var bytes = parseInt(res.message.tx_size, 10),
@@ -202,6 +203,9 @@ angular.module('webwalletApp')
           choffset = this._offsets.change,
           chpath = chnode.path.concat([choffset]),
           total, change;
+
+      if (!utxos)
+        return;
 
       total = utxos.reduce(function (val, utxo) {return val + utxo.value;}, 0);
       change = total - amount - fee;
@@ -255,7 +259,8 @@ angular.module('webwalletApp')
         retval += utxos[i].value;
       }
 
-      return ret;
+      if (retval >= amount)
+        return ret;
     };
 
     // Backend communication
@@ -446,8 +451,7 @@ angular.module('webwalletApp')
         tx.outs
           .filter(function (out) {return out.path;})
           .forEach(function (out) { // register sendable outputs
-            var hash = Crypto.util.bytesToBase64(
-              out.script.simpleOutPubKeyHash());
+            var hash = utils.bytesToBase64(out.script.simpleOutPubKeyHash());
             wallet.addressHashes.push(hash);
           });
       }

@@ -39,11 +39,7 @@ angular.module('webwalletApp')
       };
     };
 
-    TrezorDevice.prototype.account = function (id) {
-      return utils.find(this.accounts, id, function (account, id) {
-        return account.id === id;
-      });
-    };
+    // Device status, connection with hw
 
     TrezorDevice.prototype.status = function () {
       if (this._loading) return 'loading';
@@ -74,65 +70,66 @@ angular.module('webwalletApp')
       this._desc = null;
     };
 
+    // Initialization
+
     TrezorDevice.prototype.hasKey = function () {
       return this.features && this.node;
     };
 
     TrezorDevice.prototype.initialize = function () {
+      var self = this;
+
+      return self.initializeDevice()
+        .then(function () { return self.initializeKey(); })
+        .then(function () { return self.initializeAccounts(); });
+    };
+
+    TrezorDevice.prototype.initializeDevice = function () {
       var self = this,
           delay = 3000, // delay between attempts
           max = 60; // give up after n attempts
 
-      return self._withLoading(function () {
-        return utils.endure(initialize, delay, max) // keep trying to initialize
-          .then(function (res) { // setup features data
+      return utils.endure(initialize, delay, max) // keep trying to initialize
+        .then(
+          function (res) {
             self.features = res.message;
-          })
-          .then(function () { // check firmware version
-            return firmwareService.check(self.features);
-          })
-          .then(function (firmware) {
-            if (!firmware) return; // firmware is up to date
-            self.callbacks.outdatedFirmware(firmware);
-          })
-          .then(getPublicKey)
-          .then(
-            function (res) { // setup master node
-              self.node = res.message.node;
-              self.node.path = [];
-            },
-            function () {
-              self.node = null;
-              self.accounts = [];
-            }
-          );
-      });
+            return self.features;
+          },
+          function (err) {
+            self.features = null;
+            throw err;
+          }
+        );
 
       function initialize() {
-        if (self._session) // returns falsey to cancel the trapolining
-          return self._session.initialize();
-      }
-
-      function getPublicKey() {
-        if (self.features.initialized)
-          return self._session.getPublicKey();
-        else
-          throw new Error('Device not initialized');
+        if (!self._session) return; // returns falsey to cancel the trapolining
+        return self._session.initialize();
       }
     };
 
-    TrezorDevice.prototype.initializeAndLoadAccounts = function () {
+    TrezorDevice.prototype.initializeKey = function () {
       var self = this;
 
-      self.initialize().then(function () {
-        if (!self.hasKey()) return;
-        if (self.accounts.length)
-          self.subscribe();
-        else {
-          self.addAccount(); // always start with at least one account
-          self.discoverAccounts(); // discover additional accounts that have ballances
+      return self._session.getPublicKey().then(
+        function (res) { // setup master node
+          self.node = res.message.node;
+          self.node.path = [];
+          return self.node;
+        },
+        function (err) {
+          self.node = null;
+          self.accounts = [];
+          throw err;
         }
-      });
+      );
+    };
+
+    TrezorDevice.prototype.initializeAccounts = function () {
+      if (!this.hasKey()) return;
+      if (!this.accounts.length) {
+        this.addAccount();
+        return this.discoverAccounts();
+      }
     };
 
     TrezorDevice.prototype.subscribe = function () {
@@ -146,7 +143,16 @@ angular.module('webwalletApp')
     TrezorDevice.prototype.unsubscribe = function (deregister) {
       this.accounts.forEach(function (acc) {
         acc.unsubscribe();
-        if (deregister) acc.deregister();
+        if (deregister)
+          acc.deregister();
+      });
+    };
+
+    // Account management
+
+    TrezorDevice.prototype.account = function (id) {
+      return utils.find(this.accounts, id, function (acc, id) {
+        return acc.id === id;
       });
     };
 
@@ -179,28 +185,37 @@ angular.module('webwalletApp')
       );
     };
 
+    TrezorDevice.prototype.removeAccount = function (account) {
+      var idx = utils.findIndex(this.accounts, account.id, function (acc, id) {
+        return acc.id === id;
+      });
+
+      if (idx > 0)
+        this.accounts.splice(idx, 1);
+    };
+
     TrezorDevice.prototype.discoverAccounts = function () {
       var self = this;
 
-      return discover(this.accounts.length);
+      return discoverAccount(self.accounts.length);
 
-      function discover(n) {
+      function discoverAccount(n) {
         var acc = self.createAccount(n);
         return acc.register()
           .then(function () {
             return acc.loadPrimaryTxs();
           })
           .then(function (txs) {
-            if (txs.length > 0) {
-              acc.subscribe();
-              self.accounts[n] = acc;
-              return discover(n + 1);
-            } else {
-              acc.deregister();
-            }
+            if (!txs.length)
+              return acc.deregister();
+            acc.subscribe();
+            self.accounts[n] = acc;
+            return discoverAccount(n + 1);
           });
       }
     };
+
+    // Device calls
 
     TrezorDevice.prototype.measureTx = function (tx) {
       return this._session.measureTx(tx.inputs, tx.outputs);
@@ -213,7 +228,7 @@ angular.module('webwalletApp')
     TrezorDevice.prototype.flash = function (firmware) {
       var self = this;
 
-      return this._session.eraseFirmware().then(function () {
+      return self._session.eraseFirmware().then(function () {
         return self._session.uploadFirmware(firmware);
       });
     };
@@ -221,9 +236,9 @@ angular.module('webwalletApp')
     TrezorDevice.prototype.wipe = function () {
       var self = this;
 
-      return this._session.wipeDevice().then(function () {
+      return self._session.wipeDevice().then(function () {
         self.unsubscribe();
-        return self.initializeAndLoadAccounts();
+        return self.initialize();
       });
     };
 
@@ -232,11 +247,11 @@ angular.module('webwalletApp')
           sett = angular.copy(settings);
 
       if (sett.label)
-        sett.label = utils.str2hex(sett.label.trim());
+        sett.label = utils.utf8ToHex(sett.label);
 
-      return this._session.resetDevice(sett).then(function () {
+      return self._session.resetDevice(sett).then(function () {
         self.unsubscribe();
-        return self.initializeAndLoadAccounts();
+        return self.initialize();
       });
     };
 
@@ -252,11 +267,11 @@ angular.module('webwalletApp')
       delete sett.payload;
 
       if (sett.label)
-        sett.label = utils.str2hex(sett.label);
+        sett.label = utils.utf8ToHex(sett.label);
 
-      return this._session.loadDevice(sett).then(function () {
+      return self._session.loadDevice(sett).then(function () {
         self.unsubscribe();
-        return self.initializeAndLoadAccounts();
+        return self.initialize();
       });
     };
 
@@ -265,15 +280,17 @@ angular.module('webwalletApp')
           sett = angular.copy(settings);
 
       if (sett.label)
-        sett.label = utils.str2hex(sett.label);
+        sett.label = utils.utf8ToHex(sett.label);
 
-      return this._session.recoverDevice(sett).then(function () {
+      return self._session.recoverDevice(sett).then(function () {
         self.unsubscribe();
-        return self.initializeAndLoadAccounts();
+        return self.initialize();
       });
     };
 
-    TrezorDevice.prototype._withLoading = function (fn) {
+    // Helpers
+
+    TrezorDevice.prototype.withLoading = function (fn) {
       var self = this;
 
       start();

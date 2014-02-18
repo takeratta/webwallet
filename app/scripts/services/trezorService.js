@@ -1,9 +1,9 @@
 'use strict';
 
-// jshint curly:false, camelcase:false, latedef:nofunc
+// jshint curly:false, camelcase:false, latedef:nofunc, laxbreak:true, indent:false
 
 angular.module('webwalletApp')
-  .service('trezorService', function TrezorService(utils, storage, trezor, TrezorDevice,
+  .service('trezorService', function TrezorService(utils, storage, trezor, firmwareService, TrezorDevice,
       $modal, $q, $rootScope) {
 
     var self = this,
@@ -12,10 +12,15 @@ angular.module('webwalletApp')
     self.get = getDevice;
     self.forget = forgetDevice;
     self.devices = deserialize(restore()); // the list of available devices
+    self.devices.forEach(function (dev) {
+      dev.subscribe();
+    });
+
+    var connectFn = connect,
+        disconnectFn = disconnect;
 
     storeWhenChanged();
-    keepUpdating(1000);
-    keepRefreshing();
+    watchDevices(1000);
 
     // public functions
 
@@ -38,14 +43,14 @@ angular.module('webwalletApp')
       self.devices.splice(idx, 1);
     }
 
+    // private functions
+
     // serialize a device list
     function serialize(devices) {
       return devices.map(function (dev) {
         return dev.serialize();
       });
     }
-
-    // private functions
 
     // deserialize a device list
     function deserialize(data) {
@@ -80,41 +85,54 @@ angular.module('webwalletApp')
     }
 
     // starts auto-updating the device list
-    function keepUpdating(n) {
+    function watchDevices(n) {
       var tick = utils.tick(n),
           desc = progressWithConnected(tick),
           delta = progressWithDescriptorDelta(desc);
 
       // handle added/removed devices
       delta.then(null, null, function (dd) {
-        dd.added.forEach(connect);
-        dd.removed.forEach(disconnect);
+        dd.added.forEach(connectFn);
+        dd.removed.forEach(disconnectFn);
       });
-    }
 
-    // start auto-refreshing the data in the device list
-    function keepRefreshing() {
-      self.devices.forEach(function (dev) {
-        dev.subscribe();
-      });
+      return tick;
     }
 
     // marks the device of the given descriptor as connected, adding it to the
     // device list if not present and loading it
     function connect(desc) {
-      var dev = utils.find(self.devices, desc, compareById);
+      var dev;
 
+      if (!desc.id) return;
+      dev = utils.find(self.devices, desc, compareById);
       if (!dev) {
-        dev = dev = new TrezorDevice(desc.id);
+        dev = new TrezorDevice(desc.id);
         self.devices.push(dev);
       }
 
-      if (!dev.is('connected')) {
-        dev.connect(desc);
-        dev.initializeAndLoadAccounts();
-      }
-
       setupCallbacks(dev);
+      dev.connect(desc);
+      dev.withLoading(function () {
+        return dev.initializeDevice().then(function (features) {
+          return firmwareService.check(features)
+            .then(function (firmware) {
+              if (!firmware)
+                return;
+              return outdatedFirmware(firmware, firmwareService.get(features));
+            })
+            .then(function () { return dev.initializeKey(); })
+            .then(function () { return dev.initializeAccounts(); });
+        });
+      });
+    }
+
+    // marks a device of the given descriptor as disconnected
+    function disconnect(desc) {
+      var dev = utils.find(self.devices, desc, compareById);
+
+      if (dev)
+        dev.disconnect();
     }
 
     function setupCallbacks(dev) {
@@ -182,26 +200,85 @@ angular.module('webwalletApp')
         };
       };
 
-      dev.callbacks.outdatedFirmware = function (firmware) {
-        var scope = $rootScope.$new(),
-            modal;
-        scope.firmware = firmware;
-        modal = $modal({
-          template: 'views/modal.firmware.html',
-          backdrop: 'static',
-          keyboard: false,
-          scope: scope
-        });
-      };
-
     }
 
-    // marks a device of the given descriptor as disconnected
-    function disconnect(desc) {
-      var dev = utils.find(self.devices, desc, compareById);
+    function outdatedFirmware(firmware, version) {
+      var dfd = $q.defer(),
+          modal = firmwareModal({
+            state: 'initial',
+            firmware: firmware,
+            version: version,
+            update: update,
+            cancel: cancel,
+            device: null
+          });
 
-      if (dev)
+      connectFn = connected;
+      disconnectFn = disconnected;
+      return dfd.promise;
+
+      function connected(desc) {
+        var dev = new TrezorDevice(desc.path); // desc.id is empty in bl mode
+        dev.connect(desc);
+        dev.initializeDevice().then(function (features) {
+          modal.$scope.state = features.bootloader_mode
+            ? 'device-bootloader'
+            : 'device-normal';
+          modal.$scope.device = dev;
+        });
+      }
+
+      function disconnected(desc) {
+        var dev = modal.$scope.device;
+        if (!dev || dev.id !== desc.path)
+          return disconnect(desc);
         dev.disconnect();
+        modal.$scope.device = null;
+        if (modal.$scope.state === 'update-success' || modal.$scope.state === 'update-error')
+          cancel();
+        else
+          modal.$scope.state = 'initial';
+      }
+
+      function update() {
+        var dev = modal.$scope.device;
+        modal.$scope.state = 'update-downloading';
+        firmwareService.download(firmware)
+          .then(function (data) {
+            modal.$scope.state = 'update-flashing';
+            return dev.flash(data);
+          })
+          .then(
+            function () {
+              modal.$scope.state = 'update-success';
+            },
+            function (err) {
+              modal.$scope.state = 'update-error';
+              modal.$scope.error = err.message;
+            }
+          );
+      }
+
+      function cancel() {
+        connectFn = connect;
+        disconnectFn = disconnect;
+        dfd.resolve();
+        modal.destroy();
+      }
+    }
+
+    function firmwareModal(params) {
+      var scope = $rootScope.$new(),
+          k;
+      for (k in params)
+        if (params.hasOwnProperty(k))
+          scope[k] = params[k];
+      return $modal({
+        template: 'views/modal.firmware.html',
+        backdrop: 'static',
+        keyboard: false,
+        scope: scope
+      });
     }
 
     // maps a promise notifications with connected device descriptors

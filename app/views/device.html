@@ -2,8 +2,8 @@
   <li class="active">{{device.label()}}</li>
 </ol>
 
-<div ng-if="!device.is('connected')" class="alert alert-danger">
-  <h4>Sorry!</h4> Please connect your device to access this section.
+<div ng-if="!device.is('connected')" class="alert alert-warning">
+  <strong>Please connect your device</strong> to access this section.
 </div>
 
 <fieldset ng-disabled="!device.is('connected')">
@@ -14,23 +14,25 @@
       ><span class="glyphicon glyphicon-cog"></span> Setup device</a>
   </p>
 
-  <div class="list-group"
-       ng-show="!device.hasKey()">
-   <a class="list-group-item"
-      ng-href="#/device/{{device.id}}/recovery">Seed recovery</a>
-   <a class="list-group-item"
-      ng-href="#/device/{{device.id}}/load">Import seed</a>
-  </div>
+  <a href="" class="btn btn-default pull-right"
+     ng-click="forget(device)"><span class="text-muted">Forget device</span></a>
 
-  <div class="list-group"
-       ng-show="device.hasKey()">
-    <a class="list-group-item"
+  <p ng-show="!device.hasKey()">
+   <a class="btn btn-default"
+      ng-href="#/device/{{device.id}}/recovery"
+    ><span class="text-info">Seed recovery</span>
+    <small class="text-muted">- recover content of previous device</small></a>
+   <a class="btn btn-default"
+      ng-href="#/device/{{device.id}}/load"
+    ><span class="text-info">Import seed</span>
+    <small class="text-muted">- import seed or private key</small></a>
+  </p>
+
+  <p ng-show="device.hasKey()">
+    <a class="btn btn-default"
        ng-href="#/device/{{device.id}}/wipe"
-      >Wipe device</a>
-  </div>
+      ><span class="text-danger">Wipe device</span>
+      <small class="text-muted">- delete all private data and reset device to factory defaults</small></a>
+  </p>
 
 </fieldset>
-
-<a href="" class="text-muted pull-right"
-   ng-click="forget(device)"
-   >Forget device</a>

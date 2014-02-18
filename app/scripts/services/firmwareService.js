@@ -8,9 +8,18 @@ angular.module('webwalletApp')
 
     var self = this;
 
+    self.get = get;
     self.check = check;
     self.download = download;
     self.firmwareList = $http.get(firmwareListUrl);
+
+    function get(features) {
+      return [
+        +features.major_version,
+        +features.minor_version,
+        +features.bugfix_version
+      ];
+    }
 
     function check(features) {
       return self.firmwareList.then(function (res) {
@@ -28,12 +37,13 @@ angular.module('webwalletApp')
 
     function pick(features, list) {
       var firmware = list[0],
+          version = get(features),
           i;
 
       if (!firmware) // no firmware available
         return;
 
-      if (versionCmp(firmware, features) < 1) // features are up to date
+      if (versionCmp(firmware.version, version) < 1) // features are up to date
         return;
 
       for (i = 0; i < list.length; i++) { // collect required flags
@@ -49,12 +59,10 @@ angular.module('webwalletApp')
     }
 
     function versionCmp(a, b) {
-      var major = a.major_version - b.major_version,
-          minor = a.minor_version - b.minor_version,
-          bugfix = a.bugfix_version - b.bugfix_version;
-      if (major) return major;
-      if (minor) return minor;
-      if (bugfix) return bugfix;
+      if (a[0]-b[0]) return a[0]-b[0];
+      if (a[1]-b[1]) return a[1]-b[1];
+      if (a[2]-b[2]) return a[2]-b[2];
+      return 0;
     }
 
   });

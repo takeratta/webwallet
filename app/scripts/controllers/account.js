@@ -19,6 +19,13 @@ angular.module('webwalletApp')
     $scope.activeAddress = null;
     $scope.lookAhead = 10;
 
+    $scope.forget = function (account) {
+      account.unsubscribe();
+      account.deregister();
+      $scope.device.removeAccount(account);
+      $location.path('/device/' + $scope.device.id);
+    };
+
     $scope.activate = function (address) {
       $scope.activeAddress = address;
     };
@@ -36,10 +43,15 @@ angular.module('webwalletApp')
       var address = tx.address,
           amount = Math.round(tx.amount * 100000000);
       if (!address || !amount) return;
-      $scope.account.buildTx(address, amount, $scope.device).then(function (builtTx) {
-        $scope.builtTx = builtTx;
-        tx.fee = builtTx.fee / 100000000;
-      });
+      $scope.account.buildTx(address, amount, $scope.device).then(
+        function (builtTx) {
+          $scope.builtTx = builtTx;
+          tx.fee = builtTx.fee / 100000000;
+        },
+        function (err) {
+          flash.error(err.message || 'Failed to compose transaction.');
+        }
+      );
     };
 
     $scope.send = function () {
@@ -49,7 +61,32 @@ angular.module('webwalletApp')
           var path = '/device/' + $scope.device.id + '/account/' + $scope.account.id;
           $location.path(path);
         },
-        function (err) { flash.danger(err.message || 'Failed to send transaction.'); }
+        function (err) {
+          flash.error(err.message || 'Failed to send transaction.');
+        }
       );
     };
+
+    $scope.suggestAddresses = function () {
+      return suggestHistory().concat(suggestAccounts());
+    };
+
+    function suggestHistory() {
+      return []; // TODO
+    }
+
+    function suggestAccounts() {
+      var accounts = $scope.device.accounts;
+
+      return accounts.map(function (acc) {
+        var address = acc.address(0).address,
+            label = acc.label();
+
+        return {
+          label: label + ': ' + address,
+          address: address,
+          source: 'Accounts'
+        };
+      });
+    }
   });

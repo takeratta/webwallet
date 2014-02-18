@@ -43,31 +43,37 @@ angular.module('webwalletApp')
   .service('utils', function Utils(Crypto, Bitcoin, $q, $interval, $timeout) {
 
     //
-    // str <-> bytes <-> hex
+    // codecs
     //
 
-    var str2bytes = Crypto.charenc.Binary.stringToBytes,
-        bytes2str = Crypto.charenc.Binary.bytesToString;
+    var stringToBytes = Crypto.charenc.Binary.stringToBytes,
+        bytesToString = Crypto.charenc.Binary.bytesToString,
+        base64ToBytes = Crypto.util.base64ToBytes,
+        bytesToBase64 = Crypto.util.bytesToBase64,
+        hexToBytes = Bitcoin.Util.hexToBytes,
+        bytesToHex = Bitcoin.Util.bytesToHex;
 
-    var hex2bytes = Bitcoin.Util.hexToBytes,
-        bytes2hex = Bitcoin.Util.bytesToHex;
-
-    function str2hex(str) {
-      str = unescape(encodeURIComponent(str));
-      return bytes2hex(str2bytes(str));
+    function utf8ToHex(utf8) {
+      var str = unescape(encodeURIComponent(utf8));
+      return bytesToHex(stringToBytes(str));
     }
 
-    function hex2str(hex) {
-      var bin = bytes2str(hex2bytes(hex));
-      return decodeURIComponent(escape(bin));
+    function hexToUtf8(hex) {
+      var str = bytesToString(hexToBytes(hex));
+      return decodeURIComponent(escape(str));
     }
 
-    this.str2bytes = str2bytes;
-    this.bytes2str = bytes2str;
-    this.hex2bytes = hex2bytes;
-    this.bytes2hex = bytes2hex;
-    this.str2hex = str2hex;
-    this.hex2str = hex2str;
+    this.stringToBytes = stringToBytes;
+    this.bytesToString = bytesToString;
+
+    this.base64ToBytes = base64ToBytes;
+    this.bytesToBase64 = bytesToBase64;
+
+    this.hexToBytes = hexToBytes;
+    this.bytesToHex = bytesToHex;
+
+    this.utf8ToHex = utf8ToHex;
+    this.hexToUtf8 = hexToUtf8;
 
     //
     // hdnode
@@ -76,7 +82,7 @@ angular.module('webwalletApp')
     // decode private key from xprv base58 string to hdnode structure
     function xprv2node(xprv) {
       var bytes = Bitcoin.Base58.decode(xprv),
-          hex = bytes2hex(bytes),
+          hex = bytesToHex(bytes),
           node = {};
 
       if (hex.substring(90, 92) !== '00')
@@ -104,7 +110,7 @@ angular.module('webwalletApp')
         + node.chain_code
         + node.public_key;
 
-      bytes = hex2bytes(hex);
+      bytes = hexToBytes(hex);
       chck = Crypto.SHA256(Crypto.SHA256(bytes, {asBytes: true}), {asBytes: true});
       xpub = Bitcoin.Base58.encode(bytes.concat(chck.slice(0, 4)));
 
@@ -119,7 +125,7 @@ angular.module('webwalletApp')
 
     function node2address(node, type) {
       var pubkey = node.public_key,
-          bytes = hex2bytes(pubkey),
+          bytes = hexToBytes(pubkey),
           hash = Bitcoin.Util.sha256ripe160(bytes);
 
       return address2str(hash, type);
