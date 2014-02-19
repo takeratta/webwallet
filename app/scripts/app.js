@@ -51,7 +51,7 @@ angular.module('webwalletApp', [
 
 // load trezor plugin and bootstrap application
 angular.element(document).ready(function () {
-  trezor.load({ configUrl: '/data/config_signed.bin' }).then(
+  trezor.load({ configUrl: '/data/plugin/config_signed.bin' }).then(
     function (trezorObject) {
       angular.module('webwalletApp').value('trezorApi', trezor);
       angular.module('webwalletApp').value('trezor', trezorObject);
