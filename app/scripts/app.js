@@ -61,6 +61,8 @@ angular.element(document).ready(function () {
       console.error(err);
       if (err.install)
         err.install();
+      else
+        alert('Trezor plugin initialization failed.');
     }
   );
 });
