@@ -53,7 +53,7 @@ angular.module('webwalletApp')
 
     TrezorDevice.prototype.label = function () {
       if (this.features && this.features.label)
-        return utils.hex2str(this.features.label);
+        return utils.hexToUtf8(this.features.label);
       else
         return 'My TREZOR';
     };
