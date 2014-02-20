@@ -14,10 +14,10 @@
 }
 
 .glyphicon-spin {
-  -moz-animation: spin 2s infinite linear;
+  /*-moz-animation: spin 2s infinite linear;
   -o-animation: spin 2s infinite linear;
   -webkit-animation: spin 2s infinite linear;
-  animation: spin 2s infinite linear;
+  animation: spin 2s infinite linear;*/
 }
 
 /* Global Bootstrap overrides and addons */
@@ -64,6 +64,15 @@
 
 /* Layout, header, footer */
 
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin: 0 0 120px; /* bottom = footer height */
+}
+
 .page-header {
   margin: 0;
   padding: 15px 0;
@@ -83,7 +92,12 @@
 }
 
 .page-footer {
-  margin: 40px 0;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 100px;
+  padding: 30px 0;
 }
 
 /* Device nav */
