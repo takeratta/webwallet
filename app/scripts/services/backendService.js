@@ -1,6 +1,6 @@
 'use strict';
 
-// jshint curly:false, camelcase:false, latedef:nofunc
+// jshint curly:false, camelcase:false, latedef:nofunc, laxbreak:true, indent:false
 
 angular.module('webwalletApp')
   .value('atmosphere', window.jQuery.atmosphere);
@@ -19,12 +19,12 @@ angular.module('webwalletApp')
 
     var self = this;
 
-    function api(url) {
-      return backendEndpoint + '/trezor/' + url;
+    function api(path) {
+      return backendEndpoint + '/trezor/' + path;
     }
 
-    function ws(url) {
-      return backendEndpoint + '/ws/' + url;
+    function ws(path) {
+      return backendEndpoint + '/ws/' + path;
     }
 
     // POST

@@ -21,7 +21,7 @@
 </p>
 <p class="text-center text-muted h4"
    ng-show="account.transactions != null && !account.transactions.length">
-   No transactions to display
+  No transactions to display
 </p>
 <table class="txlist table table-hover"
        ng-show="account.transactions != null && account.transactions.length">
@@ -35,7 +35,7 @@
       </td>
       <td class="txlist-date text-center text-muted"
           ng-if="!tx.timestamp">
-        &mdash;
+        <small>Unconfirmed</small>
       </td>
       <td class="txlist-comment"
           ng-if="tx.comment">

@@ -5,47 +5,65 @@
   <li class="active">Send</li>
 </ol>
 
-<form name="form" class="form-horizontal">
+<div class="row">
+  <form name="form" class="form-horizontal col-md-8">
 
-  <div class="form-group">
-    <label for="amount" class="control-label col-sm-2">Send {{account.coin.coin_shortcut}}:</label>
-    <div class="col-sm-3">
-      <input id="amount" class="form-control" type="text"
-             ng-change="estimate(transaction)"
-             ng-model="transaction.amount"
-             required>
+    <div class="form-group">
+      <label for="amount" class="control-label col-sm-3">Send {{account.coin.coin_shortcut}}:</label>
+      <div class="col-sm-4">
+        <input id="amount" class="form-control" type="text"
+               ng-change="estimate(transaction)"
+               ng-model="transaction.amount"
+               required>
+      </div>
+      <label for="fee" class="control-label col-sm-2">Fee:</label>
+      <div class="col-sm-3">
+        <input id="fee" class="form-control" type="text"
+               ng-model="transaction.fee"
+               readonly disabled>
+      </div>
     </div>
-    <label for="fee" class="control-label col-sm-1">Fee:</label>
-    <div class="col-sm-2">
-      <input id="fee" class="form-control" type="text"
-             ng-model="transaction.fee"
-             readonly disabled>
+
+    <div class="form-group">
+      <label for="address" class="control-label col-sm-3">Address:</label>
+      <div class="col-sm-9">
+        <input id="address" class="form-control" type="text"
+               ng-change="estimate(transaction)"
+               ng-model="transaction.address"
+               ng-options="
+                 address.address as address.label
+                 group by address.source
+                 for address in suggestAddresses()"
+               bs-typeahead
+               required>
+      </div>
     </div>
+
+    <div class="form-group">
+      <div class="col-sm-offset-3 col-sm-10">
+        <button type="submit" class="btn btn-primary"
+                ng-disabled="form.$invalid"
+                ng-click="send()">Send</button>
+        <a href="#/device/{{device.id}}/account/{{account.id}}"
+           class="btn btn-link">Cancel</a>
+      </div>
+    </div>
+
+  </form>
+
+  <div class="col-md-4 text-muted"
+       ng-show="builtTx">
+    <h6>Inputs</h6>
+    <ol>
+      <li ng-repeat="input in builtTx.intputs">
+        {{input.prev_hash}}:{{input.prev_index}}
+      </li>
+    </ol>
+    <h6>Outputs</h6>
+    <ol>
+      <li ng-repeat="output in builtTx.outputs">
+        {{output.address}} {{output.amount | amount}} {{account.coin.coin_shortcut}})
+      </li>
+    </ol>
   </div>
-
-  <div class="form-group">
-    <label for="address" class="control-label col-sm-2">Address:</label>
-    <div class="col-sm-6">
-      <input id="address" class="form-control" type="text"
-             ng-change="estimate(transaction)"
-             ng-model="transaction.address"
-             ng-options="
-               address.address as address.label
-               group by address.source
-               for address in suggestAddresses()"
-             bs-typeahead
-             required>
-    </div>
-  </div>
-
-  <div class="form-group">
-    <div class="col-sm-offset-2 col-sm-10">
-      <button type="submit" class="btn btn-primary"
-              ng-disabled="form.$invalid"
-              ng-click="send()">Send</button>
-      <a href="#/device/{{device.id}}/account/{{account.id}}"
-         class="btn btn-link">Cancel</a>
-    </div>
-  </div>
-
-</form>
+</div>

@@ -14,8 +14,12 @@
       ><span class="glyphicon glyphicon-cog"></span> Setup device</a>
   </p>
 
-  <a href="" class="btn btn-default pull-right"
-     ng-click="forget(device)"><span class="text-muted">Forget device</span></a>
+</fieldset>
+
+<a href="" class="btn btn-default pull-right"
+   ng-click="forget(device)"><span class="text-muted">Forget device</span></a>
+
+<fieldset ng-disabled="!device.is('connected')">
 
   <p ng-show="!device.hasKey()">
    <a class="btn btn-default"
