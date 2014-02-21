@@ -150,6 +150,10 @@ angular.module('webwalletApp')
 
     // Account management
 
+    TrezorDevice.prototype.moreAccountsAllowed = function () {
+      return this.accounts.length < 10;
+    };
+
     TrezorDevice.prototype.account = function (id) {
       return utils.find(this.accounts, id, function (acc, id) {
         return acc.id === id;
@@ -157,8 +161,9 @@ angular.module('webwalletApp')
     };
 
     TrezorDevice.prototype.addAccount = function () {
-      var id = this.accounts.length,
-          acc = this.createAccount(id);
+      var prevAcc = this.accounts[this.accounts.length-1],
+          accId = prevAcc ? +prevAcc.id + 1 : 0,
+          acc = this.createAccount(accId);
 
       this.accounts.push(acc);
       return acc.register().then(function () {
