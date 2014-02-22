@@ -1,0 +1,10 @@
+[
+	{
+		"required": false,
+		"version": [5, 0, 1],
+		"min_version": [0, 0, 1],
+		"min_plugin_version": [1, 0, 0],
+		"url": "/data/firmware/trezor.bin.hex",
+		"changelog": ""
+	}
+]
