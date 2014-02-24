@@ -150,8 +150,8 @@ angular.module('webwalletApp')
 
     // Account management
 
-    TrezorDevice.prototype.moreAccountsAllowed = function () {
-      return this.accounts.length < 10;
+    TrezorDevice.prototype.addAccountAllowed = function () {
+      return this.hasKey() && this.accounts.length < 10;
     };
 
     TrezorDevice.prototype.account = function (id) {
