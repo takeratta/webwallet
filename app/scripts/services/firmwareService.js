@@ -3,7 +3,7 @@
 // jshint curly:false, camelcase:false, latedef:nofunc
 
 angular.module('webwalletApp')
-  .value('firmwareListUrl', '/data/firmware/history.json')
+  .value('firmwareListUrl', '/data/firmware/releases.json')
   .service('firmwareService', function FirmwareService(firmwareListUrl, $http) {
 
     var self = this;
