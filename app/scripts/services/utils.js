@@ -88,22 +88,20 @@ angular.module('webwalletApp')
       if (hex.substring(90, 92) !== '00')
         throw new Error('Contains invalid private key');
 
-      node.version = parseInt(hex.substring(0, 8), 16);
       node.depth = parseInt(hex.substring(8, 10), 16);
       node.fingerprint = parseInt(hex.substring(10, 18), 16);
       node.child_num = parseInt(hex.substring(18, 26), 16);
       node.chain_code = hex.substring(26, 90);
       node.private_key = hex.substring(92, 156); // skip 0x00 indicating privkey
-      // TODO: verify checksum
 
       return node;
     }
 
     // encode public key hdnode to xpub base58 string
-    function node2xpub(node) {
+    function node2xpub(node, version) {
       var hex, bytes, chck, xpub;
 
-      hex = hexpad(node.version, 8)
+      hex = hexpad(version, 8)
         + hexpad(node.depth, 2)
         + hexpad(node.fingerprint, 8)
         + hexpad(node.child_num, 8)

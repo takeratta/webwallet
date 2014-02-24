@@ -19,6 +19,13 @@ angular.module('webwalletApp')
 
     var self = this;
 
+    function version() {
+      // TODO: per-backend versions
+      // TODO: xprv version?
+      // return 70617039; // TEST public
+      return 76067358; // BTC public
+    }
+
     function api(path) {
       return backendEndpoint + '/trezor/' + path;
     }
@@ -30,7 +37,7 @@ angular.module('webwalletApp')
     // POST
 
     self.register = function (node) {
-      var xpub = utils.node2xpub(node),
+      var xpub = utils.node2xpub(node, version(node)),
           data = {
             after: '2013-12-01',
             publicMaster: xpub,
@@ -43,7 +50,7 @@ angular.module('webwalletApp')
     };
 
     self.deregister = function (node) {
-      var xpub = utils.node2xpub(node);
+      var xpub = utils.node2xpub(node, version(node));
 
       $log.debug('Deregistering public key', xpub);
       return $http.delete(api(xpub));
@@ -63,28 +70,28 @@ angular.module('webwalletApp')
     // GET
 
     self.balance = function (node) {
-      var xpub = utils.node2xpub(node);
+      var xpub = utils.node2xpub(node, version(node));
 
       $log.debug('Requesting balance for', xpub);
       return $http.get(api(xpub + '?details'));
     };
 
     self.transactions = function (node) {
-      var xpub = utils.node2xpub(node);
+      var xpub = utils.node2xpub(node, version(node));
 
       $log.debug('Requesting tx history for', xpub);
       return $http.get(api(xpub + '/transactions'));
     };
 
     self.lookupTx = function (node, hash) {
-      var xpub = utils.node2xpub(node);
+      var xpub = utils.node2xpub(node, version(node));
 
       $log.debug('Looking up tx', hash, 'for', xpub);
       return $http.get(api(xpub + '/transactions/' + hash));
     };
 
     self.subscribe = function (node, callback) {
-      var xpub = utils.node2xpub(node),
+      var xpub = utils.node2xpub(node, version(node)),
           req = new atmosphere.AtmosphereRequest();
 
       req.url = ws(xpub);
