@@ -243,7 +243,7 @@ angular.module('webwalletApp')
 
       return self._session.wipeDevice().then(function () {
         self.unsubscribe();
-        return self.initialize();
+        return self.initializeDevice();
       });
     };
 
