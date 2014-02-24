@@ -159,7 +159,7 @@ angular.module('webwalletApp')
         var scope = $rootScope.$new(),
             modal;
         scope.passphrase = '';
-        scope.callback = callback;
+        scope.callback = scopeCallback;
         modal = $modal({
           template: 'views/modal.passphrase.html',
           backdrop: 'static',
@@ -167,8 +167,12 @@ angular.module('webwalletApp')
           scope: scope
         });
         modal.$promise.then(null, function () {
-          callback();
+          scopeCallback();
         });
+
+        function scopeCallback(passphrase) {
+          callback(passphrase.normalize('NFKD'));
+        }
       };
 
       dev.callbacks.button = function (code) {
