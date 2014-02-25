@@ -83,22 +83,45 @@ angular.module('webwalletApp')
     $scope.qrScanning = false;
 
     $scope.$watch('qrAddress', function (val) {
-      var address;
+      var values;
 
       if (!$scope.qrScanning) return;
       $scope.qrScanning = false;
 
-      if ((address = parseQr(val)))
-        $scope.transaction.address = address;
-      else
-        flash.error('Provided QR code does not contain valid address');
+      values = parseQr(val);
+      if (!values)
+        return flash.error('Provided QR code does not contain valid address');
+
+      if (values.address) $scope.transaction.address = values.address;
+      if (values.amount) $scope.transaction.amount = values.amount;
     });
 
-    function parseQr(val) {
-      if (val.indexOf('bitcoin:') !== 0) return;
-      val = val.substring(9);
-      if (val.length < 27 || val.length > 34) return;
-      return val;
+    function parseQr(str) {
+      var vals, query;
+
+      if (str.indexOf('bitcoin:') === 0)
+        str = str.substring(8);
+
+      query = str.split('?');
+      vals = (query.length > 1) ? parseQuery(query[1]) : {};
+      vals.address = query[0];
+
+      if (vals.address.length < 27 || vals.address.length > 34)
+        return;
+
+      return vals;
+    }
+
+    function parseQuery(str) {
+      return str.split('&')
+        .map(function (val) {
+          return val.split('=');
+        })
+        .reduce(function (vals, pair) {
+          if (pair.length > 1)
+            vals[pair[0]] = pair[1];
+          return vals;
+        }, {});
     }
 
     $scope.scanQr = function () {
