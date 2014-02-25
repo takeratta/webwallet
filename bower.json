@@ -15,7 +15,8 @@
     "bitcoinjs-lib": "trezor/bitcoinjs-lib",
     "bootstrap-slider": "seiyria/bootstrap-slider#~1.9.0",
     "jquery.atmosphere": "~1.0.13",
-    "unorm": "~1.3.2"
+    "unorm": "~1.3.2",
+    "jsqrcode": "LazarSoft/jsqrcode"
   },
   "devDependencies": {
     "angular-mocks": "~1.2.10",

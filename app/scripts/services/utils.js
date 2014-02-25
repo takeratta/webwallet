@@ -229,6 +229,8 @@ angular.module('webwalletApp')
 
   });
 
+// Flash messages
+
 angular.module('webwalletApp')
   .factory('flash', function($rootScope, $timeout) {
     var messages = [];
@@ -290,4 +292,82 @@ angular.module('webwalletApp')
         '       ng-switch-default><h4 class="text-capitals">{{m.level}}</h4> {{m.text}}</div>' +
         '</div>'
     };
+  });
+
+// QR code scanning
+
+angular.module('webwalletApp')
+  .value('jsqrcode', window.qrcode)
+  .directive('qrScan', function (jsqrcode) {
+
+    // TODO: do this locally
+    window.URL = window.URL || window.webkitURL || window.mozURL || window.msURL;
+    navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia ||
+                             navigator.mozGetUserMedia || navigator.msGetUserMedia;
+
+    return {
+      link: link,
+      restrict: 'E',
+      require: '?ngModel',
+      template:
+        '<div class="qrscan-container">'+
+        '<video class="qrscan-video" width="100%"></video>'+
+        '</div>',
+      scope: {
+        interval: '='
+      }
+    };
+
+    function link(scope, element, attrs, ngModel) {
+      var interval = scope.interval || 1000,
+          video = element.find('.qrscan-video')[0],
+          canvas = document.createElement('canvas'),
+          context = canvas.getContext('2d'),
+          stream, value;
+
+      if (!ngModel)
+        throw new Error('ng-model attribute is required');
+
+      if (navigator.getUserMedia) initVideo();
+
+      function initVideo() {
+        navigator.getUserMedia({ video: true }, function (vs) {
+          stream = vs;
+          video.src = (window.URL && window.URL.createObjectURL(vs)) || vs;
+          video.onloadedmetadata = initCanvas;
+        });
+      }
+
+      function initCanvas() {
+        video.play();
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        jsqrcode.callback = function (val) {
+          value = val;
+        };
+        setTimeout(intervalTick, interval);
+      }
+
+      function intervalTick() {
+        if (value && value !== 'error decoding QR Code') {
+          video.pause();
+          stream.stop();
+          scope.$apply(function () {
+            ngModel.$setViewValue(value);
+          });
+        } else {
+          snapshotVideo();
+          setTimeout(intervalTick, interval);
+        }
+      }
+
+      function snapshotVideo() {
+        context.drawImage(
+          video,
+          0, 0, video.videoWidth, video.videoHeight,
+          0, 0, canvas.width, canvas.height
+        );
+        jsqrcode.decode(canvas.toDataURL());
+      }
+    }
   });

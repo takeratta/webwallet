@@ -36,6 +36,10 @@
                  for address in suggestAddresses()"
                bs-typeahead
                required>
+        <a href="" class="glyphicon glyphicon-qrcode txaddress-qrscan text-muted"
+           title="Scan QR code"
+           ng-click="scanQr()"
+           ng-show="!transaction.address && !qrScanning"></a>
       </div>
     </div>
 
@@ -51,8 +55,13 @@
 
   </form>
 
+  <div class="col-md-4"
+       ng-if="qrScanning">
+    <qr-scan ng-model="$parent.qrAddress"></qr-scan>
+  </div>
+
   <div class="col-md-4 text-muted"
-       ng-show="builtTx">
+       ng-if="builtTx">
     <h6>Inputs</h6>
     <ol>
       <li ng-repeat="input in builtTx.intputs">
