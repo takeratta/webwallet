@@ -7,7 +7,7 @@ Usage
 -----
 
 Application expects a signed Trezor configuration file at
-`/data/config_signed.bin`. You can change the url at `app/scripts/app.js`.
+`/data/plugin/config_signed.bin`. You can change the url at `app/scripts/app.js`.
 
 Installation
 ------------
