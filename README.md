@@ -11,17 +11,18 @@ Application expects a signed Trezor configuration file at
 
 Installation
 ------------
-sudo npm install -g grunt-cli bower
-git clone git@github.com:trezor/webwallet.git
-cd webwallet
-git submodule update --recursive --init
-bower install
-npm install
 
-# For production use
-grunt build
-cp -r app/data dist/data
+	sudo npm install -g grunt-cli bower
+	git clone git@github.com:trezor/webwallet.git
+	cd webwallet
+	git submodule update --recursive --init
+	bower install
+	npm install
 
-# For development use
-cd app
-python -m SimpleHTTPServer
+	# for production use
+	grunt build
+	cp -r app/data dist/data
+
+	# for development use
+	cd app
+	python -m SimpleHTTPServer
