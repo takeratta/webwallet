@@ -34,7 +34,8 @@ angular.module('webwalletApp')
 
       if (idx >= 0)
         dev = self.devices[idx];
-      if (!dev) return;
+      if (!dev)
+        return;
 
       dev.disconnect();
       dev.unsubscribe(true); // deregister
@@ -217,7 +218,6 @@ angular.module('webwalletApp')
           callback(word);
         };
       };
-
     }
 
     function outdatedFirmware(firmware, version) {
@@ -236,7 +236,8 @@ angular.module('webwalletApp')
       return dfd.promise;
 
       function connected(desc) {
-        var dev = new TrezorDevice(desc.path); // desc.id is empty in bl mode
+        var dev = new TrezorDevice(desc.path);
+
         dev.connect(desc);
         dev.initializeDevice().then(function (features) {
           modal.$scope.state = features.bootloader_mode
@@ -248,10 +249,12 @@ angular.module('webwalletApp')
 
       function disconnected(desc) {
         var dev = modal.$scope.device;
+
         if (!dev || dev.id !== desc.path)
           return disconnect(desc);
         dev.disconnect();
         modal.$scope.device = null;
+
         if (modal.$scope.state === 'update-success' || modal.$scope.state === 'update-error')
           cancel();
         else
