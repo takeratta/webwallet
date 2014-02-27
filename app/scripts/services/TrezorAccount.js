@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('webwalletApp')
-  .factory('TrezorAccount', function (utils, trezor, backendService,
+  .factory('TrezorAccount', function (utils, trezor, TrezorBackend,
       Crypto, BigInteger, Bitcoin, $q) {
 
     function TrezorAccount(id, coin, node, changeNode) {
@@ -15,6 +15,7 @@ angular.module('webwalletApp')
 
       this._feePerKb = 10000;
 
+      this._backend = new TrezorBackend(coin);
       this._wallet = new Bitcoin.Wallet();
       this._subscriptions = { primary: null, change: null };
       this._offsets = { primary: null, change: null };
@@ -120,7 +121,7 @@ angular.module('webwalletApp')
         var hash = inp.prev_hash,
             node = [self.node, self.changeNode]
               [inp.address_n[inp.address_n.length-2]]; // TODO: HACK!
-        return backendService.lookupTx(node, hash);
+        return self._backend.lookupTx(node, hash);
       });
 
       // convert to trezor structures
@@ -154,7 +155,7 @@ angular.module('webwalletApp')
         return device.signTx(tx, txs).then(function (res) {
           var message = res.message,
               serializedTx = message.serialized_tx;
-          return backendService.send(serializedTx);
+          return self._backend.send(serializedTx);
         });
       });
     };
@@ -264,15 +265,15 @@ angular.module('webwalletApp')
     // Backend communication
 
     TrezorAccount.prototype.register = function () {
-      var pr1 = backendService.register(this.node),
-          pr2 = backendService.register(this.changeNode);
+      var pr1 = this._backend.register(this.node),
+          pr2 = this._backend.register(this.changeNode);
 
       return $q.all([pr1, pr2]);
     };
 
     TrezorAccount.prototype.deregister = function () {
-      var pr1 = backendService.deregister(this.node),
-          pr2 = backendService.deregister(this.changeNode);
+      var pr1 = this._backend.deregister(this.node),
+          pr2 = this._backend.deregister(this.changeNode);
 
       return $q.all([pr1, pr2]);
     };
@@ -294,7 +295,7 @@ angular.module('webwalletApp')
     };
 
     TrezorAccount.prototype.loadPrimaryTxs = function () {
-      return backendService.transactions(this.node).then(function (res) {
+      return this._backend.transactions(this.node).then(function (res) {
         return res.data;
       });
     };
@@ -303,7 +304,7 @@ angular.module('webwalletApp')
       var self = this,
           loadingTxs = false;
 
-      return backendService.subscribe(node, function (data) {
+      return self._backend.subscribe(node, function (data) {
         if (data.status === 'PENDING') // ignore pending data
           return;
 
@@ -314,7 +315,7 @@ angular.module('webwalletApp')
         // load transactions on any balance update
         if (!loadingTxs) {
           loadingTxs = true;
-          backendService.transactions(node)
+          self._backend.transactions(node)
             .then(function (res) {
               self._txs[dataKey] = self._constructTxs(res.data, node.path);
               self._rollupTxs();
