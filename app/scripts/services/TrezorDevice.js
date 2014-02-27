@@ -241,6 +241,8 @@ angular.module('webwalletApp')
 
       return self._session.wipeDevice().then(function () {
         self.unsubscribe();
+        self.node = null;
+        self.accounts = [];
         return self.initializeDevice();
       });
     };
