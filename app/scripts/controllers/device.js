@@ -1,7 +1,5 @@
 'use strict';
 
-// jshint curly:false, camelcase:false, latedef:nofunc
-
 angular.module('webwalletApp')
   .controller('DeviceCtrl', function (trezorService, bip39, flash, $scope, $location, $routeParams) {
     $scope.device = trezorService.get($routeParams.deviceId);

@@ -1,7 +1,5 @@
 'use strict';
 
-// jshint curly:false, camelcase:false, latedef:nofunc
-
 angular.module('webwalletApp')
     .controller('AccountCtrl', function (trezorService, utils, flash,
       $document, $scope, $location, $routeParams) {

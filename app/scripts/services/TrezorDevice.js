@@ -1,7 +1,5 @@
 'use strict';
 
-// jshint curly:false, camelcase:false, latedef:nofunc, laxbreak:true, indent:false
-
 angular.module('webwalletApp')
   .factory('TrezorDevice', function (trezor, utils, firmwareService, TrezorAccount) {
 

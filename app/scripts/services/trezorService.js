@@ -1,7 +1,5 @@
 'use strict';
 
-// jshint curly:false, camelcase:false, latedef:nofunc, laxbreak:true, indent:false
-
 angular.module('webwalletApp')
   .service('trezorService', function TrezorService(utils, storage, trezor, firmwareService, TrezorDevice,
       $modal, $q, $rootScope) {

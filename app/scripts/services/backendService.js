@@ -1,7 +1,5 @@
 'use strict';
 
-// jshint curly:false, camelcase:false, latedef:nofunc, laxbreak:true, indent:false
-
 angular.module('webwalletApp')
   .value('atmosphere', window.jQuery.atmosphere);
 
