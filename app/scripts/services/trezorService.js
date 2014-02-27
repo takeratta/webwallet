@@ -97,45 +97,61 @@ angular.module('webwalletApp')
       return tick;
     }
 
-    // marks the device of the given descriptor as connected, adding it to the
-    // device list if not present and loading it
+    // marks the device of the given descriptor as connected and starting the
+    // correct workflow
     function connect(desc) {
       var dev;
 
-      if (!desc.id) return;
-      dev = utils.find(self.devices, desc, compareById);
-      if (!dev) {
-        dev = new TrezorDevice(desc.id);
-        self.devices.push(dev);
-      }
+      if (desc.id) {
+        dev = utils.find(self.devices, desc, compareById);
+        if (!dev) {
+          dev = new TrezorDevice(desc.id);
+          self.devices.push(dev);
+        }
+      } else
+        dev = new TrezorDevice(desc.path);
 
-      setupCallbacks(dev);
       dev.connect(desc);
       dev.withLoading(function () {
         return dev.initializeDevice().then(function (features) {
-          return firmwareService.check(features)
-            .then(function (firmware) {
-              if (!firmware)
-                return;
-              return outdatedFirmware(firmware, firmwareService.get(features));
-            })
-            .then(function () { return dev.initializeKey(); })
-            .then(function () { return dev.initializeAccounts(); });
+          return features.bootloader_mode
+            ? bootloaderWorkflow(dev)
+            : normalWorkflow(dev);
         });
       });
     }
 
     // marks a device of the given descriptor as disconnected
     function disconnect(desc) {
-      var dev = utils.find(self.devices, desc, compareById);
+      var dev;
 
-      if (dev)
-        dev.disconnect();
+      if (desc.id) {
+        dev = utils.find(self.devices, desc, compareById);
+        if (dev)
+          dev.disconnect();
+      }
     }
 
-    function setupCallbacks(dev) {
-      // FIXME: this doesnt belong here
+    //
+    // normal workflow
+    //
 
+    function normalWorkflow(dev) {
+      return firmwareService.check(dev.features)
+        .then(function (firmware) {
+          if (!firmware)
+            return;
+          return outdatedFirmware(firmware,
+            firmwareService.get(dev.features));
+        })
+        .then(function () { setupCallbacks(dev); })
+        .then(function () { return dev.initializeKey(); })
+        .then(function () { return dev.initializeAccounts(); });
+    }
+
+    // setups various callbacks, usually information prompts
+    // FIXME: this doesnt belong here
+    function setupCallbacks(dev) {
       dev.callbacks.pin = function (message, callback) {
         var scope = $rootScope.$new(),
             modal;
@@ -243,22 +259,7 @@ angular.module('webwalletApp')
       }
 
       function update() {
-        var dev = modal.$scope.device;
-        modal.$scope.state = 'update-downloading';
-        firmwareService.download(firmware)
-          .then(function (data) {
-            modal.$scope.state = 'update-flashing';
-            return dev.flash(data);
-          })
-          .then(
-            function () {
-              modal.$scope.state = 'update-success';
-            },
-            function (err) {
-              modal.$scope.state = 'update-error';
-              modal.$scope.error = err.message;
-            }
-          );
+        updateFirmware(modal, firmware);
       }
 
       function cancel() {
@@ -269,18 +270,82 @@ angular.module('webwalletApp')
       }
     }
 
+    //
+    // booloader workflow
+    //
+
+    function bootloaderWorkflow(dev) {
+      return firmwareService.latest().then(function (firmware) {
+        return candidateFirmware(firmware, dev);
+      });
+    }
+
+    function candidateFirmware(firmware, dev) {
+      var dfd = $q.defer(),
+          modal = firmwareModal({
+            state: 'device-bootloader',
+            firmware: firmware,
+            update: update,
+            cancel: cancel,
+            device: dev
+          });
+
+      disconnectFn = cancel;
+      return dfd.promise;
+
+      function update() {
+        updateFirmware(modal, firmware);
+      }
+
+      function cancel(desc) {
+        if (desc && desc.path !== dev.id)
+          return disconnect(desc);
+        disconnectFn = disconnect;
+        dev.disconnect();
+        modal.destroy();
+        dfd.resolve();
+      }
+    }
+
+    //
+    // utils
+    //
+
     function firmwareModal(params) {
       var scope = $rootScope.$new(),
           k;
+
       for (k in params)
         if (params.hasOwnProperty(k))
           scope[k] = params[k];
+
       return $modal({
         template: 'views/modal.firmware.html',
         backdrop: 'static',
         keyboard: false,
         scope: scope
       });
+    }
+
+    function updateFirmware(modal, firmware) {
+      var dev = modal.$scope.device;
+
+      modal.$scope.state = 'update-downloading';
+
+      firmwareService.download(firmware)
+        .then(function (data) {
+          modal.$scope.state = 'update-flashing';
+          return dev.flash(data);
+        })
+        .then(
+          function () {
+            modal.$scope.state = 'update-success';
+          },
+          function (err) {
+            modal.$scope.state = 'update-error';
+            modal.$scope.error = err.message;
+          }
+        );
     }
 
     // maps a promise notifications with connected device descriptors

@@ -29,18 +29,22 @@
     <div class="modal-content"
          ng-switch-when="device-bootloader">
       <div class="modal-body">
-        <p>Do you really want to update the device firmware?</p>
+        <h3>Update the device firmware?</h3>
 
-        <strong class="h5">Current firmware:</strong>
-        {{version[0]}}.{{version[1]}}.{{version[2]}}
-        <br>
+        <div ng-if="version">
+          <strong class="h5">Current firmware:</strong>
+          {{version[0]}}.{{version[1]}}.{{version[2]}}
+        </div>
 
-        <strong class="h5">Available firmware:</strong>
-        {{firmware.version[0]}}.{{firmware.version[1]}}.{{firmware.version[2]}}
-        <br>
+        <div ng-if="firmware">
+          <strong class="h5">Available firmware:</strong>
+          {{firmware.version[0]}}.{{firmware.version[1]}}.{{firmware.version[2]}}
+        </div>
 
-        <h5 ng-if="firmware.changelog">Changelog:</h5>
-        <pre ng-if="firmware.changelog">{{firmware.changelog}}</pre>
+        <div ng-if="firmware.changelog">
+          <h5>Changelog:</h5>
+          <pre>{{firmware.changelog}}</pre>
+        </div>
 
       </div>
       <div class="modal-footer"
