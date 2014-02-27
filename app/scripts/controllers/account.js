@@ -122,9 +122,8 @@ angular.module('webwalletApp')
         }, {});
     }
 
-    $scope.scanQr = function () {
-      $scope.qrScanning = true;
-    };
+    $scope.scanQr = function () { $scope.qrScanning = true; };
+    $scope.cancelQr = function () { $scope.qrScanning = false; };
 
     // Send address auto-suggest
 

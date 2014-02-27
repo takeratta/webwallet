@@ -208,6 +208,25 @@ body {
 
 /* Send */
 
+.qrscan-video {
+  display: block;
+  width: 100%;
+}
+
+.qrscan-cancel {
+  position: absolute;
+  bottom: 10px;
+  right: 25px; /* 10px + 15px of col padding */
+}
+
+.qrscan-col .qrscan-cancel {
+  visibility: hidden;
+}
+
+.qrscan-col:hover .qrscan-cancel {
+  visibility: visible;
+}
+
 .txaddress-qrscan {
   position: absolute;
   font-size: 18px;

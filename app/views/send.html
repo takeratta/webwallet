@@ -55,9 +55,11 @@
 
   </form>
 
-  <div class="col-md-4"
+  <div class="qrscan-col col-md-4"
        ng-if="qrScanning">
     <qr-scan ng-model="$parent.qrAddress"></qr-scan>
+    <a href="" class="qrscan-cancel pull-right btn btn-xs btn-default text-muted"
+       ng-click="cancelQr()">Cancel</a>
   </div>
 
   <div class="col-md-4 text-muted"
