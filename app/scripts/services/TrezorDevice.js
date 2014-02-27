@@ -220,12 +220,12 @@ angular.module('webwalletApp')
 
     // Device calls
 
-    TrezorDevice.prototype.measureTx = function (tx) {
-      return this._session.measureTx(tx.inputs, tx.outputs);
+    TrezorDevice.prototype.measureTx = function (tx, coin) {
+      return this._session.measureTx(tx.inputs, tx.outputs, coin);
     };
 
-    TrezorDevice.prototype.signTx = function (tx, refTxs) {
-      return this._session.simpleSignTx(tx.inputs, tx.outputs, refTxs);
+    TrezorDevice.prototype.signTx = function (tx, coin, refTxs) {
+      return this._session.simpleSignTx(tx.inputs, tx.outputs, coin, refTxs);
     };
 
     TrezorDevice.prototype.flash = function (firmware) {

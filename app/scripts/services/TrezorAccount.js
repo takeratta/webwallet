@@ -152,7 +152,7 @@ angular.module('webwalletApp')
 
       // sign by device
       return txs.then(function (txs) {
-        return device.signTx(tx, txs).then(function (res) {
+        return device.signTx(tx, self.coin, txs).then(function (res) {
           var message = res.message,
               serializedTx = message.serialized_tx;
           return self._backend.send(serializedTx);
@@ -171,7 +171,7 @@ angular.module('webwalletApp')
         if (!tx)
           return $q.reject(new Error('Not enough funds'));
 
-        return device.measureTx(tx).then(function (res) {
+        return device.measureTx(tx, self.coin).then(function (res) {
           var bytes = parseInt(res.message.tx_size, 10),
               kbytes = Math.ceil(bytes / 1000),
               space = tx.total - amount,
