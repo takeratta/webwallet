@@ -21,6 +21,7 @@ angular.module('webwalletApp')
       this._offsets = { primary: null, change: null };
       this._utxos = { primary: null, change: null };
       this._txs = { primary: null, change: null };
+      this._txsDfd = $q.defer();
     }
 
     TrezorAccount.deserialize = function (data) {
@@ -264,11 +265,24 @@ angular.module('webwalletApp')
 
     // Backend communication
 
+    TrezorAccount.prototype.registerAndSubscribe = function () {
+      var self = this;
+
+      return self.register()
+        .then(function () { return self.subscribe(); })
+        .then(function () { return self._txsDfd.promise; });
+    };
+
     TrezorAccount.prototype.register = function () {
       var pr1 = this._backend.register(this.node),
           pr2 = this._backend.register(this.changeNode);
 
       return $q.all([pr1, pr2]);
+    };
+
+    TrezorAccount.prototype.deregisterAndUnsubscribe = function () {
+      this.unsubscribe();
+      return this.deregister();
     };
 
     TrezorAccount.prototype.deregister = function () {
@@ -292,12 +306,6 @@ angular.module('webwalletApp')
           this._subscriptions[k] = null;
         }
       }
-    };
-
-    TrezorAccount.prototype.loadPrimaryTxs = function () {
-      return this._backend.transactions(this.node).then(function (res) {
-        return res.data;
-      });
     };
 
     TrezorAccount.prototype._subscribeToNode = function (node, dataKey) {
@@ -341,6 +349,7 @@ angular.module('webwalletApp')
         this.transactions = txs.primary.concat(txs.change);
         this.transactions = this._mergeTxs(this.transactions);
         this.transactions = this._indexTxs(this.transactions, this._wallet);
+        this._txsDfd.resolve(this.transactions);
         this._offsets.primary = this._incrementOffset(txs.primary, this._offsets.primary || 0);
         this._offsets.change = this._incrementOffset(txs.change, this._offsets.change || 0);
       }

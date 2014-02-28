@@ -132,9 +132,7 @@ angular.module('webwalletApp')
 
     TrezorDevice.prototype.subscribe = function () {
       this.accounts.forEach(function (acc) {
-        acc.register().then(function () {
-          acc.subscribe();
-        });
+        acc.registerAndSubscribe();
       });
     };
 
@@ -164,9 +162,7 @@ angular.module('webwalletApp')
           acc = this.createAccount(accId);
 
       this.accounts.push(acc);
-      return acc.register().then(function () {
-        acc.subscribe();
-      });
+      return acc.registerAndSubscribe();
     };
 
     TrezorDevice.prototype.createAccount = function (id) {
@@ -204,14 +200,10 @@ angular.module('webwalletApp')
 
       function discoverAccount(n) {
         var acc = self.createAccount(n);
-        return acc.register()
-          .then(function () {
-            return acc.loadPrimaryTxs();
-          })
+        return acc.registerAndSubscribe()
           .then(function (txs) {
             if (!txs.length)
-              return acc.deregister();
-            acc.subscribe();
+              return acc.deregisterAndUnsubscribe();
             self.accounts[n] = acc;
             return discoverAccount(n + 1);
           });
