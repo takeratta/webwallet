@@ -8,4 +8,10 @@ angular.module('webwalletApp')
     $scope.isActive = function (path) {
       return $location.path().match(path);
     };
+
+    $scope.addAccount = function (dev) {
+      dev.addAccount();
+      $location.path('/device/' + dev.id + '/account/'
+        + dev.accounts[dev.accounts.length - 1].id);
+    };
   });

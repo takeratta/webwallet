@@ -21,7 +21,8 @@ angular.module('webwalletApp')
       $scope.account.unsubscribe();
       $scope.account.deregister();
       $scope.device.removeAccount($scope.account);
-      $location.path('/device/' + $scope.device.id);
+      $location.path('/device/' + $scope.device.id + '/account/'
+        + ($scope.device.accounts.length - 1));
     };
 
     //
