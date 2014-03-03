@@ -40,6 +40,10 @@
   padding: 15px 20px;
 }
 
+.breadcrumb li.pull-right:before {
+  display: none;
+}
+
 /* ngAnimate modals */
 .modal-backdrop.am-fade {
   opacity: .5;
