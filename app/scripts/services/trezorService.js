@@ -269,6 +269,7 @@ angular.module('webwalletApp')
         connectFn = connect;
         disconnectFn = disconnect;
         dfd.resolve();
+        modal.hide();
         modal.destroy();
       }
     }
