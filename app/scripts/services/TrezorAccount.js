@@ -87,16 +87,15 @@ angular.module('webwalletApp')
         return {
           path: utxos[0] ? utxos[0].path : null,
           address: tx.analysis.addr.toString(),
+          timestamp: tx.timestamp,
           balance: balance
         };
       });
 
       // sort by address
       ret = ret.sort(function (a, b) {
-        if (a.address > b.address)
-          return 1;
-        if (a.address < b.address)
-          return -1;
+        if (a.address > b.address) return 1;
+        if (a.address < b.address) return -1;
         return 0;
       });
 
@@ -109,6 +108,13 @@ angular.module('webwalletApp')
           xs.push(x);
         return xs;
       }, []);
+
+      // sort by timestamp in reverse
+      ret = ret.sort(function (a, b) {
+        if (a.timestamp > b.timestamp) return -1;
+        if (a.timestamp < b.timestamp) return 1;
+        return 0;
+      });
 
       return ret;
     };
