@@ -2,7 +2,8 @@
   <!-- Device -->
   <li ng-repeat="device in devices">
     <a ng-href="#/device/{{device.id}}"
-       ng-class="{ active: isActive('/device/{{device.id}}$') }">
+       ng-class="{ active: isActive('/device/{{device.id}}$'),
+                   'bg-danger': device.is('error') }">
       <h4>
         {{device.label()}}
         <span class="dev-status dev-status-{{device.status()}}"
@@ -13,6 +14,9 @@
           <span ng-switch-when="connected"
                 class="glyphicon glyphicon-link"
                 title="Connected"></span>
+          <span ng-switch-when="error"
+                class="glyphicon glyphicon-warning-sign"
+                title="Error"></span>
         </span>
       </h4>
     </a>

@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('webwalletApp')
-  .factory('TrezorDevice', function (trezor, utils, firmwareService, TrezorAccount) {
+  .factory('TrezorDevice', function (trezor, utils, firmwareService, TrezorAccount, $q) {
 
     function TrezorDevice(id) {
       this.id = id;
@@ -12,6 +12,7 @@ angular.module('webwalletApp')
       this._desc = null;
       this._session = null;
       this._loading = null;
+      this._error = null;
     }
 
     TrezorDevice.deserialize = function (data) {
@@ -40,6 +41,7 @@ angular.module('webwalletApp')
     // Device status, connection with hw
 
     TrezorDevice.prototype.status = function () {
+      if (this._error) return 'error';
       if (this._loading) return 'loading';
       if (this._desc) return 'connected';
       return 'disconnected';
@@ -131,16 +133,15 @@ angular.module('webwalletApp')
     };
 
     TrezorDevice.prototype.subscribe = function () {
-      this.accounts.forEach(function (acc) {
-        acc.registerAndSubscribe();
-      });
+      return $q.all(this.accounts.map(function (acc) {
+        return acc.registerAndSubscribe();
+      }));
     };
 
     TrezorDevice.prototype.unsubscribe = function (deregister) {
       this.accounts.forEach(function (acc) {
         acc.unsubscribe();
-        if (deregister)
-          acc.deregister();
+        if (deregister) acc.deregister();
       });
     };
 
@@ -289,11 +290,18 @@ angular.module('webwalletApp')
     TrezorDevice.prototype.withLoading = function (fn) {
       var self = this;
 
-      start();
-      return fn().then(end, end);
-
-      function start() { self._loading = true; }
-      function end() { self._loading = false; }
+      self._loading = true;
+      self._error = null;
+      return fn().then(
+        function () {
+          self._loading = false;
+          self._error = null;
+        },
+        function (err) {
+          self._loading = false;
+          self._error = err;
+        }
+      );
     };
 
     return TrezorDevice;
