@@ -12,7 +12,7 @@ angular.module('webwalletApp')
 angular.module('webwalletApp')
   // coin name -> backend endpoint
   .value('backends', {
-    'Bitcoin': 'http://api.bitsofproof.com:8083',
+    'Bitcoin': 'https://mytrezor.com:80',
     'Testnet': 'http://test-api.bitsofproof.com:8080'
   })
   // coin name -> public address version

@@ -170,12 +170,12 @@ angular.module('webwalletApp')
           accNode = trezor.deriveChildNode(master, id),
           coinNode = trezor.deriveChildNode(accNode, 0), // = bitcoin
           coin = {
-            coin_name: 'Testnet',
-            coin_shortcut: 'TEST',
-            address_type: 111,
-            // coin_name: 'Bitcoin',
-            // coin_shortcut: 'BTC',
-            // address_type: 0,
+            // coin_name: 'Testnet',
+            // coin_shortcut: 'TEST',
+            // address_type: 111,
+            coin_name: 'Bitcoin',
+            coin_shortcut: 'BTC',
+            address_type: 0,
           };
 
       return new TrezorAccount(''+id, coin,
