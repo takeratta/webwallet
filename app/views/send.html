@@ -7,7 +7,7 @@
   <li class="pull-right">
     <a href="" class="text-muted"
        title="Forget this device"
-       ng-click="forget(device)"
+       ng-click="forgetDevice()"
       ><span class="glyphicon glyphicon-log-out"></span></a>
   </li>
 </ol>
@@ -46,7 +46,7 @@
         <a href="" class="glyphicon glyphicon-qrcode txaddress-qrscan text-muted"
            title="Scan QR code"
            ng-click="scanQr()"
-           ng-show="!transaction.address && !qrScanning"></a>
+           ng-show="!transaction.address && !qrScanning && qrScanEnabled"></a>
       </div>
     </div>
 

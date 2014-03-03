@@ -5,7 +5,7 @@
   <li class="pull-right">
     <a href="" class="text-muted"
        title="Forget this device"
-       ng-click="forget(device)"
+       ng-click="forgetDevice()"
       ><span class="glyphicon glyphicon-log-out"></span></a>
   </li>
 </ol>
@@ -30,8 +30,10 @@
      ng-show="account.transactions != null && !account.transactions.length">
   <h4>No transactions to display</h4>
   <a href="" class="btn btn-default"
-     ng-show="device.accounts.length > 1"
-     ng-click="forget(account)">Hide this account</a>
+     ng-show="account.isEmpty()
+      && account.id == device.accounts.length - 1
+      && device.accounts.length > 1"
+     ng-click="forgetAccount()">Hide this account</a>
 </div>
 <table class="txlist table table-hover"
        ng-show="account.transactions != null && account.transactions.length">

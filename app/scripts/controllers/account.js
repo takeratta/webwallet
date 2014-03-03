@@ -8,14 +8,19 @@ angular.module('webwalletApp')
     if (!$scope.device)
       return $location.path('/');
 
+    $scope.forgetDevice = function () {
+      trezorService.forget($scope.device.id);
+      $location.path('/');
+    };
+
     $scope.account = $scope.device.account($routeParams.accountId);
     if (!$scope.account)
       return $location.path('/');
 
-    $scope.forget = function (account) {
-      account.unsubscribe();
-      account.deregister();
-      $scope.device.removeAccount(account);
+    $scope.forgetAccount = function () {
+      $scope.account.unsubscribe();
+      $scope.account.deregister();
+      $scope.device.removeAccount($scope.account);
       $location.path('/device/' + $scope.device.id);
     };
 
@@ -77,6 +82,8 @@ angular.module('webwalletApp')
 
     // Send address scan
 
+    $scope.qrScanEnabled = navigator.getUserMedia || navigator.webkitGetUserMedia ||
+                           navigator.mozGetUserMedia || navigator.msGetUserMedia;
     $scope.qrAddress = null;
     $scope.qrScanning = false;
 
