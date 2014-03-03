@@ -1,35 +1,28 @@
 'use strict';
 
 angular.module('webwalletApp')
-  .factory('TrezorAccount', function (utils, trezor, TrezorBackend,
-      Crypto, BigInteger, Bitcoin, $q) {
+  .factory('TrezorAccount', function (utils, trezor, TrezorBackend, TrezorBranch,
+      BigInteger, Bitcoin, $q) {
 
-    function TrezorAccount(id, coin, node, changeNode) {
+    function TrezorAccount(id, coin, nodes) {
       this.id = id;
       this.coin = coin;
-      this.node = node;
-      this.changeNode = changeNode;
-      this.transactions = null;
-      this.balance = null;
       this.utxos = null;
+      this.balance = null;
+      this.transactions = null;
 
       this._feePerKb = 10000;
-
-      this._backend = new TrezorBackend(coin);
       this._wallet = new Bitcoin.Wallet();
-      this._subscriptions = { primary: null, change: null };
-      this._offsets = { primary: null, change: null };
-      this._utxos = { primary: null, change: null };
-      this._txs = { primary: null, change: null };
-      this._txsDfd = $q.defer();
+      this._backend = new TrezorBackend(coin);
+      this._external = new TrezorBranch(nodes.external, this._backend);
+      this._change = new TrezorBranch(nodes.change, this._backend);
     }
 
     TrezorAccount.deserialize = function (data) {
       return new TrezorAccount(
         data.id,
         data.coin,
-        data.node,
-        data.changeNode
+        data.nodes
       );
     };
 
@@ -37,26 +30,23 @@ angular.module('webwalletApp')
       return {
         id: this.id,
         coin: this.coin,
-        node: this.node,
-        changeNode: this.changeNode
+        nodes: {
+          external: this._external.node,
+          change: this._change.node
+        }
       };
+    };
+
+    TrezorAccount.prototype.isEmpty = function () {
+      return !this.transactions || !this.transactions.length;
     };
 
     TrezorAccount.prototype.label = function () {
-      var n = +this.id + 1;
-      return 'Account #' + n;
+      return 'Account #' + (+this.id + 1);
     };
 
     TrezorAccount.prototype.address = function (n) {
-      var index = this._offsets.primary + n,
-          child = trezor.deriveChildNode(this.node, index),
-          address = utils.node2address(child, this.coin.address_type);
-
-      return {
-        path: child.path,
-        address: address,
-        index: index
-      };
+      return this._external.address(n, this.coin);
     };
 
     TrezorAccount.prototype.usedAddresses = function () {
@@ -119,6 +109,10 @@ angular.module('webwalletApp')
       return ret;
     };
 
+    //
+    // Tx sending
+    //
+
     TrezorAccount.prototype.sendTx = function (tx, device) {
       var self = this,
           txs;
@@ -126,9 +120,9 @@ angular.module('webwalletApp')
       // lookup txs referenced by inputs
       txs = tx.inputs.map(function (inp) {
         var hash = inp.prev_hash,
-            node = [self.node, self.changeNode]
-              [inp.address_n[inp.address_n.length-2]]; // TODO: HACK!
-        return self._backend.lookupTx(node, hash);
+            branch = [self._external, self._change]
+              [inp.address_n[inp.address_n.length-2]];
+        return self._backend.lookupTx(branch.node, hash);
       });
 
       // convert to trezor structures
@@ -205,8 +199,8 @@ angular.module('webwalletApp')
     TrezorAccount.prototype._constructTx = function (address, amount, fee) {
       var tx = {},
           utxos = this._selectUtxos(amount + fee),
-          chnode = this.changeNode,
-          choffset = this._offsets.change,
+          chnode = this._change.node,
+          choffset = this._change._offset,
           chpath = chnode.path.concat([choffset]),
           total, change;
 
@@ -226,7 +220,7 @@ angular.module('webwalletApp')
         };
       });
       tx.outputs = [
-        { // primary output
+        { // external output
           address: address,
           amount: amount,
           script_type: 'PAYTOADDRESS'
@@ -269,21 +263,16 @@ angular.module('webwalletApp')
         return ret;
     };
 
+    //
     // Backend communication
+    //
 
     TrezorAccount.prototype.registerAndSubscribe = function () {
       var self = this;
 
-      return self.register()
-        .then(function () { return self.subscribe(); })
-        .then(function () { return self._txsDfd.promise; });
-    };
-
-    TrezorAccount.prototype.register = function () {
-      var pr1 = this._backend.register(this.node),
-          pr2 = this._backend.register(this.changeNode);
-
-      return $q.all([pr1, pr2]);
+      return self.register().then(function () {
+        return self.subscribe();
+      });
     };
 
     TrezorAccount.prototype.deregisterAndUnsubscribe = function () {
@@ -291,73 +280,55 @@ angular.module('webwalletApp')
       return this.deregister();
     };
 
-    TrezorAccount.prototype.deregister = function () {
-      var pr1 = this._backend.deregister(this.node),
-          pr2 = this._backend.deregister(this.changeNode);
+    TrezorAccount.prototype.register = function () {
+      return $q.all([
+        this._external.register(),
+        this._change.register()
+      ]);
+    };
 
-      return $q.all([pr1, pr2]);
+    TrezorAccount.prototype.deregister = function () {
+      return $q.all([
+        this._external.deregister(),
+        this._change.deregister()
+      ]);
     };
 
     TrezorAccount.prototype.subscribe = function () {
-      this._subscriptions.primary = this._subscribeToNode(this.node, 'primary');
-      this._subscriptions.change = this._subscribeToNode(this.changeNode, 'change');
+      var handlers = {
+        transactions: this._rollupTransactions.bind(this),
+        utxos: this._rollupUtxos.bind(this)
+      };
+
+      return $q.all([
+        this._external.subscribe(handlers),
+        this._change.subscribe(handlers)
+      ]);
     };
 
     TrezorAccount.prototype.unsubscribe = function () {
-      var k;
-
-      for (k in this._subscriptions) {
-        if (this._subscriptions.hasOwnProperty(k) && this._subscriptions[k]) {
-          this._subscriptions[k].unsubscribe();
-          this._subscriptions[k] = null;
-        }
-      }
-    };
-
-    TrezorAccount.prototype._subscribeToNode = function (node, dataKey) {
-      var self = this,
-          loadingTxs = false;
-
-      return self._backend.subscribe(node, function (data) {
-        if (data.status === 'PENDING') // ignore pending data
-          return;
-
-        // balance update processing
-        self._utxos[dataKey] = self._constructUtxos(data, node.path);
-        self._rollupUtxos();
-
-        // load transactions on any balance update
-        if (!loadingTxs) {
-          loadingTxs = true;
-          self._backend.transactions(node)
-            .then(function (res) {
-              self._txs[dataKey] = self._constructTxs(res.data, node.path);
-              self._rollupTxs();
-              loadingTxs = false;
-            }, function () {
-              loadingTxs = false;
-            });
-        }
-      });
+      this._external.unsubscribe();
+      this._change.unsubscribe();
     };
 
     TrezorAccount.prototype._rollupUtxos = function () {
-      var utxos = this._utxos;
-      if (utxos.primary && utxos.change) {
-        this.utxos = utxos.primary.concat(utxos.change);
+      var external = this._external._utxos,
+          change = this._change._utxos;
+
+      if (external && change) {
+        this.utxos = external.concat(change);
         this.balance = this._constructBalance(this.utxos);
       }
     };
 
-    TrezorAccount.prototype._rollupTxs = function () {
-      var txs = this._txs;
-      if (txs.primary && txs.change) {
-        this.transactions = txs.primary.concat(txs.change);
+    TrezorAccount.prototype._rollupTransactions = function () {
+      var external = this._external._transactions,
+          change = this._change._transactions;
+
+      if (external && change) {
+        this.transactions = external.concat(change);
         this.transactions = this._mergeTxs(this.transactions);
         this.transactions = this._indexTxs(this.transactions, this._wallet);
-        this._txsDfd.resolve(this.transactions);
-        this._offsets.primary = this._incrementOffset(txs.primary, this._offsets.primary || 0);
-        this._offsets.change = this._incrementOffset(txs.change, this._offsets.change || 0);
       }
     };
 
@@ -365,67 +336,6 @@ angular.module('webwalletApp')
       return utxos.reduce(function (bal, txo) {
         return bal.add(new BigInteger(txo.value.toString()));
       }, BigInteger.ZERO);
-    };
-
-    TrezorAccount.prototype._constructUtxos = function (details, basePath) {
-      return [
-        details.confirmed, details.change, details.receiving
-      ].reduce(function (utxos, x) {
-        return utxos.concat(x);
-      }).map(function (utxo) {
-        utxo.path = basePath.concat([utxo.addressId]);
-        return utxo;
-      });
-    };
-
-    TrezorAccount.prototype._constructTxs = function (txs, basePath) {
-      return txs.map(transaction);
-
-      function transaction(tx) {
-        var ret = new Bitcoin.Transaction({
-          hash: tx.hash,
-          version: tx.version,
-          lock_time: tx.lockTime,
-          timestamp: tx.timestamp,
-          block: tx.blockHash
-        });
-        ret.ins = tx.inputs.map(input);
-        ret.outs = tx.outputs.map(output);
-        return ret;
-      }
-
-      function input(inp) {
-        return new Bitcoin.TransactionIn({
-          outpoint: {
-            hash: inp.sourceHash,
-            index: inp.ix
-          },
-          script: inp.script,
-          sequence: inp.sequence
-        });
-      }
-
-      function output(out) {
-        return new TrezorTransactionOut({
-          script: out.script,
-          value: out.value.toString(),
-          index: out.ix,
-          path: out.addressId != null ? basePath.concat([out.addressId]) : null
-        });
-      }
-    };
-
-    TrezorAccount.prototype._incrementOffset = function (txs, offset) {
-      txs.forEach(function (tx) {
-        tx.outs
-          .filter(function (out) {return out.path;})
-          .forEach(function (out) {
-            var id = out.path[out.path.length-1];
-            if (id >= offset)
-              offset = id + 1;
-          });
-      });
-      return offset;
     };
 
     TrezorAccount.prototype._mergeTxs = function (txs) {
@@ -497,21 +407,6 @@ angular.module('webwalletApp')
         if (ta < tb) return 1;
         return 0;
       }
-    };
-
-    function TrezorTransactionOut(data) {
-      Bitcoin.TransactionOut.call(this, data);
-      this.index = data.index;
-      this.path = data.path;
-    }
-
-    TrezorTransactionOut.prototype = Object.create(Bitcoin.TransactionOut.prototype);
-
-    TrezorTransactionOut.prototype.clone = function () {
-      var val = Bitcoin.TransactionOut.clone.call(this);
-      val.index = this.index;
-      val.path = this.path;
-      return val;
     };
 
     return TrezorAccount;

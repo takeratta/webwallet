@@ -178,10 +178,10 @@ angular.module('webwalletApp')
             address_type: 0,
           };
 
-      return new TrezorAccount(''+id, coin,
-        trezor.deriveChildNode(coinNode, 0), // normal adresses
-        trezor.deriveChildNode(coinNode, 1) // change addresses
-      );
+      return new TrezorAccount(''+id, coin, {
+        external: trezor.deriveChildNode(coinNode, 0),
+        change: trezor.deriveChildNode(coinNode, 1)
+      });
     };
 
     TrezorDevice.prototype.removeAccount = function (account) {
@@ -200,13 +200,12 @@ angular.module('webwalletApp')
 
       function discoverAccount(n) {
         var acc = self.createAccount(n);
-        return acc.registerAndSubscribe()
-          .then(function (txs) {
-            if (!txs.length)
-              return acc.deregisterAndUnsubscribe();
-            self.accounts[n] = acc;
-            return discoverAccount(n + 1);
-          });
+        return acc.registerAndSubscribe().then(function () {
+          if (acc.isEmpty())
+            return acc.deregisterAndUnsubscribe();
+          self.accounts[n] = acc;
+          return discoverAccount(n + 1);
+        });
       }
     };
 
