@@ -325,14 +325,22 @@ angular.module('webwalletApp')
       if (!ngModel)
         throw new Error('ng-model attribute is required');
 
-      if (navigator.getUserMedia) initVideo();
+      if (!navigator.getUserMedia)
+        throw new Error('getUserMedia is not supported');
+
+      initVideo();
 
       function initVideo() {
-        navigator.getUserMedia({ video: true }, function (vs) {
-          stream = vs;
-          video.src = (window.URL && window.URL.createObjectURL(vs)) || vs;
-          video.onloadedmetadata = initCanvas;
-        });
+        navigator.getUserMedia({ video: true },
+          function (vs) {
+            stream = vs;
+            video.src = (window.URL && window.URL.createObjectURL(vs)) || vs;
+            video.onloadedmetadata = initCanvas;
+          },
+          function () {
+            ngModel.$setViewValue(null);
+          }
+        );
       }
 
       function initCanvas() {
