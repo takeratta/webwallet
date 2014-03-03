@@ -248,17 +248,17 @@ angular.module('webwalletApp')
       }
 
       function disconnected(desc) {
-        var dev = modal.$scope.device;
+        var dev = modal.$scope.device,
+            state = modal.$scope.state;
 
         if (!dev || dev.id !== desc.path)
           return disconnect(desc);
         dev.disconnect();
         modal.$scope.device = null;
 
-        if (modal.$scope.state === 'update-success' || modal.$scope.state === 'update-error')
-          cancel();
-        else
-          modal.$scope.state = 'initial';
+        if (state === 'update-success' || state === 'update-error')
+          return cancel();
+        modal.$scope.state = 'initial';
       }
 
       function update() {
