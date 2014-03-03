@@ -19,21 +19,15 @@ angular.module('webwalletApp')
       return '';
     };
   })
-  .filter('passwordify', function () {
-    return function (val) {
-      return val.split('').map(function () { return '*'; }).join('');
-    };
-  })
   .filter('amount', function (Bitcoin) {
     return function (val) {
       if (val)
         return Bitcoin.Util.formatValue(val);
     };
   })
-  .filter('bytesToHex', function (Bitcoin) {
+  .filter('bip32Path', function () {
     return function (val) {
-      if (val)
-        return Bitcoin.Util.bytesToHex(val);
+      return 'm/' + val.join('/');
     };
   });
 

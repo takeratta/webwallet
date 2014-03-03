@@ -238,6 +238,11 @@ body {
   top: 8px;
 }
 
+.txpreview {
+  font-size: 10px;
+  word-wrap: break-word;
+}
+
 /* Device setup */
 
 .devsetup-strength {

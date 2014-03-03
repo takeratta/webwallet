@@ -69,18 +69,20 @@
        ng-click="cancelQr()">Cancel</a>
   </div>
 
-  <div class="col-md-4 text-muted"
+  <div class="txpreview col-md-4 text-muted"
        ng-if="builtTx">
-    <h6>Inputs</h6>
-    <ol>
-      <li ng-repeat="input in builtTx.intputs">
+    <h5>Inputs</h5>
+    <ol class="list-unstyled">
+      <li ng-repeat="input in builtTx.inputs">
         {{input.prev_hash}}:{{input.prev_index}}
       </li>
     </ol>
-    <h6>Outputs</h6>
-    <ol>
+    <h5>Outputs</h5>
+    <ol class="list-unstyled">
       <li ng-repeat="output in builtTx.outputs">
-        {{output.address}} {{output.amount | amount}} {{account.coin.coin_shortcut}})
+        <strong>{{output.amount | amount}} {{account.coin.coin_shortcut}}</strong><br>
+        <span ng-if="output.address">{{output.address}}</span>
+        <span ng-if="output.address_n">{{output.address_n | bip32Path}}</span>
       </li>
     </ol>
   </div>
