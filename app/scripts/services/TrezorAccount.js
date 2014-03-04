@@ -115,10 +115,19 @@ angular.module('webwalletApp')
 
     TrezorAccount.prototype.sendTx = function (tx, device) {
       var self = this,
-          txs;
+          uins, txs;
+
+      // find unique inputs by tx hash
+      uins = tx.inputs.filter(function (inp, i) {
+        var pi = utils.findIndex(tx.inputs, inp, function (a, b) {
+          return a.prev_hash === b.prev_hash;
+        });
+
+        return pi === i;
+      });
 
       // lookup txs referenced by inputs
-      txs = tx.inputs.map(function (inp) {
+      txs = uins.map(function (inp) {
         var hash = inp.prev_hash,
             branch = [self._external, self._change]
               [inp.address_n[inp.address_n.length-2]];
@@ -181,7 +190,7 @@ angular.module('webwalletApp')
           if (space - fee < 5430) { // there is no need for a change address
             delete tx.outputs[1];
             tx.outputs.length = 1;
-            tx.fee = fee;
+            tx.fee = space;
             return tx;
           }
 
