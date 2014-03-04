@@ -3,6 +3,7 @@
   <li ng-repeat="device in devices">
     <a ng-href="#/device/{{device.id}}"
        ng-class="{ active: isActive('/device/{{device.id}}$'),
+                   'text-danger': device.is('error'),
                    'bg-danger': device.is('error') }">
       <h4>
         {{device.label()}}
