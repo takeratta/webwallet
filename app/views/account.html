@@ -1,6 +1,13 @@
 <ol class="breadcrumb">
   <li><a ng-href="#/device/{{device.id}}">{{device.label()}}</a></li>
   <li class="active">{{account.label()}}</li>
+
+  <li class="pull-right">
+    <a href="" class="text-muted"
+       title="Forget this device"
+       ng-click="forgetDevice()"
+      ><span class="glyphicon glyphicon-log-out"></span></a>
+  </li>
 </ol>
 
 <p class="nav-sendrecv btn-group btn-group-lg">
@@ -19,10 +26,15 @@
    ng-show="account.transactions == null">
   <span class="glyphicon glyphicon-refresh glyphicon-spin"></span>
 </p>
-<p class="text-center text-muted h4"
-   ng-show="account.transactions != null && !account.transactions.length">
-  No transactions to display
-</p>
+<div class="text-center text-muted"
+     ng-show="account.transactions != null && !account.transactions.length">
+  <h4>No transactions to display</h4>
+  <a href="" class="btn btn-default"
+     ng-show="account.isEmpty()
+              && account.id == device.accounts.length - 1
+              && device.accounts.length > 1"
+     ng-click="forgetAccount()">Hide this account</a>
+</div>
 <table class="txlist table table-hover"
        ng-show="account.transactions != null && account.transactions.length">
   <tbody>
@@ -79,7 +91,3 @@
     </tr>
   </tbody>
 </table>
-
-<a href="" class="btn btn-default pull-right"
-   ng-show="device.accounts.length > 1"
-   ng-click="forget(account)">Forget account</a>

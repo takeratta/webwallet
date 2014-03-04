@@ -1,10 +1,10 @@
 'use strict';
 
 angular.module('webwalletApp')
-  .factory('TrezorDevice', function (trezor, utils, firmwareService, TrezorAccount) {
+  .factory('TrezorDevice', function (trezor, utils, firmwareService, TrezorAccount, $q) {
 
     function TrezorDevice(id) {
-      this.id = id;
+      this.id = ''+id;
       this.accounts = [];
       this.callbacks = {}; // pin, passphrase callbacks
       this.features = null;
@@ -12,6 +12,7 @@ angular.module('webwalletApp')
       this._desc = null;
       this._session = null;
       this._loading = null;
+      this._error = null;
     }
 
     TrezorDevice.deserialize = function (data) {
@@ -111,7 +112,6 @@ angular.module('webwalletApp')
       return self._session.getPublicKey().then(
         function (res) { // setup master node
           self.node = res.message.node;
-          self.node.path = [];
           return self.node;
         },
         function (err) {
@@ -123,31 +123,31 @@ angular.module('webwalletApp')
     };
 
     TrezorDevice.prototype.initializeAccounts = function () {
-      if (!this.hasKey()) return;
-      if (!this.accounts.length) {
-        this.addAccount();
+      if (this.hasKey() && !this.accounts.length)
         return this.discoverAccounts();
-      }
     };
 
     TrezorDevice.prototype.subscribe = function () {
-      this.accounts.forEach(function (acc) {
-        acc.registerAndSubscribe();
-      });
+      return $q.all(this.accounts.map(function (acc) {
+        return acc.registerAndSubscribe();
+      }));
     };
 
     TrezorDevice.prototype.unsubscribe = function (deregister) {
       this.accounts.forEach(function (acc) {
         acc.unsubscribe();
-        if (deregister)
-          acc.deregister();
+        if (deregister) acc.deregister();
       });
     };
 
+    //
     // Account management
+    //
 
     TrezorDevice.prototype.addAccountAllowed = function () {
-      return this.hasKey() && this.accounts.length < 10;
+      return this.is('connected')
+        && this.accounts.length < 10
+        && this.hasKey();
     };
 
     TrezorDevice.prototype.account = function (id) {
@@ -157,40 +157,15 @@ angular.module('webwalletApp')
     };
 
     TrezorDevice.prototype.addAccount = function () {
-      var prevAcc = this.accounts[this.accounts.length-1],
-          accId = prevAcc ? +prevAcc.id + 1 : 0,
-          acc = this.createAccount(accId);
+      var self = this,
+          pacc = this.accounts[this.accounts.length-1],
+          id = pacc ? +pacc.id + 1 : 0;
 
-      this.accounts.push(acc);
-      return acc.registerAndSubscribe();
-    };
-
-    TrezorDevice.prototype.createAccount = function (id) {
-      var master = this.node,
-          accNode = trezor.deriveChildNode(master, id),
-          coinNode = trezor.deriveChildNode(accNode, 0), // = bitcoin
-          coin = {
-            // coin_name: 'Testnet',
-            // coin_shortcut: 'TEST',
-            // address_type: 111,
-            coin_name: 'Bitcoin',
-            coin_shortcut: 'BTC',
-            address_type: 0,
-          };
-
-      return new TrezorAccount(''+id, coin,
-        trezor.deriveChildNode(coinNode, 0), // normal adresses
-        trezor.deriveChildNode(coinNode, 1) // change addresses
-      );
-    };
-
-    TrezorDevice.prototype.removeAccount = function (account) {
-      var idx = utils.findIndex(this.accounts, account.id, function (acc, id) {
-        return acc.id === id;
+      return self._createAccount(id).then(function (acc) {
+        self.accounts.push(acc);
+        acc.registerAndSubscribe(); // we do not wait until this finishes
+        return acc;
       });
-
-      if (idx > 0)
-        this.accounts.splice(idx, 1);
     };
 
     TrezorDevice.prototype.discoverAccounts = function () {
@@ -199,18 +174,56 @@ angular.module('webwalletApp')
       return discoverAccount(self.accounts.length);
 
       function discoverAccount(n) {
-        var acc = self.createAccount(n);
-        return acc.registerAndSubscribe()
-          .then(function (txs) {
-            if (!txs.length)
+        return self._createAccount(n).then(function (acc) {
+          return acc.registerAndSubscribe().then(function () {
+            if (acc.isEmpty() && self.accounts.length > 0)
               return acc.deregisterAndUnsubscribe();
-            self.accounts[n] = acc;
+            self.accounts.push(acc);
             return discoverAccount(n + 1);
           });
+        });
       }
     };
 
+    TrezorDevice.prototype.removeAccount = function (account) {
+      var idx = utils.findIndex(this.accounts, account.id, function (acc, id) {
+        return acc.id === id;
+      });
+
+      if (idx > 0) this.accounts.splice(idx, 1);
+    };
+
+    TrezorDevice.prototype._getCoin = function (name) {
+      return utils.find(this.features.coins, name, function (coin, name) {
+        return coin.coin_name === name;
+      });
+    };
+
+    TrezorDevice.prototype._getPathForAccount = function (id) {
+      return [
+        0, // cointype
+        (0 | 0x80000000) >>> 0, // reserved'
+        (id | 0x80000000) >>> 0 // account'
+      ];
+    };
+
+    TrezorDevice.prototype._createAccount = function (id) {
+      var coin = this._getCoin('Bitcoin'),
+          path = this._getPathForAccount(id);
+
+      return this._session.getPublicKey(path).then(function (res) {
+        var node = res.message.node;
+
+        return new TrezorAccount(id, coin, {
+          external: trezor.deriveChildNode(node, 0),
+          change: trezor.deriveChildNode(node, 1)
+        });
+      });
+    };
+
+    //
     // Device calls
+    //
 
     TrezorDevice.prototype.measureTx = function (tx, coin) {
       return this._session.measureTx(tx.inputs, tx.outputs, coin);
@@ -290,11 +303,18 @@ angular.module('webwalletApp')
     TrezorDevice.prototype.withLoading = function (fn) {
       var self = this;
 
-      start();
-      return fn().then(end, end);
-
-      function start() { self._loading = true; }
-      function end() { self._loading = false; }
+      self._loading = true;
+      self._error = null;
+      return fn().then(
+        function () {
+          self._loading = false;
+          self._error = null;
+        },
+        function (err) {
+          self._loading = false;
+          self._error = err;
+        }
+      );
     };
 
     return TrezorDevice;

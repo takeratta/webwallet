@@ -3,6 +3,13 @@
   <li><a ng-href="#/device/{{device.id}}/account/{{account.id}}"
     >{{account.label()}}</a></li>
   <li class="active">Receive</li>
+
+  <li class="pull-right">
+    <a href="" class="text-muted"
+       title="Forget this device"
+       ng-click="forgetDevice()"
+      ><span class="glyphicon glyphicon-log-out"></span></a>
+  </li>
 </ol>
 
 <div class="row">
@@ -72,7 +79,7 @@
       <ul class="list-unstyled">
         <li ng-if="activeAddress.path">
           <span class="h6">BIP32 Path:</span>
-          <small class="text-monospace">m/{{ activeAddress.path.join('/') }}</small>
+          <small class="text-monospace">{{ activeAddress.path | bip32Path }}</small>
         </li>
         <li ng-if="activeAddress.balance">
           <span class="h6">Balance:</span>

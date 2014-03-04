@@ -1,6 +1,13 @@
 <ol class="breadcrumb">
   <li><a ng-href="#/device/{{device.id}}">{{device.label()}}</a></li>
   <li class="active">Seed recovery</li>
+
+  <li class="pull-right">
+    <a href="" class="text-muted"
+       title="Forget this device"
+       ng-click="forgetDevice()"
+      ><span class="glyphicon glyphicon-log-out"></span></a>
+  </li>
 </ol>
 
 <div ng-if="!device.is('connected')" class="alert alert-warning">

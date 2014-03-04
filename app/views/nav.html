@@ -2,7 +2,9 @@
   <!-- Device -->
   <li ng-repeat="device in devices">
     <a ng-href="#/device/{{device.id}}"
-       ng-class="{ active: isActive('/device/{{device.id}}$') }">
+       ng-class="{ active: isActive('/device/{{device.id}}$'),
+                   'text-danger': device.is('error'),
+                   'bg-danger': device.is('error') }">
       <h4>
         {{device.label()}}
         <span class="dev-status dev-status-{{device.status()}}"
@@ -13,6 +15,9 @@
           <span ng-switch-when="connected"
                 class="glyphicon glyphicon-link"
                 title="Connected"></span>
+          <span ng-switch-when="error"
+                class="glyphicon glyphicon-warning-sign"
+                title="Error"></span>
         </span>
       </h4>
     </a>
@@ -28,8 +33,7 @@
                 ({{account.balance | amount}} {{account.coin.coin_shortcut}})
               </span>
               <span ng-if="account.balance == null">
-                (<span class="glyphicon glyphicon-refresh glyphicon-spin"></span>
-                {{account.coin.coin_shortcut}})
+                <span class="glyphicon glyphicon-refresh glyphicon-spin"></span>
               </span>
             </small>
           </a>
@@ -38,9 +42,8 @@
 
     <a ng-href="" class="btn btn-sm"
        ng-class="{ active: isActive('/device/{{device.id}}/account-add') }"
-       ng-click="device.addAccount()"
-       ng-show="device.hasKey()"
-       ng-disabled="!device.addAccountAllowed()"
+       ng-click="addAccount(device)"
+       ng-show="device.addAccountAllowed()"
       ><span class="glyphicon glyphicon-plus"></span> Add account</a>
   </li>
 </ul>

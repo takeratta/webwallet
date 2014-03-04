@@ -40,6 +40,10 @@
   padding: 15px 20px;
 }
 
+.breadcrumb li.pull-right:before {
+  display: none;
+}
+
 /* ngAnimate modals */
 .modal-backdrop.am-fade {
   opacity: .5;
@@ -232,6 +236,11 @@ body {
   font-size: 18px;
   right: 22px;
   top: 8px;
+}
+
+.txpreview {
+  font-size: 10px;
+  word-wrap: break-word;
 }
 
 /* Device setup */

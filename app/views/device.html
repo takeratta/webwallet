@@ -1,5 +1,12 @@
 <ol class="breadcrumb">
   <li class="active">{{device.label()}}</li>
+
+  <li class="pull-right">
+    <a href="" class="text-muted"
+       title="Forget this device"
+       ng-click="forgetDevice()"
+      ><span class="glyphicon glyphicon-log-out"></span></a>
+  </li>
 </ol>
 
 <div ng-if="!device.is('connected')" class="alert alert-warning">
@@ -13,13 +20,6 @@
        ng-href="#/device/{{device.id}}/setup"
       ><span class="glyphicon glyphicon-cog"></span> Setup device</a>
   </p>
-
-</fieldset>
-
-<a href="" class="btn btn-default pull-right"
-   ng-click="forget(device)">Forget device</a>
-
-<fieldset ng-disabled="!device.is('connected')">
 
   <p ng-show="!device.hasKey()">
    <a class="btn btn-default"

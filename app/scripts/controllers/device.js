@@ -6,8 +6,8 @@ angular.module('webwalletApp')
     if (!$scope.device)
       return $location.path('/');
 
-    $scope.forget = function (dev) {
-      trezorService.forget(dev.id);
+    $scope.forgetDevice = function () {
+      trezorService.forget($scope.device.id);
       $location.path('/');
     };
 

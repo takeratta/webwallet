@@ -202,10 +202,12 @@ angular.module('webwalletApp')
         });
         dev.callbacks.receive = function () {
           dev.callbacks.receive = null;
+          modal.hide();
           modal.destroy();
         };
         dev.callbacks.error = function () {
           dev.callbacks.error = null;
+          modal.hide();
           modal.destroy();
         };
       };
@@ -269,6 +271,7 @@ angular.module('webwalletApp')
         connectFn = connect;
         disconnectFn = disconnect;
         dfd.resolve();
+        modal.hide();
         modal.destroy();
       }
     }
@@ -305,6 +308,7 @@ angular.module('webwalletApp')
           return disconnect(desc);
         disconnectFn = disconnect;
         dev.disconnect();
+        modal.hide();
         modal.destroy();
         dfd.resolve();
       }
