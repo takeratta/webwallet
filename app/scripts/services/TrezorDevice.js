@@ -124,11 +124,8 @@ angular.module('webwalletApp')
     };
 
     TrezorDevice.prototype.initializeAccounts = function () {
-      if (!this.hasKey()) return;
-      if (!this.accounts.length) {
-        this.addAccount();
+      if (this.hasKey() && !this.accounts.length)
         return this.discoverAccounts();
-      }
     };
 
     TrezorDevice.prototype.subscribe = function () {
@@ -180,7 +177,7 @@ angular.module('webwalletApp')
       function discoverAccount(n) {
         return self._createAccount(n).then(function (acc) {
           return acc.registerAndSubscribe().then(function () {
-            if (acc.isEmpty())
+            if (acc.isEmpty() && self.accounts.length > 0)
               return acc.deregisterAndUnsubscribe();
             self.accounts.push(acc);
             return discoverAccount(n + 1);
@@ -197,6 +194,12 @@ angular.module('webwalletApp')
       if (idx > 0) this.accounts.splice(idx, 1);
     };
 
+    TrezorDevice.prototype._getCoin = function (name) {
+      return utils.find(this.features.coins, name, function (coin, name) {
+        return coin.coin_name === name;
+      });
+    };
+
     TrezorDevice.prototype._getPathForAccount = function (id) {
       return [
         0, // cointype
@@ -205,26 +208,9 @@ angular.module('webwalletApp')
       ];
     };
 
-    TrezorDevice.prototype._getCoinForAccount = function () {
-      var coins = {
-        Bitcoin: {
-          coin_name: 'Bitcoin',
-          coin_shortcut: 'BTC',
-          address_type: 0
-        },
-        Testnet: {
-          coin_name: 'Testnet',
-          coin_shortcut: 'TEST',
-          address_type: 111
-        }
-      };
-
-      return coins.Bitcoin; // TODO: allow multiple coins in the wallet
-    };
-
     TrezorDevice.prototype._createAccount = function (id) {
-      var path = this._getPathForAccount(),
-          coin = this._getCoinForAccount();
+      var coin = this._getCoin('Bitcoin'),
+          path = this._getPathForAccount(id);
 
       return this._session.getPublicKey(path).then(function (res) {
         var node = res.message.node;
