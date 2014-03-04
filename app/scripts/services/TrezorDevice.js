@@ -4,7 +4,7 @@ angular.module('webwalletApp')
   .factory('TrezorDevice', function (trezor, utils, firmwareService, TrezorAccount, $q) {
 
     function TrezorDevice(id) {
-      this.id = id;
+      this.id = ''+id;
       this.accounts = [];
       this.callbacks = {}; // pin, passphrase callbacks
       this.features = null;
@@ -113,7 +113,6 @@ angular.module('webwalletApp')
       return self._session.getPublicKey().then(
         function (res) { // setup master node
           self.node = res.message.node;
-          self.node.path = [];
           return self.node;
         },
         function (err) {
@@ -145,10 +144,14 @@ angular.module('webwalletApp')
       });
     };
 
+    //
     // Account management
+    //
 
     TrezorDevice.prototype.addAccountAllowed = function () {
-      return this.hasKey() && this.accounts.length < 10;
+      return this.is('connected')
+        && this.accounts.length < 10
+        && this.hasKey();
     };
 
     TrezorDevice.prototype.account = function (id) {
@@ -158,40 +161,15 @@ angular.module('webwalletApp')
     };
 
     TrezorDevice.prototype.addAccount = function () {
-      var prevAcc = this.accounts[this.accounts.length-1],
-          accId = prevAcc ? +prevAcc.id + 1 : 0,
-          acc = this.createAccount(accId);
+      var self = this,
+          pacc = this.accounts[this.accounts.length-1],
+          id = pacc ? +pacc.id + 1 : 0;
 
-      this.accounts.push(acc);
-      return acc.registerAndSubscribe();
-    };
-
-    TrezorDevice.prototype.createAccount = function (id) {
-      var master = this.node,
-          accNode = trezor.deriveChildNode(master, id),
-          coinNode = trezor.deriveChildNode(accNode, 0), // = bitcoin
-          coin = {
-            // coin_name: 'Testnet',
-            // coin_shortcut: 'TEST',
-            // address_type: 111,
-            coin_name: 'Bitcoin',
-            coin_shortcut: 'BTC',
-            address_type: 0,
-          };
-
-      return new TrezorAccount(''+id, coin, {
-        external: trezor.deriveChildNode(coinNode, 0),
-        change: trezor.deriveChildNode(coinNode, 1)
+      return self._createAccount(id).then(function (acc) {
+        self.accounts.push(acc);
+        acc.registerAndSubscribe(); // we do not wait until this finishes
+        return acc;
       });
-    };
-
-    TrezorDevice.prototype.removeAccount = function (account) {
-      var idx = utils.findIndex(this.accounts, account.id, function (acc, id) {
-        return acc.id === id;
-      });
-
-      if (idx > 0)
-        this.accounts.splice(idx, 1);
     };
 
     TrezorDevice.prototype.discoverAccounts = function () {
@@ -200,17 +178,67 @@ angular.module('webwalletApp')
       return discoverAccount(self.accounts.length);
 
       function discoverAccount(n) {
-        var acc = self.createAccount(n);
-        return acc.registerAndSubscribe().then(function () {
-          if (acc.isEmpty())
-            return acc.deregisterAndUnsubscribe();
-          self.accounts[n] = acc;
-          return discoverAccount(n + 1);
+        return self._createAccount(n).then(function (acc) {
+          return acc.registerAndSubscribe().then(function () {
+            if (acc.isEmpty())
+              return acc.deregisterAndUnsubscribe();
+            self.accounts.push(acc);
+            return discoverAccount(n + 1);
+          });
         });
       }
     };
 
+    TrezorDevice.prototype.removeAccount = function (account) {
+      var idx = utils.findIndex(this.accounts, account.id, function (acc, id) {
+        return acc.id === id;
+      });
+
+      if (idx > 0) this.accounts.splice(idx, 1);
+    };
+
+    TrezorDevice.prototype._getPathForAccount = function (id) {
+      return [
+        0, // cointype
+        (0 | 0x80000000) >>> 0, // reserved'
+        (id | 0x80000000) >>> 0 // account'
+      ];
+    };
+
+    TrezorDevice.prototype._getCoinForAccount = function () {
+      var coins = {
+        Bitcoin: {
+          coin_name: 'Bitcoin',
+          coin_shortcut: 'BTC',
+          address_type: 0
+        },
+        Testnet: {
+          coin_name: 'Testnet',
+          coin_shortcut: 'TEST',
+          address_type: 111
+        }
+      };
+
+      return coins.Bitcoin; // TODO: allow multiple coins in the wallet
+    };
+
+    TrezorDevice.prototype._createAccount = function (id) {
+      var path = this._getPathForAccount(),
+          coin = this._getCoinForAccount();
+
+      return this._session.getPublicKey(path).then(function (res) {
+        var node = res.message.node;
+
+        return new TrezorAccount(id, coin, {
+          external: trezor.deriveChildNode(node, 0),
+          change: trezor.deriveChildNode(node, 1)
+        });
+      });
+    };
+
+    //
     // Device calls
+    //
 
     TrezorDevice.prototype.measureTx = function (tx, coin) {
       return this._session.measureTx(tx.inputs, tx.outputs, coin);

@@ -5,7 +5,7 @@ angular.module('webwalletApp')
       BigInteger, Bitcoin, $q) {
 
     function TrezorAccount(id, coin, nodes) {
-      this.id = id;
+      this.id = ''+id;
       this.coin = coin;
       this.utxos = null;
       this.balance = null;

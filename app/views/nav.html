@@ -32,8 +32,7 @@
                 ({{account.balance | amount}} {{account.coin.coin_shortcut}})
               </span>
               <span ng-if="account.balance == null">
-                (<span class="glyphicon glyphicon-refresh glyphicon-spin"></span>
-                {{account.coin.coin_shortcut}})
+                <span class="glyphicon glyphicon-refresh glyphicon-spin"></span>
               </span>
             </small>
           </a>
@@ -43,8 +42,7 @@
     <a ng-href="" class="btn btn-sm"
        ng-class="{ active: isActive('/device/{{device.id}}/account-add') }"
        ng-click="addAccount(device)"
-       ng-show="device.hasKey()"
-       ng-disabled="!device.addAccountAllowed()"
+       ng-show="device.addAccountAllowed()"
       ><span class="glyphicon glyphicon-plus"></span> Add account</a>
   </li>
 </ul>

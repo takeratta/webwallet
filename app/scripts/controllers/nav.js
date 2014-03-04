@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('webwalletApp')
-  .controller('NavCtrl', function (trezorService, $scope, $location, $routeParams) {
+  .controller('NavCtrl', function (trezorService, flash, $scope, $location) {
 
     $scope.devices = trezorService.devices;
 
@@ -10,8 +10,14 @@ angular.module('webwalletApp')
     };
 
     $scope.addAccount = function (dev) {
-      dev.addAccount();
-      $location.path('/device/' + dev.id + '/account/'
-        + dev.accounts[dev.accounts.length - 1].id);
+      dev.addAccount().then(
+        function (acc) {
+          $location.path('/device/' + dev.id + '/account/' + acc.id);
+        },
+        function (err) {
+          flash.error(err.message || 'Failed to add account.');
+        }
+      );
+
     };
   });
