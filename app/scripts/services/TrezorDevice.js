@@ -41,7 +41,6 @@ angular.module('webwalletApp')
     // Device status, connection with hw
 
     TrezorDevice.prototype.status = function () {
-      if (this._error) return 'error';
       if (this._loading) return 'loading';
       if (this._desc) return 'connected';
       return 'disconnected';
