@@ -62,7 +62,8 @@ angular.module('webwalletApp')
         tx.fee = null;
         $scope.transaction.prepared = null;
         $scope.transaction.error = null;
-        $scope.form.$setValidity(false);
+        $scope.form.$valid = false;
+        $scope.form.$invalid = true;
         return;
       }
 
@@ -71,14 +72,16 @@ angular.module('webwalletApp')
           tx.fee = preparedTx.fee / 100000000;
           $scope.transaction.prepared = preparedTx;
           $scope.transaction.error = null;
-          $scope.form.$setValidity(true);
+          $scope.form.$valid = true;
+          $scope.form.$invalid = false;
         },
         function (err) {
           tx.fee = null;
           $scope.transaction.prepared = null;
           $scope.transaction.error = err.message
             || 'Failed to prepare transaction.';
-          $scope.form.$setValidity(false);
+          $scope.form.$valid = false;
+          $scope.form.$invalid = true;
         }
       );
     };
