@@ -27,7 +27,12 @@
       <div class="col-sm-3">
         <input id="fee" class="form-control" type="text"
                ng-model="transaction.fee"
-               readonly disabled>
+               tabindex="-1"
+               data-title="Fee is calculated automatically from the size of your transaction"
+               data-container="body"
+               data-trigger="hover"
+               bs-tooltip
+               readonly>
       </div>
     </div>
 

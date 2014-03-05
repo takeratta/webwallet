@@ -3,6 +3,7 @@
 angular.module('webwalletApp', [
   'ngRoute',
   'ngAnimate',
+  'ngSanitize',
   'mgcrea.ngStrap',
   'ja.qr'
 ])

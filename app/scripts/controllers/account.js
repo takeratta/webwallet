@@ -61,6 +61,7 @@ angular.module('webwalletApp')
       if (!tx.address || !amount) {
         tx.fee = null;
         $scope.transaction.prepared = null;
+        $scope.transaction.error = null;
         $scope.form.$setValidity(false);
         return;
       }

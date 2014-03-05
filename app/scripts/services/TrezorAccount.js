@@ -173,6 +173,9 @@ angular.module('webwalletApp')
     TrezorAccount.prototype.buildTx = function (address, amount, device) {
       var self = this;
 
+      if (!utils.validateAddress(address))
+        return $q.reject(new Error('Invalid address'));
+
       return buildTx(0);
 
       function buildTx(feeAttempt) {
