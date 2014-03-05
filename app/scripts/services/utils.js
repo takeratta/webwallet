@@ -325,7 +325,9 @@ angular.module('webwalletApp')
       initVideo();
 
       scope.$on('$destroy', function() {
-        if (stream) stream.stop();
+        if (!stream) return;
+        stream.stop();
+        stream = null;
       });
 
       function initVideo() {
@@ -358,7 +360,7 @@ angular.module('webwalletApp')
           scope.$apply(function () {
             ngModel.$setViewValue(value);
           });
-        } else {
+        } else if (stream) {
           snapshotVideo();
           setTimeout(intervalTick, interval);
         }
