@@ -34,11 +34,22 @@ angular.module('webwalletApp')
 
     function download(firmware) {
       return $http.get(firmware.url).then(function (res) {
+        if (!validate(res.data))
+          throw new Error('Downloaded firmware is invalid');
         return res.data;
       });
     }
 
     // Private
+
+    function validate(firmware) {
+      var magic = '54525a52'; // 'TRZR' in hex
+
+      return (firmware.substr(0, magic.length) === magic) &&
+             // * 2 because of hex
+             (firmware.length >= 4096 * 2) &&
+             (firmware.length <= 1024 * (512-64) * 2);
+    }
 
     function pick(features, list) {
       var firmware = list[0],
