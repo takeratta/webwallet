@@ -28,22 +28,34 @@
         <a ng-href="#/device/{{device.id}}/account/{{account.id}}"
            ng-class="{ active: isActive('/device/{{device.id}}/account/{{account.id}}') }"
           >{{account.label()}}
-            <small class="dev-acc-info">
-              <span ng-if="account.balance != null">
-                ({{account.balance | amount}} {{account.coin.coin_shortcut}})
-              </span>
-              <span ng-if="account.balance == null">
-                <span class="glyphicon glyphicon-refresh glyphicon-spin"></span>
-              </span>
-            </small>
-          </a>
+          <small class="dev-acc-info">
+            <span ng-if="account.balance != null">
+              ({{account.balance | amount}} {{account.coin.coin_shortcut}})
+            </span>
+            <span ng-if="account.balance == null">
+              <span class="glyphicon glyphicon-refresh glyphicon-spin"></span>
+            </span>
+          </small>
+        </a>
       </li>
     </ul>
 
-    <a ng-href="" class="btn btn-sm"
-       ng-class="{ active: isActive('/device/{{device.id}}/account-add') }"
-       ng-click="addAccount(device)"
-       ng-show="device.addAccountAllowed()"
-      ><span class="glyphicon glyphicon-plus"></span> Add account</a>
+    <div ng-if="device.hasKey() && !device.addAccountAllowed()"
+         data-title="Please connect your device to add accounts."
+         data-trigger="hover"
+         data-placement="bottom"
+         bs-tooltip>
+      <a href="" class="btn btn-block btn-sm" disabled
+        ><span class="glyphicon glyphicon-plus"></span> Add account</a>
+    </div>
+
+    <div ng-if="device.hasKey() && device.addAccountAllowed()">
+      <a ng-href="" class="btn btn-block btn-sm"
+         ng-class="{ active: isActive('/device/{{device.id}}/account-add') }"
+         ng-click="addAccount(device)"
+        ><span class="glyphicon glyphicon-plus"></span> Add account</a>
+    </div>
+
+    <hr ng-hide="$last">
   </li>
 </ul>

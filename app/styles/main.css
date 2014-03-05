@@ -162,6 +162,10 @@ body {
   white-space: nowrap;
 }
 
+.nav-devices-accounts {
+  margin-bottom: 10px;
+}
+
 /* Transaction list */
 
 .txlist-tx {

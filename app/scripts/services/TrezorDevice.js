@@ -161,6 +161,8 @@ angular.module('webwalletApp')
           pacc = this.accounts[this.accounts.length-1],
           id = pacc ? +pacc.id + 1 : 0;
 
+      if (!self.addAccountAllowed()) return;
+
       return self._createAccount(id).then(function (acc) {
         self.accounts.push(acc);
         acc.registerAndSubscribe(); // we do not wait until this finishes
