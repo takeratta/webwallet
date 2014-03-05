@@ -168,6 +168,17 @@ body {
 
 /* Transaction list */
 
+.txlist thead th {
+  font-size: 85%;
+  font-weight: normal;
+  border-bottom: none !important;
+  padding: 4px 8px !important;
+}
+
+.txlist thead th.txlist-header-address {
+  padding-left: 26px !important;
+}
+
 .txlist-tx {
   cursor: pointer;
 }

@@ -37,6 +37,14 @@
 </div>
 <table class="txlist table table-hover"
        ng-show="account.transactions != null && account.transactions.length">
+  <thead>
+    <tr class="text-muted">
+      <th class="text-center">Date</th>
+      <th class="txlist-header-address">Address</th>
+      <th>Amount</th>
+      <th>Balance</th>
+    </tr>
+  </thead>
   <tbody>
     <tr class="txlist-tx"
         ng-click="tx.active = !tx.active"
