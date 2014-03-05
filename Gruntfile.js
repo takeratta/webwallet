@@ -190,8 +190,7 @@ module.exports = function (grunt) {
             '*.{ico,png,txt}',
             '.htaccess',
             'bower_components/**/*',
-            'images/{,*/}*.{gif,webp}',
-            'fonts/*'
+            'images/{,*/}*.{gif,webp}'
           ]
         }, {
           expand: true,
