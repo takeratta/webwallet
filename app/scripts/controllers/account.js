@@ -87,7 +87,8 @@ angular.module('webwalletApp')
     };
 
     $scope.send = function () {
-      var tx = $scope.builtTx;
+      var tx = $scope.transaction.prepared;
+      if (!tx) return;
       $scope.account.sendTx(tx, $scope.device).then(
         function () {
           $location.path('/device/' + $scope.device.id
