@@ -324,6 +324,10 @@ angular.module('webwalletApp')
 
       initVideo();
 
+      scope.$on('$destroy', function() {
+        if (stream) stream.stop();
+      });
+
       function initVideo() {
         navigator.getUserMedia({ video: true },
           function (vs) {
