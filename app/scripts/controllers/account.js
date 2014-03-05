@@ -53,18 +53,31 @@ angular.module('webwalletApp')
 
     $scope.transaction = {};
 
-    $scope.estimate = function (tx) {
-      var address = tx.address,
+    $scope.estimate = function () {
+      var tx = $scope.transaction,
+          dev = $scope.device,
           amount = Math.round(tx.amount * 100000000);
-      if (!address || !amount) return;
-      $scope.account.buildTx(address, amount, $scope.device).then(
-        function (builtTx) {
-          $scope.builtTx = builtTx;
-          tx.fee = builtTx.fee / 100000000;
+
+      if (!tx.address || !amount) {
+        tx.fee = null;
+        $scope.transaction.prepared = null;
+        $scope.form.$setValidity(false);
+        return;
+      }
+
+      $scope.account.buildTx(tx.address, amount, dev).then(
+        function (preparedTx) {
+          tx.fee = preparedTx.fee / 100000000;
+          $scope.transaction.prepared = preparedTx;
+          $scope.transaction.error = null;
+          $scope.form.$setValidity(true);
         },
         function (err) {
-          $scope.builtTx = null;
-          flash.error(err.message || 'Failed to compose transaction.');
+          tx.fee = null;
+          $scope.transaction.prepared = null;
+          $scope.transaction.error = err.message
+            || 'Failed to prepare transaction.';
+          $scope.form.$setValidity(false);
         }
       );
     };
@@ -73,8 +86,8 @@ angular.module('webwalletApp')
       var tx = $scope.builtTx;
       $scope.account.sendTx(tx, $scope.device).then(
         function () {
-          var path = '/device/' + $scope.device.id + '/account/' + $scope.account.id;
-          $location.path(path);
+          $location.path('/device/' + $scope.device.id
+            + '/account/' + $scope.account.id);
         },
         function (err) {
           flash.error(err.message || 'Failed to send transaction.');

@@ -51,12 +51,13 @@
     </div>
 
     <div class="form-group">
-      <div class="col-sm-offset-3 col-sm-10">
+      <div class="col-sm-offset-3 col-sm-9">
         <button type="submit" class="btn btn-primary"
                 ng-disabled="form.$invalid"
                 ng-click="send()">Send</button>
         <a href="#/device/{{device.id}}/account/{{account.id}}"
            class="btn btn-link">Cancel</a>
+        <span class="text-danger pull-right">{{transaction.error}}</span>
       </div>
     </div>
 
@@ -70,16 +71,16 @@
   </div>
 
   <div class="txpreview col-md-4 text-muted"
-       ng-if="builtTx">
+       ng-if="transaction.prepared">
     <h5>Inputs</h5>
     <ol class="list-unstyled">
-      <li ng-repeat="input in builtTx.inputs">
+      <li ng-repeat="input in transaction.prepared.inputs">
         {{input.prev_hash}}:{{input.prev_index}}
       </li>
     </ol>
     <h5>Outputs</h5>
     <ol class="list-unstyled">
-      <li ng-repeat="output in builtTx.outputs">
+      <li ng-repeat="output in transaction.prepared.outputs">
         <strong>{{output.amount | amount}} {{account.coin.coin_shortcut}}</strong><br>
         <span ng-if="output.address">{{output.address}}</span>
         <span ng-if="output.address_n">{{output.address_n | bip32Path}}</span>
