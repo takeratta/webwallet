@@ -52,7 +52,7 @@ angular.module('webwalletApp')
 
     TrezorDevice.prototype.label = function () {
       if (this.features && this.features.label)
-        return utils.hexToUtf8(this.features.label);
+        return this.features.label;
       else
         return 'My TREZOR';
     };
@@ -256,9 +256,6 @@ angular.module('webwalletApp')
       var self = this,
           sett = angular.copy(settings);
 
-      if (sett.label)
-        sett.label = utils.utf8ToHex(sett.label);
-
       return self._session.resetDevice(sett).then(function () {
         self.unsubscribe();
         return self.initialize();
@@ -276,9 +273,6 @@ angular.module('webwalletApp')
       }
       delete sett.payload;
 
-      if (sett.label)
-        sett.label = utils.utf8ToHex(sett.label);
-
       return self._session.loadDevice(sett).then(function () {
         self.unsubscribe();
         return self.initialize();
@@ -288,9 +282,6 @@ angular.module('webwalletApp')
     TrezorDevice.prototype.recover = function (settings) {
       var self = this,
           sett = angular.copy(settings);
-
-      if (sett.label)
-        sett.label = utils.utf8ToHex(sett.label);
 
       return self._session.recoverDevice(sett).then(function () {
         self.unsubscribe();
