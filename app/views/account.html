@@ -13,7 +13,7 @@
 <p class="nav-sendrecv btn-group btn-group-lg">
   <a class="btn"
      href="#/device/{{device.id}}/account/{{account.id}}/send"
-     ng-disabled="!device.is('connected')">
+     ng-disabled="account.isEmpty() || !device.is('connected')">
     <span class="glyphicon glyphicon-cloud-upload"></span> Send
   </a>
   <a class="btn"
