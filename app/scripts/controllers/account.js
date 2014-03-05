@@ -63,6 +63,7 @@ angular.module('webwalletApp')
           tx.fee = builtTx.fee / 100000000;
         },
         function (err) {
+          $scope.builtTx = null;
           flash.error(err.message || 'Failed to compose transaction.');
         }
       );
