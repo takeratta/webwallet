@@ -40,6 +40,16 @@
   padding: 15px 20px;
 }
 
+.alert > h3:last-child,
+.alert > h4:last-child,
+.alert > h5:last-child {
+  margin-top: 10px;
+}
+
+.modal-body > .alert:last-child {
+  margin-bottom: 0;
+}
+
 .breadcrumb li.pull-right:before {
   display: none;
 }
