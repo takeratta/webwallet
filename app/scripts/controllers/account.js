@@ -163,7 +163,10 @@ angular.module('webwalletApp')
     }
 
     function suggestAccounts() {
-      var accounts = $scope.device.accounts;
+      var current = $scope.account,
+          accounts = $scope.device.accounts.filter(function (acc) {
+            return acc.id !== current.id;
+          });
 
       return accounts.map(function (acc) {
         var address = acc.address(0).address,
