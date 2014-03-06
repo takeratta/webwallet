@@ -126,14 +126,14 @@ angular.module('webwalletApp')
     function address2str(hash, version) {
       var csum, bytes;
 
-      hash.unshift(version);
+      hash.unshift(+version);
       csum = Crypto.SHA256(Crypto.SHA256(hash, {asBytes: true}), {asBytes: true});
       bytes = hash.concat(csum.slice(0, 4));
 
       return Bitcoin.Base58.encode(bytes);
     }
 
-    function validateAddress(address) {
+    function validateAddress(address, version) {
       var bytes, hash, csum;
 
       bytes = Bitcoin.Base58.decode(address);
@@ -143,7 +143,8 @@ angular.module('webwalletApp')
       return (csum[0] === bytes[21] &&
               csum[1] === bytes[22] &&
               csum[2] === bytes[23] &&
-              csum[3] === bytes[24]);
+              csum[3] === bytes[24] &&
+              hash[0] === +version);
     }
 
     this.xprv2node = xprv2node;
