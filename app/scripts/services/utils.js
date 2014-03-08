@@ -27,7 +27,7 @@ angular.module('webwalletApp')
   })
   .filter('bip32Path', function () {
     return function (val) {
-      return 'm/' + val.join('/');
+      return 'm/' + val.map( function(x) { return (x & 0x80000000) ? (x & 0x7FFFFFFF) + "'" : x;  } ).join('/');
     };
   });
 
