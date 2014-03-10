@@ -20,17 +20,18 @@
       <div class="text-center">
         <div class="btn-group btn-group-lg text-left">
           <button class="btn-installer-download btn btn-success"
-                  ng-click="download()">
+                  ng-click="download(selected)">
             <span class="glyphicon glyphicon-download"></span> Download
           </button>
           <button class="btn-installer-platform btn btn-success"
                   data-html="true"
                   ng-model="selected"
                   ng-options="
-                    installer.platform
+                    installer
                     as '<small>for ' + installer.label + '</small>'
                     for installer
-                    in installers"
+                    in installers
+                    track by installer.platform"
                   bs-select></button>
         </div>
       </div>

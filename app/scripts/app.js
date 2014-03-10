@@ -63,17 +63,11 @@ angular.module('errorApp', [
 
     function preferred(is) {
       var i = is.filter(function (i) { return i.preferred; })[0];
-      return (i || is[0]).platform;
-    }
-
-    function installer(is, platform) {
-      var i = is.filter(function (i) { return i.platform === platform; })[0];
       return (i || is[0]);
     }
 
-    function download() {
-      var i = installer($scope.installers, $scope.selected);
-      window.location.href = i.url;
+    function download(selected) {
+      window.location.href = selected.url;
     }
   });
 
