@@ -22,5 +22,5 @@ cp -r app/data dist/data
 # Put current revision to http://mytrezor.com/revision.txt
 git rev-parse HEAD > app/revision.txt
 
-echo "DONE"
+echo "DONE. Please run ./deploy.sh"
 exit 0
