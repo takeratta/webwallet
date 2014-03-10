@@ -201,17 +201,22 @@ angular.module('webwalletApp')
       });
     };
 
-    TrezorDevice.prototype._getPathForAccount = function (id) {
+    TrezorDevice.prototype._getPathForAccount = function (id, coin) {
+      var cointypes = {
+        'Bitcoin': 0,
+        'Testnet': 0
+      };
+
       return [
-        0, // cointype
+        cointypes[coin.coin_name], // cointype
         (0 | 0x80000000) >>> 0, // reserved'
         (id | 0x80000000) >>> 0 // account'
       ];
     };
 
     TrezorDevice.prototype._createAccount = function (id) {
-      var coin = this._getCoin('Bitcoin'),
-          path = this._getPathForAccount(id);
+      var coin = this._getCoin('Testnet'),
+          path = this._getPathForAccount(id, coin);
 
       return this._session.getPublicKey(path).then(function (res) {
         var node = res.message.node;
