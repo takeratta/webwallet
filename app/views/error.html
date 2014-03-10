@@ -1,0 +1,39 @@
+<div class="row"
+     ng-if="installed">
+  <div class="col-md-6 col-md-offset-3">
+    <div class="alert alert-danger">
+      <h4>Plugin loading failed :(</h4> {{error.message}}
+    </div>
+  </div>
+</div>
+
+<div class="modal-dialog"
+     ng-if="!installed">
+  <div class="modal-content">
+    <div class="modal-body">
+      <p class="lead">Please download and install the TREZOR Plugin.</p>
+      <p>
+        <strong>Why?</strong> Browser plugin allows Web Wallet to communicate with your TREZOR device.
+      </p>
+      <hr>
+
+      <div class="text-center">
+        <div class="btn-group btn-group-lg text-left">
+          <button class="btn-installer-download btn btn-success"
+                  ng-click="download()">
+            <span class="glyphicon glyphicon-download"></span> Download
+          </button>
+          <button class="btn-installer-platform btn btn-success"
+                  data-html="true"
+                  ng-model="selected"
+                  ng-options="
+                    installer.platform
+                    as '<small>for ' + installer.label + '</small>'
+                    for installer
+                    in installers"
+                  bs-select></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

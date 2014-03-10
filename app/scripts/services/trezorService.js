@@ -14,7 +14,8 @@ angular.module('webwalletApp')
       dev.subscribe();
     });
 
-    var connectFn = connect,
+    var enumeratePaused = false,
+        connectFn = connect,
         disconnectFn = disconnect;
 
     storeWhenChanged();
@@ -91,6 +92,8 @@ angular.module('webwalletApp')
 
       // handle added/removed devices
       delta.then(null, null, function (dd) {
+        if (!dd)
+          return;
         dd.added.forEach(connectFn);
         dd.removed.forEach(disconnectFn);
       });
@@ -113,6 +116,7 @@ angular.module('webwalletApp')
         dev = new TrezorDevice(desc.path);
 
       dev.connect(desc);
+      setupCallbacks(dev);
       dev.withLoading(function () {
         return dev.initializeDevice().then(function (features) {
           return features.bootloader_mode
@@ -145,7 +149,6 @@ angular.module('webwalletApp')
           return outdatedFirmware(firmware,
             firmwareService.get(dev.features));
         })
-        .then(function () { setupCallbacks(dev); })
         .then(function () { return dev.initializeKey(); })
         .then(function () { return dev.initializeAccounts(); });
     }
@@ -153,7 +156,7 @@ angular.module('webwalletApp')
     // setups various callbacks, usually information prompts
     // FIXME: this doesnt belong here
     function setupCallbacks(dev) {
-      dev.callbacks.pin = function (message, callback) {
+      dev.on('pin', function (message, callback) {
         var scope = $rootScope.$new(),
             modal;
         scope.pin = '';
@@ -168,9 +171,9 @@ angular.module('webwalletApp')
         modal.$promise.then(null, function () {
           callback();
         });
-      };
+      });
 
-      dev.callbacks.passphrase = function (callback) {
+      dev.on('passphrase', function (callback) {
         var scope = $rootScope.$new(),
             modal;
         scope.passphrase = '';
@@ -188,9 +191,13 @@ angular.module('webwalletApp')
         function scopeCallback(passphrase) {
           callback(passphrase.normalize('NFKD'));
         }
-      };
+      });
 
-      dev.callbacks.button = function (code) {
+      dev.on('send', function () { enumeratePaused = true; });
+      dev.on('error', function () { enumeratePaused = false; });
+      dev.on('receive', function () { enumeratePaused = false; });
+
+      dev.on('button', function (code) {
         var scope = $rootScope.$new(),
             modal;
         scope.code = code;
@@ -200,26 +207,24 @@ angular.module('webwalletApp')
           keyboard: false,
           scope: scope
         });
-        dev.callbacks.receive = function () {
-          dev.callbacks.receive = null;
+        dev.once('receive', function () {
           modal.hide();
           modal.destroy();
-        };
-        dev.callbacks.error = function () {
-          dev.callbacks.error = null;
+        });
+        dev.once('error', function () {
           modal.hide();
           modal.destroy();
-        };
-      };
+        });
+      });
 
-      dev.callbacks.word = function (callback) {
+      dev.on('word', function (callback) {
         $rootScope.seedWord = '';
         $rootScope.wordCallback = function (word) {
           $rootScope.wordCallback = null;
           $rootScope.seedWord = '';
           callback(word);
         };
-      };
+      });
     }
 
     function outdatedFirmware(firmware, version) {
@@ -241,6 +246,7 @@ angular.module('webwalletApp')
         var dev = new TrezorDevice(desc.path);
 
         dev.connect(desc);
+        setupCallbacks(dev);
         dev.initializeDevice().then(function (features) {
           modal.$scope.state = features.bootloader_mode
             ? 'device-bootloader'
@@ -358,7 +364,8 @@ angular.module('webwalletApp')
     // maps a promise notifications with connected device descriptors
     function progressWithConnected(pr) {
       return pr.then(null, null, function () { // ignores the value
-        return trezor.devices();
+        if (!enumeratePaused)
+          return trezor.devices();
       });
     }
 
@@ -369,6 +376,8 @@ angular.module('webwalletApp')
           tmp;
 
       return pr.then(null, null, function (curr) {
+        if (!curr)
+          return;
         tmp = prev;
         prev = curr;
         return descriptorDelta(tmp, curr);

@@ -88,6 +88,10 @@ body {
   margin: 0 0 120px; /* bottom = footer height */
 }
 
+[ng-cloak] {
+  display: none !important;
+}
+
 .page-header {
   margin: 0;
   padding: 15px 0;
@@ -140,6 +144,16 @@ body {
     -ms-transform-origin: top left;
     transform-origin: top left;
   }
+}
+
+/* Error app, installer modal */
+
+.btn-installer-download .glyphicon {
+  top: 2px;
+}
+
+.btn-installer-platform {
+  opacity: 0.7;
 }
 
 /* Device nav */

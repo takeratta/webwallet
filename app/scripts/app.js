@@ -50,20 +50,55 @@ angular.module('webwalletApp', [
       });
   });
 
+angular.module('errorApp', [
+  'ngSanitize',
+  'mgcrea.ngStrap'
+])
+  .controller('ErrorCtrl', function (error, trezorApi, $scope) {
+    $scope.error = error;
+    $scope.installed = error.installed;
+    $scope.installers = trezorApi.installers();
+    $scope.selected = preferred($scope.installers);
+    $scope.download = download;
+
+    function preferred(is) {
+      var i = is.filter(function (i) { return i.preferred; })[0];
+      return (i || is[0]).platform;
+    }
+
+    function installer(is, platform) {
+      var i = is.filter(function (i) { return i.platform === platform; })[0];
+      return (i || is[0]);
+    }
+
+    function download() {
+      var i = installer($scope.installers, $scope.selected);
+      window.location.href = i.url;
+    }
+  });
+
 // load trezor plugin and bootstrap application
 angular.element(document).ready(function () {
-  trezor.load({ configUrl: '/data/plugin/config_signed.bin' }).then(
-    function (trezorObject) {
-      angular.module('webwalletApp').value('trezorApi', trezor);
-      angular.module('webwalletApp').value('trezor', trezorObject);
-      angular.bootstrap(document, ['webwalletApp']);
-    },
-    function (err) {
-      console.error(err);
-      if (err.install)
-        err.install();
-      else
-        alert('Trezor plugin initialization failed.');
-    }
+  window.trezor.load({ configUrl: '/data/plugin/config_signed.bin' }).then(
+    webwalletApp,
+    errorApp
   );
+
+  function webwalletApp(trezorObject) {
+    var container = document.getElementById('webwalletApp-container');
+
+    angular.module('webwalletApp')
+      .value('trezorApi', window.trezor)
+      .value('trezor', trezorObject);
+    angular.bootstrap(container, ['webwalletApp']);
+  }
+
+  function errorApp(error) {
+    var container = document.getElementById('errorApp-container');
+
+    angular.module('errorApp')
+      .value('trezorApi', window.trezor)
+      .value('error', error);
+    angular.bootstrap(container, ['errorApp']);
+  }
 });

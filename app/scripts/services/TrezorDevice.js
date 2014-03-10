@@ -59,7 +59,9 @@ angular.module('webwalletApp')
 
     TrezorDevice.prototype.connect = function (desc) {
       this._desc = desc;
-      this._session = trezor.open(this._desc, this.callbacks);
+      this._session = trezor.open(this._desc);
+      this.on = this._session.on.bind(this._session);
+      this.once = this._session.once.bind(this._session);
     };
 
     TrezorDevice.prototype.disconnect = function () {

@@ -40,9 +40,12 @@
       </div>
     </div>
 
-    <div class="page-container container">
+    <!-- Webwallet Application -->
+    <div id="webwalletApp-container"
+         class="page-container container"
+         ng-cloak>
 
-      <div class="row" ng-cloak>
+      <div class="row">
         <!-- Navigations -->
         <div class="col-md-3"
              ng-include="'views/nav.html'">
@@ -55,6 +58,14 @@
         </div>
       </div>
 
+    </div>
+
+    <!-- Error Application -->
+    <div id="errorApp-container"
+         class="page-container container"
+         ng-controller="ErrorCtrl"
+         ng-cloak>
+      <ng-include src="'views/error.html'">
     </div>
 
     <div class="page-footer">
@@ -70,9 +81,9 @@
     <script src="bower_components/jquery/dist/jquery.js"></script>
     <script src="bower_components/jquery.atmosphere/jquery.atmosphere.js"></script>
     <script src="bower_components/bitcoinjs-lib/build/bitcoinjs-min.js"></script>
+    <script src="bower_components/trezor.js/dist/trezor.js"></script>
     <script src="bower_components/qrcode/lib/qrcode.js"></script>
     <script src="bower_components/unorm/lib/unorm.js"></script>
-    <script src="bower_components/trezor.js/trezor.js"></script>
     <script src="bower_components/angular/angular.js"></script>
     <!-- jsqrcode -->
     <script src="bower_components/jsqrcode/src/grid.js"></script>
