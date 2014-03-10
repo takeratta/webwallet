@@ -47,11 +47,11 @@
         </div>
 
       </div>
-      <div class="modal-footer"
-           ng-if="!firmware.required">
+      <div class="modal-footer">
         <button type="button" class="btn btn-primary"
                 ng-click="update()">Yes, update</button>
         <button type="button" class="btn btn-default"
+                ng-if="!firmware.required"
                 ng-click="cancel()">Cancel</button>
       </div>
     </div>
