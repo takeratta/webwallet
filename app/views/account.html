@@ -10,13 +10,13 @@
   </li>
 </ol>
 
-<p class="nav-sendrecv btn-group btn-group-lg">
-  <a class="btn"
+<p class="nav-sendrecv">
+  <a class="btn btn-lg"
      href="#/device/{{device.id}}/account/{{account.id}}/send"
      ng-disabled="account.isEmpty() || !device.is('connected')">
     <span class="glyphicon glyphicon-cloud-upload"></span> Send
   </a>
-  <a class="btn"
+  <a class="btn btn-lg"
      href="#/device/{{device.id}}/account/{{account.id}}/receive">
     <span class="glyphicon glyphicon-cloud-download"></span> Receive
   </a>
