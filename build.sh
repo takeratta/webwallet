@@ -22,4 +22,5 @@ cp -r app/data dist/data
 # Put current revision to http://mytrezor.com/revision.txt
 git rev-parse HEAD > app/revision.txt
 
+echo "DONE"
 exit 0
