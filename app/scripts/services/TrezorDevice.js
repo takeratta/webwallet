@@ -292,6 +292,8 @@ angular.module('webwalletApp')
       var self = this,
           sett = angular.copy(settings);
 
+      sett.enforce_wordlist = true;
+
       return self._session.recoverDevice(sett).then(function () {
         self.unsubscribe();
         return self.initialize();
