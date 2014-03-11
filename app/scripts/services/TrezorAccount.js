@@ -190,16 +190,14 @@ angular.module('webwalletApp')
               space = tx.total - amount,
               fee = kbytes * self._feePerKb;
 
-          if (space - fee < 5430) { // there is no need for a change address
-            delete tx.outputs[1];
-            tx.outputs.length = 1;
-            tx.fee = space;
-            return tx;
-          }
-
-          if (fee < space) { // we have a space for the fee, set it and return
-            tx.outputs[1].amount = space - fee;
-            tx.fee = fee;
+          if (fee <= space) { // we have a space for the fee, set it and return
+            if (space - fee < 5430) { // there is no need for a change address
+              tx.outputs.pop();
+              tx.fee = space;
+            } else {
+              tx.outputs[1].amount = space - fee;
+              tx.fee = fee;
+            }
             return tx;
           }
 
