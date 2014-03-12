@@ -275,12 +275,14 @@ angular.module('webwalletApp')
     TrezorDevice.prototype.wipe = function () {
       var self = this;
 
-      return self._session.wipeDevice().then(function () {
-        // we use finally here to initialize even when the deregistration
-        // fails
-        return self.deregisterAndUnsubscribe().finally(function () {
-          return self.initializeDevice().then(function () {
-            return self.initializeAccounts();
+      return self.withLoading(function () {
+        return self._session.wipeDevice().then(function () {
+          // we use finally here to initialize even when the deregistration
+          // fails
+          return self.deregisterAndUnsubscribe().finally(function () {
+            return self.initializeDevice().then(function () {
+              return self.initializeAccounts();
+            });
           });
         });
       });
@@ -290,9 +292,11 @@ angular.module('webwalletApp')
       var self = this,
           sett = angular.copy(settings);
 
-      return self._session.resetDevice(sett)
-        .then(function () { return self.initializeDevice(); })
-        .then(function () { return self.initializeAccounts(); });
+      return self.withLoading(function () {
+        return self._session.resetDevice(sett)
+          .then(function () { return self.initializeDevice(); })
+          .then(function () { return self.initializeAccounts(); });
+      });
     };
 
     TrezorDevice.prototype.load = function (settings) {
@@ -306,9 +310,11 @@ angular.module('webwalletApp')
       }
       delete sett.payload;
 
-      return self._session.loadDevice(sett)
-        .then(function () { return self.initializeDevice(); })
-        .then(function () { return self.initializeAccounts(); });
+      return self.withLoading(function () {
+        return self._session.loadDevice(sett)
+          .then(function () { return self.initializeDevice(); })
+          .then(function () { return self.initializeAccounts(); });
+      });
     };
 
     TrezorDevice.prototype.recover = function (settings) {
@@ -317,9 +323,11 @@ angular.module('webwalletApp')
 
       sett.enforce_wordlist = true;
 
-      return self._session.recoverDevice(sett)
-        .then(function () { return self.initializeDevice(); })
-        .then(function () { return self.initializeAccounts(); });
+      return self.withLoading(function () {
+        return self._session.recoverDevice(sett)
+          .then(function () { return self.initializeDevice(); })
+          .then(function () { return self.initializeAccounts(); });
+      });
     };
 
     return TrezorDevice;
