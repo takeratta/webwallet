@@ -128,9 +128,9 @@ angular.module('webwalletApp')
       // if the device is not empty and no accounts are present, add the first
       // account and start the account discovery
       if (!this.accounts.length)
-        return this.addAccount()
-          .then(function (acc) { return acc.registerAndSubscribe(); })
-          .then(function () { return self.discoverAccounts(); });
+        return this.addAccount().then(function () {
+          return self.discoverAccounts();
+        });
     };
 
     //
