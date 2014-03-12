@@ -271,7 +271,7 @@ angular.module('webwalletApp')
       link: link,
       restrict: 'E',
       require: '?ngModel',
-      template: '<video class="qrscan-video"></video>',
+      template: '<video class="qrscan-video" autoplay></video>',
       scope: {
         interval: '='
       }
