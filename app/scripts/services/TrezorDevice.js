@@ -123,7 +123,7 @@ angular.module('webwalletApp')
       // existing accounts first
       if (this.isEmpty())
         return this.deregisterAndUnsubscribe().then(function () {
-          return (this.accounts = []);
+          return (self.accounts = []);
         });
 
       // if the device is not empty and no accounts are present, add the first
