@@ -43,8 +43,13 @@ angular.module('webwalletApp')
 
       self._loading = true;
       return $q.when(fn()).then(
-        function () { self._loading = false; },
-        function () { self._loading = false; }
+        function () {
+          self._loading = false;
+        },
+        function (err) {
+          self._loading = false;
+          throw err;
+        }
       );
     };
 
