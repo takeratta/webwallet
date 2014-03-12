@@ -12,7 +12,7 @@ angular.module('webwalletApp')
       this.transactions = null;
 
       this._feePerKb = 10000;
-      this._wallet = new Bitcoin.Wallet();
+      this._wallet = new Bitcoin.Wallet(coin.address_type);
       this._backend = new TrezorBackend(coin);
       this._external = new TrezorBranch(nodes.external, this._backend);
       this._change = new TrezorBranch(nodes.change, this._backend);
