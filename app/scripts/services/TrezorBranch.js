@@ -99,7 +99,7 @@ angular.module('webwalletApp')
           hash: tx.hash,
           version: tx.version,
           lock_time: tx.lockTime,
-          timestamp: tx.timestamp,
+          timestamp: tx.height, // TODO: use tx.timestamp
           block: tx.blockHash
         });
         ret.ins = tx.inputs.map(input);

@@ -37,21 +37,21 @@
        ng-show="account.transactions != null && account.transactions.length">
   <thead>
     <tr class="text-muted">
-      <th class="text-center">Date</th>
+      <th width="13%" class="text-center">Block #</th>
       <th class="txlist-header-address">Address</th>
-      <th>Amount</th>
-      <th>Balance</th>
+      <th width="16%" class="txlist-header-amount">Amount</th>
+      <th width="16%">Balance</th>
     </tr>
   </thead>
   <tbody>
     <tr class="txlist-tx"
         ng-click="tx.active = !tx.active"
         ng-repeat-start="tx in account.transactions">
-      <td class="txlist-date"
+      <td class="txlist-date text-center"
           ng-if="tx.timestamp">
         {{tx.timestamp}}
       </td>
-      <td class="txlist-date text-center text-muted"
+      <td class="txlist-date text-muted"
           ng-if="!tx.timestamp">
         <small>Unconfirmed</small>
       </td>

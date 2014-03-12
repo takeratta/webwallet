@@ -204,6 +204,10 @@ body {
   padding-left: 26px !important;
 }
 
+.txlist thead th.txlist-header-amount {
+  padding-left: 12px !important;
+}
+
 .txlist-tx {
   cursor: pointer;
 }
