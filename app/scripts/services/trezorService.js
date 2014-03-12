@@ -190,7 +190,9 @@ angular.module('webwalletApp')
         });
 
         function scopeCallback(passphrase) {
-          callback(passphrase.normalize('NFKD'));
+          if (passphrase)
+            passphrase = passphrase.normalize('NFKD');
+          callback(passphrase);
         }
       });
 
