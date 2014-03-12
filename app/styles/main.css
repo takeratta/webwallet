@@ -201,11 +201,11 @@ body {
 }
 
 .txlist thead th.txlist-header-address {
-  padding-left: 26px !important;
+  padding-left: 30px !important;
 }
 
 .txlist thead th.txlist-header-amount {
-  padding-left: 12px !important;
+  padding-left: 16px !important;
 }
 
 .txlist-tx {
