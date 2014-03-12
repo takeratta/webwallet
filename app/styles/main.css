@@ -232,6 +232,18 @@ body {
   opacity: 0.5;
 }
 
+.txlist-address {
+  font-family: monospace;
+}
+
+.txlist-amount {
+  font-family: monospace;
+}
+
+.txlist-balance {
+  font-family: monospace;
+}
+
 .txlist-hash {
   font-family: monospace;
 }
