@@ -1,6 +1,10 @@
-node_modules
-dist
-.tmp
-.sass-cache
-app/bower_components
+app/bower_components/
+app/revision.txt
+dist/
 .DS_Store
+node_modules/
+npm-debug.log
+.sass-cache
+.tmp/
+www/
+www-old/
