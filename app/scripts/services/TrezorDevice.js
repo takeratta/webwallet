@@ -131,6 +131,8 @@ angular.module('webwalletApp')
         return this.addAccount().then(function () {
           return self.discoverAccounts();
         });
+
+      return $q.when(this.accounts);
     };
 
     //
