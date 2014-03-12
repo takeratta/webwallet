@@ -10,7 +10,7 @@
   </li>
 </ol>
 
-<div ng-if="!device.is('connected')" class="alert alert-warning">
+<div ng-if="!device.isConnected()" class="alert alert-warning">
   <strong>Please connect your device</strong> to access this section.
 </div>
 
@@ -18,7 +18,7 @@
 
   <fieldset class="col-md-6"
             ng-show="recovering"
-            ng-disabled="!device.is('connected')">
+            ng-disabled="!device.isConnected()">
     <h4>Seed recovery</h4>
 
     <form class="form-inline"
@@ -43,7 +43,7 @@
 
   <fieldset class="col-md-6"
             ng-show="!recovering"
-            ng-disabled="!device.is('connected')">
+            ng-disabled="!device.isConnected()">
     <form name="form" class="devrecover">
 
       <div class="form-group">

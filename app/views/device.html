@@ -9,19 +9,19 @@
   </li>
 </ol>
 
-<div ng-if="!device.is('connected')" class="alert alert-warning">
+<div ng-if="!device.isConnected()" class="alert alert-warning">
   <strong>Please connect your device</strong> to access this section.
 </div>
 
-<fieldset ng-disabled="!device.is('connected')">
+<fieldset ng-disabled="!device.isConnected()">
 
-  <p ng-show="!device.hasKey()">
+  <p ng-show="device.isEmpty()">
     <a class="btn btn-block btn-lg btn-primary"
        ng-href="#/device/{{device.id}}/setup"
       ><span class="glyphicon glyphicon-cog"></span> Setup device</a>
   </p>
 
-  <p ng-show="!device.hasKey()">
+  <p ng-show="device.isEmpty()">
    <a class="btn btn-default"
       ng-href="#/device/{{device.id}}/recovery"
     ><span class="text-info">Seed recovery</span>
@@ -32,7 +32,7 @@
     <small class="text-muted">- import seed or private key</small></a>
   </p>
 
-  <p ng-show="device.hasKey()">
+  <p ng-hide="device.isEmpty()">
     <a class="btn btn-default"
        ng-href="#/device/{{device.id}}/wipe"
       ><span class="text-danger">Wipe device</span>

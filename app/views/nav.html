@@ -2,9 +2,7 @@
   <!-- Device -->
   <li ng-repeat="device in devices">
     <a ng-href="#/device/{{device.id}}"
-       ng-class="{ active: isActive('/device/{{device.id}}$'),
-                   'text-danger': device.is('error'),
-                   'bg-danger': device.is('error') }">
+       ng-class="{ active: isActive('/device/{{device.id}}$') }">
       <h4>
         {{device.label()}}
         <span class="dev-status dev-status-{{device.status()}}"
@@ -15,9 +13,6 @@
           <span ng-switch-when="connected"
                 class="glyphicon glyphicon-link"
                 title="Connected"></span>
-          <span ng-switch-when="error"
-                class="glyphicon glyphicon-warning-sign"
-                title="Error"></span>
         </span>
       </h4>
     </a>
@@ -40,8 +35,8 @@
       </li>
     </ul>
 
-    <div ng-if="device.hasKey() && !device.addAccountAllowed()"
-         data-title="Please connect your device to add accounts."
+    <div ng-if="!device.canAddAccount()"
+         data-title="To add accounts, make sure your device is connected and the last account is not empty."
          data-trigger="hover"
          data-placement="bottom"
          bs-tooltip>
@@ -49,7 +44,7 @@
         ><span class="glyphicon glyphicon-plus"></span> Add account</a>
     </div>
 
-    <div ng-if="device.hasKey() && device.addAccountAllowed()">
+    <div ng-if="device.canAddAccount()">
       <a ng-href="" class="btn btn-block btn-sm"
          ng-class="{ active: isActive('/device/{{device.id}}/account-add') }"
          ng-click="addAccount(device)"

@@ -13,7 +13,7 @@
 <p class="nav-sendrecv">
   <a class="btn btn-lg"
      href="#/device/{{device.id}}/account/{{account.id}}/send"
-     ng-disabled="account.isEmpty() || !device.is('connected')">
+     ng-disabled="account.isEmpty() || !device.isConnected()">
     <span class="glyphicon glyphicon-cloud-upload"></span> Send
   </a>
   <a class="btn btn-lg"
@@ -30,10 +30,8 @@
      ng-show="account.transactions != null && !account.transactions.length">
   <h4>No transactions to display</h4>
   <a href="" class="btn btn-default"
-     ng-show="account.isEmpty()
-              && account.id == device.accounts.length - 1
-              && device.accounts.length > 1"
-     ng-click="forgetAccount()">Hide this account</a>
+     ng-show="device.canHideAccount(account)"
+     ng-click="hideAccount()">Hide this account</a>
 </div>
 <table class="txlist table table-hover"
        ng-show="account.transactions != null && account.transactions.length">

@@ -5,6 +5,7 @@
 // External modules
 
 angular.module('webwalletApp')
+  .value('_', window._)
   .value('BigInteger', window.BigInteger)
   .value('Crypto', window.Crypto)
   .value('Bitcoin', window.Bitcoin);
@@ -187,54 +188,6 @@ angular.module('webwalletApp')
 
     this.tick = tick;
     this.endure = endure;
-
-    //
-    // collection utils
-    //
-
-    // finds index of item in an array using a comparator fn
-    // returns -1 if not found
-    function findIndex(xs, x, fn) {
-      var i;
-
-      for (i = 0; i < xs.length; i++)
-        if (fn(xs[i], x))
-          return i;
-
-      return -1;
-    }
-
-    // like findIndex, but returns the array item
-    // returns undefined if not found
-    function find(xs, x, fn) {
-      var idx = findIndex(xs, x, fn);
-      if (idx < 0) return;
-      return xs[idx];
-    }
-
-    // filters an array using a predicate fn
-    function filter(xs, fn) {
-      var ys = [],
-          i;
-
-      for (i = 0; i < xs.length; i++)
-        if (fn(xs[i]))
-          ys.push(xs[i]);
-
-      return ys;
-    }
-
-    // returns items from xs that are missing in ys using a comparator fn
-    function difference(xs, ys, fn) {
-      return filter(xs, function (x) {
-        return find(ys, x, fn) === undefined;
-      });
-    }
-
-    this.findIndex = findIndex;
-    this.find = find;
-    this.filter = filter;
-    this.difference = difference;
 
   });
 

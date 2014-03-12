@@ -10,11 +10,11 @@
   </li>
 </ol>
 
-<div ng-if="!device.is('connected')" class="alert alert-warning">
+<div ng-if="!device.isConnected()" class="alert alert-warning">
   <strong>Please connect your device</strong> to access this section.
 </div>
 
-<fieldset ng-disabled="!device.is('connected')">
+<fieldset ng-disabled="!device.isConnected()">
   <p>You serious?</p>
 
   <button class="btn btn-danger"

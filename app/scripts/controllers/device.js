@@ -29,7 +29,7 @@ angular.module('webwalletApp')
         settings.label = settings.label.trim();
       dev.reset(settings)
         .then(
-          function (res) { $location.path('/'); },
+          function (res) { $location.path('/device/' + dev.id); },
           function (err) { flash.error(err.message || 'Setup failed'); }
         );
     };
@@ -40,7 +40,7 @@ angular.module('webwalletApp')
       settings.payload = settings.payload.trim();
       dev.load(settings)
         .then(
-          function (res) { $location.path('/'); },
+          function (res) { $location.path('/device/' + dev.id); },
           function (err) { flash.error(err.message || 'Importing failed'); }
         );
     };
@@ -55,7 +55,7 @@ angular.module('webwalletApp')
       $scope.recovering = true;
       dev.recover(settings)
         .then(
-          function (res) { $location.path('/'); },
+          function (res) { $location.path('/device/' + dev.id); },
           function (err) { flash.error(err.message || 'Recovery failed'); }
         );
     };

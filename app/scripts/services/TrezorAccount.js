@@ -2,7 +2,7 @@
 
 angular.module('webwalletApp')
   .factory('TrezorAccount', function (utils, trezor, TrezorBackend, TrezorBranch,
-      BigInteger, Bitcoin, $q) {
+      _, BigInteger, Bitcoin, $q) {
 
     function TrezorAccount(id, coin, nodes) {
       this.id = ''+id;
@@ -118,13 +118,7 @@ angular.module('webwalletApp')
           uins, txs;
 
       // find unique inputs by tx hash
-      uins = tx.inputs.filter(function (inp, i) {
-        var pi = utils.findIndex(tx.inputs, inp, function (a, b) {
-          return a.prev_hash === b.prev_hash;
-        });
-
-        return pi === i;
-      });
+      uins = _.uniq(tx.inputs, 'prev_hash');
 
       // lookup txs referenced by inputs
       txs = uins.map(function (inp) {

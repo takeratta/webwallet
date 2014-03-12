@@ -10,12 +10,12 @@
   </li>
 </ol>
 
-<div ng-if="!device.is('connected')" class="alert alert-warning">
+<div ng-if="!device.isConnected()" class="alert alert-warning">
   <strong>Please connect your device</strong> to access this section.
 </div>
 
 <div class="row">
-  <fieldset ng-disabled="!device.is('connected')">
+  <fieldset ng-disabled="!device.isConnected()">
     <form class="devsetup col-md-6">
 
       <div class="form-group">

@@ -2,48 +2,45 @@
 
 angular.module('webwalletApp')
   .service('trezorService', function TrezorService(utils, storage, trezor, firmwareService, TrezorDevice,
-      $modal, $q, $rootScope) {
+      _, $modal, $q, $rootScope) {
 
     var self = this,
         STORAGE_DEVICES = 'trezorServiceDevices';
-
-    self.get = getDevice;
-    self.forget = forgetDevice;
-    self.devices = deserialize(restore()); // the list of available devices
-    self.devices.forEach(function (dev) {
-      dev.subscribe();
-    });
 
     var enumeratePaused = false,
         connectFn = connect,
         disconnectFn = disconnect;
 
+    self.devices = deserialize(restore()); // the list of available devices
+    self.devices.forEach(function (dev) {
+      dev.registerAndSubscribe();
+    });
+
     storeWhenChanged();
     watchDevices(1000);
 
-    // public functions
+    //
+    // public
+    //
 
-    // finds a device by sn
-    function getDevice(sn) {
-      return utils.find(self.devices, sn, compareDeviceWithId);
-    }
+    // find a device by id
+    self.get = function (id) {
+      return _.find(self.devices, { id: id });
+    };
 
-    // finds a device by sn and removes it from the list and the storage
-    function forgetDevice(sn) {
-      var idx = utils.findIndex(self.devices, sn, compareDeviceWithId),
-          dev;
+    // find a device by id and remove it from the dev list and storage
+    self.forget = function (id) {
+      var dev = _.find(self.devices, { id: id });
 
-      if (idx >= 0)
-        dev = self.devices[idx];
-      if (!dev)
-        return;
-
+      if (!dev) return;
       dev.disconnect();
-      dev.unsubscribe(true); // deregister
-      self.devices.splice(idx, 1);
-    }
+      dev.deregisterAndUnsubscribe();
+      _.remove(self.devices, { id: id });
+    };
 
-    // private functions
+    //
+    // private
+    //
 
     // serialize a device list
     function serialize(devices) {
@@ -107,7 +104,7 @@ angular.module('webwalletApp')
       var dev;
 
       if (desc.id) {
-        dev = utils.find(self.devices, desc, compareById);
+        dev = _.find(self.devices, { id: desc.id });
         if (!dev) {
           dev = new TrezorDevice(desc.id);
           self.devices.push(dev);
@@ -115,14 +112,19 @@ angular.module('webwalletApp')
       } else
         dev = new TrezorDevice(desc.path);
 
-      dev.connect(desc);
-      setupCallbacks(dev);
       dev.withLoading(function () {
-        return dev.initializeDevice().then(function (features) {
-          return features.bootloader_mode
-            ? bootloaderWorkflow(dev)
-            : normalWorkflow(dev);
-        });
+        dev.connect(desc);
+        setupCallbacks(dev);
+        return dev.initializeDevice().then(
+          function (features) {
+            return features.bootloader_mode
+              ? bootloaderWorkflow(dev)
+              : normalWorkflow(dev);
+          },
+          function () {
+            dev.disconnect();
+          }
+        );
       });
     }
 
@@ -131,7 +133,7 @@ angular.module('webwalletApp')
       var dev;
 
       if (desc.id) {
-        dev = utils.find(self.devices, desc, compareById);
+        dev = _.find(self.devices, { id: desc.id });
         if (dev)
           dev.disconnect();
       }
@@ -149,7 +151,6 @@ angular.module('webwalletApp')
           return outdatedFirmware(firmware,
             firmwareService.get(dev.features));
         })
-        .then(function () { return dev.initializeKey(); })
         .then(function () { return dev.initializeAccounts(); });
     }
 
@@ -247,12 +248,17 @@ angular.module('webwalletApp')
 
         dev.connect(desc);
         setupCallbacks(dev);
-        dev.initializeDevice().then(function (features) {
-          modal.$scope.state = features.bootloader_mode
-            ? 'device-bootloader'
-            : 'device-normal';
-          modal.$scope.device = dev;
-        });
+        dev.initializeDevice().then(
+          function (features) {
+            modal.$scope.state = features.bootloader_mode
+              ? 'device-bootloader'
+              : 'device-normal';
+            modal.$scope.device = dev;
+          },
+          function () {
+            dev.disconect();
+          }
+        );
       }
 
       function disconnected(desc) {
@@ -387,15 +393,9 @@ angular.module('webwalletApp')
     // computes added and removed device descriptors in current tick
     function descriptorDelta(xs, ys) {
       return {
-        added: utils.difference(ys, xs, compareById),
-        removed: utils.difference(xs, ys, compareById)
+        added: _.filter(ys, function (y) { return !_.find(xs, { id: y.id }); }),
+        removed: _.filter(xs, function (x) { return !_.find(ys, { id: x.id }); })
       };
     }
-
-    // compare two objects by id
-    function compareById(a, b) { return a.id === b.id; }
-
-    // compares a dev with an id
-    function compareDeviceWithId(d, id) { return d.id === id; }
 
   });
