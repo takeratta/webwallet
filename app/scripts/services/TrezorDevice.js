@@ -42,15 +42,9 @@ angular.module('webwalletApp')
       var self = this;
 
       self._loading = true;
-      return $q.when(fn()).then(
-        function () {
-          self._loading = false;
-        },
-        function (err) {
-          self._loading = false;
-          throw err;
-        }
-      );
+      return $q.when(fn()).finally(function () {
+        self._loading = false;
+      });
     };
 
     TrezorDevice.prototype.status = function () {
