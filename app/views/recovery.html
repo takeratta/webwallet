@@ -25,6 +25,7 @@
           ng-submit="recoverWord()">
       <div class="form-group">
         <input type="text" class="input-lg" placeholder="Enter seed word"
+               data-keyboard=""
                ng-options="word for word in seedWordlist"
                ng-model="seedWord"
                bs-typeahead>
