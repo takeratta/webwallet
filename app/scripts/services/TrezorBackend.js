@@ -12,7 +12,7 @@ angular.module('webwalletApp')
 angular.module('webwalletApp')
   // coin name -> backend endpoint
   .value('backends', {
-    'Bitcoin': 'https://mytrezor.com:80',
+    'Bitcoin': 'https://mytrezor.com',
     'Testnet': 'http://test-api.bitsofproof.com:8080'
   })
   // coin name -> public address version
@@ -106,7 +106,7 @@ angular.module('webwalletApp')
 
       req.url = this.streamUrl(xpub);
       req.contentType = 'application/json';
-      req.transport = 'websocket';
+      req.transport = 'long-polling';
       req.fallbackTransport = 'long-polling';
       req.trackMessageLength = true;
       req.enableXDR = true;
