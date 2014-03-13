@@ -251,13 +251,7 @@ body {
 /* Device send/receive nav */
 
 .nav-sendrecv {
-}
-
-.nav-sendrecv-active .btn {
-  opacity: 0.5;
-}
-
-.nav-sendrecv-active .btn.active {
+  margin-bottom: 30px;
 }
 
 /* Receive */
