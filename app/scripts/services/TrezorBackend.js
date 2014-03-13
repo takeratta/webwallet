@@ -10,24 +10,11 @@ angular.module('webwalletApp')
   });
 
 angular.module('webwalletApp')
-  // coin name -> backend endpoint
-  .value('backends', {
-    'Bitcoin': 'https://mytrezor.com',
-    'Testnet': 'http://test-api.bitsofproof.com:8080'
-  })
-  // coin name -> public address version
-  .value('versions', {
-    'Bitcoin': 76067358,
-    'Testnet': 70617039
-  });
-
-angular.module('webwalletApp')
-  .factory('TrezorBackend', function (backends, versions, utils,
-      atmosphere, Crypto, $http, $log) {
+  .factory('TrezorBackend', function (config, utils, atmosphere, Crypto, $http, $log) {
 
     function TrezorBackend(coin) {
-      this.endpoint = backends[coin.coin_name];
-      this.version = versions[coin.coin_name];
+      this.endpoint = config.backends[coin.coin_name];
+      this.version = config.versions[coin.coin_name];
 
       if (!this.endpoint)
         throw new Error('Endpoint for given coin type "'

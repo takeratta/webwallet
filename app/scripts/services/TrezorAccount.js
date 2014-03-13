@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('webwalletApp')
-  .factory('TrezorAccount', function (utils, trezor, versions, TrezorBackend, TrezorBranch,
+  .factory('TrezorAccount', function (config, utils, trezor, TrezorBackend, TrezorBranch,
       _, BigInteger, Bitcoin, $q) {
 
     function TrezorAccount(id, coin, nodes) {
@@ -52,7 +52,7 @@ angular.module('webwalletApp')
     };
 
     TrezorAccount.prototype.publicKey = function () {
-      return utils.node2xpub(this.node, versions[this.coin.coin_name]);
+      return utils.node2xpub(this.node, config.versions[this.coin.coin_name]);
     };
 
     TrezorAccount.prototype.usedAddresses = function () {

@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('webwalletApp')
-  .factory('TrezorDevice', function (trezor, utils, firmwareService, TrezorAccount, _, $q) {
+  .factory('TrezorDevice', function (config, trezor, utils, firmwareService, TrezorAccount, _, $q) {
 
     function TrezorDevice(id) {
       this.id = ''+id;
@@ -223,7 +223,7 @@ angular.module('webwalletApp')
     // Private methods for creating accounts
 
     TrezorDevice.prototype._createAccount = function (id) {
-      var coin = this._getCoin('Bitcoin'),
+      var coin = this._getCoin(config.coin),
           path = this._getPathForAccount(id, coin);
 
       return this._session.getPublicKey(path).then(function (res) {
