@@ -32,7 +32,7 @@
         </div>
 
         <div class="form-group">
-          <label for="pin" class="control-label">PIN</label>
+          <label for="pin" class="control-label">PIN (leave empty to disable PIN protection)</label>
           <input type="text" name="pin" id="pin" class="form-control"
                  ng-model="settings.pin">
         </div>
@@ -40,7 +40,7 @@
         <div class="checkbox">
           <label>
             <input type="checkbox" name="passphrase-protection"
-                   ng-model="settings.passphrase_protection"> Passphrase encryption
+                   ng-model="settings.passphrase_protection"> Additional passphrase encryption
           </label>
         </div>
 
