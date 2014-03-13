@@ -2,7 +2,7 @@
 
 angular.module('webwalletApp')
     .controller('AccountCtrl', function (trezorService, utils, flash,
-      $document, $scope, $location, $routeParams) {
+      $document, $scope, $timeout, $location, $routeParams) {
 
     $scope.device = trezorService.get($routeParams.deviceId);
     if (!$scope.device)
@@ -35,7 +35,37 @@ angular.module('webwalletApp')
 
     $scope.activate = function (address) {
       $scope.activeAddress = address;
+
+      // select the address text
+      $timeout(function () {
+        var addr = address.address,
+            elem = $document.find('.address-list-address:contains('+addr+')');
+        if (elem.length)
+          select(elem[0]);
+      });
     };
+
+    function select(elem) {
+      var selection, range,
+          document = window.document,
+          body = document.body;
+
+      if (body.createTextRange) { // ms
+        range = body.createTextRange();
+        range.moveToElementText(elem);
+        range.select();
+        return;
+      }
+
+      if (window.getSelection) { // moz, opera, webkit
+        selection = window.getSelection();
+        range = document.createRange();
+        range.selectNodeContents(elem);
+        selection.removeAllRanges();
+        selection.addRange(range);
+        return;
+      }
+    }
 
     $scope.more = function () {
       var index = $scope.addresses.length,
