@@ -230,6 +230,7 @@ angular.module('webwalletApp')
         var node = res.message.node;
 
         return new TrezorAccount(id, coin, {
+          main: node,
           external: trezor.deriveChildNode(node, 0),
           change: trezor.deriveChildNode(node, 1)
         });
