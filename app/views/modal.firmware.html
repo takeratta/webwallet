@@ -6,7 +6,8 @@
          ng-switch-when="initial">
       <div class="modal-body">
         <h3>Your device firmware is out of date.</h3>
-        <p>Please plug your device in the bootloader mode.</p>
+        <p>Please plug your device in firmware update mode.</p>
+        <p>Keep both device buttons pressed while connecting the device to enter this mode.</p>
 
         <strong class="h5">Current firmware:</strong>
         {{version[0]}}.{{version[1]}}.{{version[2]}}
@@ -29,7 +30,7 @@
     <div class="modal-content"
          ng-switch-when="device-bootloader">
       <div class="modal-body">
-        <h3>Update the device firmware?</h3>
+        <h3>Do you want to update the device firmware?</h3>
 
         <div ng-if="version">
           <strong class="h5">Current firmware:</strong>
@@ -60,8 +61,8 @@
          ng-switch-when="device-normal">
       <div class="modal-body">
         <div class="alert alert-warning text-center">
-          <h4>Plugged device is not in bootloader mode.</h4>
-          <p>Please keep both buttons pressed while plugging in.</p>
+          <h4>Plugged device is not in firmware update mode.</h4>
+          <p>Keep both device buttons pressed while connecting the device to enter this mode.</p>
         </div>
       </div>
       <div class="modal-footer"
@@ -84,7 +85,7 @@
          ng-switch-when="update-flashing">
       <div class="modal-body">
         <div class="alert alert-info text-center">
-          <h4>Flashing firmware</h4>
+          <h4>Uploading firmware</h4>
           <p>If asked, please confirm the update on your device.</p>
         </div>
       </div>
