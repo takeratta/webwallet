@@ -165,10 +165,14 @@ angular.module('webwalletApp')
     };
 
     TrezorAccount.prototype.buildTx = function (address, amount, device) {
-      var self = this;
+      var self = this,
+          minAmount = 5430;
 
       if (!utils.validateAddress(address, self.coin.address_type))
         return $q.reject(new Error('Invalid address'));
+
+      if (amount < minAmount)
+        return $q.reject(new Error('Amount is too low'));
 
       return buildTx(0);
 
@@ -185,7 +189,7 @@ angular.module('webwalletApp')
               fee = kbytes * self._feePerKb;
 
           if (fee <= space) { // we have a space for the fee, set it and return
-            if (space - fee < 5430) { // there is no need for a change address
+            if (space - fee < minAmount) { // there is no need for a change address
               tx.outputs.pop();
               tx.fee = space;
             } else {
