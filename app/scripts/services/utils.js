@@ -1,7 +1,5 @@
 'use strict';
 
-// jshint curly:false, camelcase:false, latedef:nofunc
-
 // External modules
 
 angular.module('webwalletApp')
@@ -28,7 +26,9 @@ angular.module('webwalletApp')
   })
   .filter('bip32Path', function () {
     return function (val) {
-      return 'm/' + val.map( function(x) { return (x & 0x80000000) ? (x & 0x7FFFFFFF) + "'" : x;  } ).join('/');
+      return 'm/' + val.map(function(x) {
+        return (x & 0x80000000) ? (x & 0x7FFFFFFF) + "'" : x;
+      }).join('/');
     };
   });
 
