@@ -223,7 +223,7 @@ angular.module('webwalletApp')
     // Private methods for creating accounts
 
     TrezorDevice.prototype._createAccount = function (id) {
-      var coin = this._getCoin('Testnet'),
+      var coin = this._getCoin('Bitcoin'),
           path = this._getPathForAccount(id, coin);
 
       return this._session.getPublicKey(path).then(function (res) {
