@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('webwalletApp')
-  .value('atmosphere', window.jQuery.atmosphere);
+  .value('atmosphere', window.atmosphere);
 
 angular.module('webwalletApp')
   .config(function ($httpProvider) {
