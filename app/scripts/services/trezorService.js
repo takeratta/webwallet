@@ -204,20 +204,21 @@ angular.module('webwalletApp')
         var scope = $rootScope.$new(),
             modal;
         scope.code = code;
+        scope.$emit('modalShow.button', code);
         modal = $modal({
           template: 'views/modal.button.html',
           backdrop: 'static',
           keyboard: false,
           scope: scope
         });
-        dev.once('receive', function () {
+        dev.once('receive', hide);
+        dev.once('error', hide);
+
+        function hide() {
+          scope.$emit('modalHide.button');
           modal.hide();
           modal.destroy();
-        });
-        dev.once('error', function () {
-          modal.hide();
-          modal.destroy();
-        });
+        }
       });
 
       dev.on('word', function (callback) {

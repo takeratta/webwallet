@@ -2,7 +2,7 @@
 
 angular.module('webwalletApp')
     .controller('AccountCtrl', function (trezorService, utils, flash,
-      $document, $scope, $timeout, $location, $routeParams) {
+      $document, $scope, $timeout, $location, $rootScope, $routeParams) {
 
     $scope.device = trezorService.get($routeParams.deviceId);
     if (!$scope.device)
@@ -118,6 +118,7 @@ angular.module('webwalletApp')
     $scope.send = function () {
       var tx = $scope.transaction.prepared;
       if (!tx) return;
+      $scope.outputIndex = 0;
       $scope.account.sendTx(tx, $scope.device).then(
         function () {
           $location.path('/device/' + $scope.device.id
@@ -128,6 +129,26 @@ angular.module('webwalletApp')
         }
       );
     };
+
+    // Output confirmation
+
+    $scope.outputIndex = null; // Gets inicialized in send()
+
+    $rootScope.$on('modalShow.button', function (event, code) {
+      var modScope = event.targetScope;
+
+      if (code !== 'ButtonRequest_ConfirmOutput')
+        return;
+
+      modScope.$apply(function () {
+        var account = $scope.account,
+            prepared = $scope.transaction.prepared,
+            output = prepared ? prepared.outputs[$scope.outputIndex++] : null;
+
+        modScope.account = account;
+        modScope.output = output;
+      });
+    });
 
     // Send address scan
 

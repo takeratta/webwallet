@@ -10,6 +10,11 @@
         </div>
         <div ng-switch-when="ButtonRequest_ConfirmOutput" class="alert alert-block alert-info">
           <h4>Please confirm the transaction output on your device.</h4>
+          <ul class="list-unstyled"
+              ng-if="output">
+            <li><strong>Address:</strong> {{ output.address }}</li>
+            <li><strong>Amount:</strong> {{ output.amount | amount }} {{ account.coin.coin_shortcut }}</li>
+          </ul>
         </div>
         <div ng-switch-when="ButtonRequest_ConfirmWord" class="alert alert-block alert-info">
           <h4>Please write down the seed from your device.</h4>
