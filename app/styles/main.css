@@ -261,6 +261,18 @@ body {
   opacity: 0.5;
 }
 
+.address-list .list-group-item.active {
+  color: hsl(208, 40%, 43%);
+  background-color: hsla(208, 56%, 53%, 0.1);
+  border-color: hsla(208, 56%, 53%, 0.4);
+}
+
+.address-list .list-group-item.active:hover {
+  color: hsl(208, 40%, 43%);
+  background-color: hsla(208, 56%, 53%, 0.2);
+  border-color: hsla(208, 56%, 53%, 0.5);
+}
+
 /* Send */
 
 .qrscan-video {
