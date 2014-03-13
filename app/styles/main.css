@@ -29,6 +29,7 @@
 .breadcrumb,
 .dropdown-menu,
 .modal-content,
+.nav-tabs > li > a,
 .btn-group-lg > .btn,
 .list-group-item:first-child,
 .list-group-item:last-child {
