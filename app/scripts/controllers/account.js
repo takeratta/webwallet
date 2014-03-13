@@ -24,6 +24,10 @@ angular.module('webwalletApp')
         + ($scope.device.accounts.length - 1));
     };
 
+    $scope.reload = function () {
+      window.location.reload();
+    };
+
     //
     // Receive
     //

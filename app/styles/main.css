@@ -192,6 +192,12 @@ body {
   margin-bottom: 10px;
 }
 
+/* Error on inconsistent acc info */
+
+.alert-inconsistent .btn {
+  margin-left: 20px;
+}
+
 /* Transaction list */
 
 .txlist thead th {

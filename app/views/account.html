@@ -1,3 +1,10 @@
+<div class="alert alert-danger alert-inconsistent"
+     ng-show="account.isInconsistent()">
+  <strong>Warning!</strong> Account balance information is inconsistent.
+  <a href="" class="btn btn-danger"
+     ng-click="reload()">Reload wallet</a>
+</div>
+
 <ol class="breadcrumb">
   <li><a ng-href="#/device/{{device.id}}">{{device.label()}}</a></li>
   <li class="active">{{account.label()}}</li>

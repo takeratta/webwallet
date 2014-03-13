@@ -43,6 +43,14 @@ angular.module('webwalletApp')
       return !this.transactions || !this.transactions.length;
     };
 
+    TrezorAccount.prototype.isInconsistent = function () {
+      return !this.isEmpty() // is not empty
+        && this.transactions // has txs loaded
+        && this.balance // has balance loaded
+        // balance of newest tx does not equal balance from server
+        && !this.transactions[0].balance.equals(this.balance);
+    };
+
     TrezorAccount.prototype.label = function () {
       return 'Account #' + (+this.id + 1);
     };
