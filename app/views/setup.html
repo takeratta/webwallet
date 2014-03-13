@@ -17,16 +17,26 @@
 <div class="row">
   <fieldset ng-disabled="!device.isConnected()">
     <form class="devsetup col-md-6">
+      <p>
+      Welcome to TREZOR Setup! Take your time to read all instructions. The setup might
+      take up to a few minutes. When done, you can start using TREZOR.</p>
 
       <div class="form-group">
-        <label for="label" class="control-label">Device label</label>
+        <strong>Device label</strong>
+        <p>This label will be shown on the display.
+        Useful if you have more devices.</p>
         <input type="text" name="label" id="label" class="form-control"
                placeholder="My TREZOR"
                ng-model="settings.label">
       </div>
 
       <div class="form-group">
-        <label for="strength" class="control-label">Recovery seed length</label>
+        <strong>Recovery seed length</strong>
+        <p>Recovery seed is a sequence of words. It will help you recovering your wallet
+        (balance and transaction history) when needed; even into another device.
+        We believe 12 words are safe enough but you have the option to choose 18 or 24
+        for more security. Just keep in mind that the recovery
+        process using longer seed takes slightly more time.</p>
         <input type="text" name="strength" id="strength"
                class="form-control"
                slider
@@ -50,6 +60,12 @@
       </div>
 
       <div class="checkbox">
+        <strong>PIN protection</strong>
+        <p>
+            Using PIN protection is highly recommended. PIN prevents unauthorized persons from stealing
+            your bitcoins even when they get physical access to your device.
+        </p>
+        <p>PIN can be set or changed later as well. Careful, PIN does not protect your Recovery seed.</p>
         <label>
           <input type="checkbox" name="pin-protection"
                  ng-model="settings.pin_protection"> Enable PIN protection
@@ -66,9 +82,16 @@
       </div>
 
       <div class="checkbox">
+        <strong>Additional passphrase encryption</strong>
+        <p>
+            Encryption passphrase is additional level of security. You'll be asked for your passhrase every time
+            you want to access your wallet. Careful, if you forget the passphrase,
+            nothing will help you to get access to your wallet. Not even the Recovery seed.
+            <span style='color:red;'>For experts only!</span>
+        </p>
         <label>
           <input type="checkbox" name="passphrase-protection"
-                 ng-model="settings.passphrase_protection"> Additional passphrase encryption
+                 ng-model="settings.passphrase_protection"> I take the responsibility and want to enable passphrase encryption
         </label>
       </div>
 

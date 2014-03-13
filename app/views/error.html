@@ -11,15 +11,17 @@
      ng-if="!installed">
   <div class="modal-content">
     <div class="modal-body">
-      <p class="lead">Please download and install the TREZOR Plugin.</p>
-      <p>
-        <strong>Why?</strong> Browser plugin allows Web Wallet to communicate with your TREZOR device.
-      </p>
+      <p class="lead">Get started</p>
+      <p>Download and install the TREZOR Browser Plugin.</p>
+      <p><strong>Why?</strong> The plugin allows myTREZOR to communicate with your TREZOR device.</p>
       <hr>
-
       <div class="text-center">
+
+        <label><input type="checkbox" ng-model="agree"> I agree with the <a href="/legal.html" target="_blank">Terms &amp; Conditions</a></label>
+
         <div class="btn-group btn-group-lg text-left">
           <button class="btn-installer-download btn btn-success"
+                  ng-disabled="!agree"
                   ng-click="download(selected)">
             <span class="glyphicon glyphicon-download"></span> Download
           </button>
@@ -35,6 +37,8 @@
                   bs-select></button>
         </div>
       </div>
+
+      <small class="text-muted">myTREZOR Web Wallet is a free service provided exclusively to <a href="http://www.bitcointrezor.com">TREZOR hardware wallet</a> owners.</small>
     </div>
   </div>
 </div>

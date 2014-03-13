@@ -24,12 +24,9 @@
   <p ng-show="device.isEmpty()">
    <a class="btn btn-default"
       ng-href="#/device/{{device.id}}/recovery"
-    ><span class="text-info">Seed recovery</span>
-    <small class="text-muted">- recover content of previous device</small></a>
-   <a class="btn btn-default"
-      ng-href="#/device/{{device.id}}/load"
-    ><span class="text-info">Import seed</span>
-    <small class="text-muted">- import seed or private key</small></a>
+    ><span class="text-info">TREZOR Recovery</span>
+    </a>
+   <small class="text-muted">Allows you to restore your wallet from Recovery seed.</small>
   </p>
 
   <p ng-hide="device.isEmpty()">
