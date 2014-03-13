@@ -1,6 +1,6 @@
 <ol class="breadcrumb">
   <li><a ng-href="#/device/{{device.id}}">{{device.label()}}</a></li>
-  <li class="active">Import seed</li>
+  <li class="active">Load device</li>
 
   <li class="pull-right">
     <a href="" class="text-muted"
@@ -17,6 +17,12 @@
 <div class="row">
   <fieldset ng-disabled="!device.isConnected()">
       <form name="form" class="devload col-md-6">
+
+        <div class="alert alert-warning">
+        <p>This is an advanced interface intended for developer use only!.</p>
+        <p>If you are a common user and want to setup or recover your TREZOR device, please continue <a href="../setup">here</a>.</p>
+        <p>Never use this process unless you really know what you are doing!</p>
+        </div>
 
         <div class="form-group">
           <label for="label" class="control-label">Device label</label>
