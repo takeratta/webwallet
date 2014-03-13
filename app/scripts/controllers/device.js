@@ -14,7 +14,7 @@ angular.module('webwalletApp')
     $scope.wipe = function (dev) {
       dev.wipe()
         .then(
-          function (res) { $location.path('/'); },
+          function (res) { $scope.forgetDevice(); },
           function (err) { flash.error(err.message || 'Wiping failed'); }
         );
     };

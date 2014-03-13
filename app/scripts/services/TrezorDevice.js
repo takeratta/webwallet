@@ -278,13 +278,7 @@ angular.module('webwalletApp')
 
       return self.withLoading(function () {
         return self._session.wipeDevice().then(function () {
-          // we use finally here to initialize even when the deregistration
-          // fails
-          return self.deregisterAndUnsubscribe().finally(function () {
-            return self.initializeDevice().then(function () {
-              return self.initializeAccounts();
-            });
-          });
+          return self.deregisterAndUnsubscribe();
         });
       });
     };
