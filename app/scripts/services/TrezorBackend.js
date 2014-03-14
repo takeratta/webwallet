@@ -13,7 +13,8 @@ angular.module('webwalletApp')
   .factory('TrezorBackend', function (config, utils, atmosphere, Crypto, $http, $log) {
 
     function TrezorBackend(coin) {
-      this.endpoint = config.backends[coin.coin_name];
+      this.endpoint = config.backends[coin.coin_name].endpoint;
+      this.transport = config.backends[coin.coin_name].transport;
       this.version = config.versions[coin.coin_name];
 
       if (!this.endpoint)
@@ -92,9 +93,9 @@ angular.module('webwalletApp')
           req = new atmosphere.AtmosphereRequest();
 
       req.url = this.streamUrl(xpub);
-      req.contentType = 'application/json';
-      req.transport = 'long-polling';
+      req.transport = this.transport;
       req.fallbackTransport = 'long-polling';
+      req.contentType = 'application/json';
       req.trackMessageLength = true;
       req.enableXDR = true;
 
