@@ -4,13 +4,15 @@
 
     <div class="modal-content"
          ng-switch-when="initial">
+      <div class="modal-header">
+        <h3 class="modal-title">Your device firmware is outdated!</h3>
+      </div>
       <div class="modal-body">
-        <h3>Your device firmware is outdated!</h3>
-        <p>Our team is constantly working on adding new features to TREZOR.</p>
-        <p>To enjoy full functionality and security of your device, we strongly recommend you
-        to update.<p>
+        <p>Our team is constantly working on adding new features to TREZOR.
+        To enjoy full functionality and security of your device, we
+        <strong>strongly recommend you to update</strong>.<p>
 
-       <strong class="h5">Current firmware:</strong>
+        <strong class="h5">Current firmware:</strong>
         {{version[0]}}.{{version[1]}}.{{version[2]}}
         <br>
 
@@ -21,10 +23,12 @@
         <h5 ng-if="firmware.changelog">Changelog:</h5>
         <pre ng-if="firmware.changelog">{{firmware.changelog}}</pre>
 
-        <p>To update the firmware, please plug your device in firmware update mode.</p>
-        <p>Keep both device buttons pressed while connecting the device to enter this mode.</p>
-        <a href=''>Need help?<!-- #TODO --></a>
-
+        <p class="alert alert-info alert-withicon">
+          <span class="glyphicon glyphicon-info-sign alert-icon"></span>
+          To update the firmware, please plug your device in firmware update mode.
+          Keep <strong>both device buttons pressed</strong> while connecting the device to enter this mode.
+        </p>
+        <a href="">Need help?<!-- #TODO --></a>
       </div>
       <div class="modal-footer"
            ng-if="!firmware.required">
@@ -35,28 +39,39 @@
 
     <div class="modal-content"
          ng-switch-when="device-bootloader">
+      <div class="modal-header">
+        <h3 class="modal-title">Do you want to update the device firmware?</h3>
+      </div>
       <div class="modal-body">
-        <h3>Do you want to update the device firmware?</h3>
 
         <div ng-if="version">
-          <strong class="h5">Current firmware:</strong>
-          {{version[0]}}.{{version[1]}}.{{version[2]}}
+          <p>
+            <strong class="h5">Current firmware:</strong>
+            {{version[0]}}.{{version[1]}}.{{version[2]}}
+          </p>
         </div>
 
         <div ng-if="firmware">
-          <strong class="h5">Available firmware:</strong>
-          {{firmware.version[0]}}.{{firmware.version[1]}}.{{firmware.version[2]}}
+          <p>
+            <strong class="h5">Available firmware:</strong>
+            {{firmware.version[0]}}.{{firmware.version[1]}}.{{firmware.version[2]}}
+          </p>
         </div>
 
         <div ng-if="firmware.changelog">
-          <h5>Changelog:</h5>
-          <pre>{{firmware.changelog}}</pre>
+          <p>
+            <h5>Changelog:</h5>
+            <pre>{{firmware.changelog}}</pre>
+          </p>
         </div>
 
-        <strong>Caution:</strong>
-        <span style='color:red;'>Always have your Recovery seed with you before updating the firmware!</span>
-        <p>In very rare cases, a firmware update might result in the need to recover the wallet
-        from Recovery seed.</p>
+        <div class="alert alert-warning alert-withicon">
+          <span class="glyphicon glyphicon-warning-sign alert-icon"></span>
+          <h4>Caution!</h4>
+          <strong>Always have your Recovery seed with you before updating firmware!</strong>
+          <p>In very rare cases, a firmware update might result in the need to recover the wallet
+          from Recovery seed.</p>
+        </div>
 
       </div>
       <div class="modal-footer">
@@ -73,7 +88,7 @@
       <div class="modal-body">
         <div class="alert alert-warning text-center">
           <h4>Your TREZOR is not in the firmware update mode.</h4>
-          <p>Please reconnect it <strong>shile pressing both buttons simultaneously.</strong></p>
+          <p>Please reconnect it <strong>while pressing both buttons simultaneously.</strong></p>
         </div>
       </div>
       <div class="modal-footer"
