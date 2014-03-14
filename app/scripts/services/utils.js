@@ -271,7 +271,7 @@ angular.module('webwalletApp')
       link: link,
       restrict: 'E',
       require: '?ngModel',
-      template: '<video class="qrscan-video" autoplay></video>',
+      template: '<video class="qrscan-video"></video>',
       scope: {
         interval: '='
       }
@@ -302,8 +302,8 @@ angular.module('webwalletApp')
         navigator.getUserMedia({ video: true },
           function (vs) {
             stream = vs;
-            video.src = (window.URL && window.URL.createObjectURL(vs)) || vs;
             video.onloadedmetadata = initCanvas;
+            video.src = (window.URL && window.URL.createObjectURL(vs)) || vs;
           },
           function () {
             ngModel.$setViewValue(null);
