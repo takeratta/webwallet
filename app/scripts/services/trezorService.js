@@ -153,9 +153,11 @@ angular.module('webwalletApp')
         })
         .then(function () { return dev.initializeAccounts(); })
         .then(function () {
-          if (dev.accounts.length)
-            $location.path('/device/' + dev.id
-              + '/account/' + dev.accounts[0].id + '/receive');
+          var acc = dev.accounts[0];
+
+          if (acc)
+            $location.path('/device/' + dev.id + '/account/' + acc.id
+              + (acc.isEmpty() ? '/receive' : ''));
           else
             $location.path('/device/' + dev.id);
         });
