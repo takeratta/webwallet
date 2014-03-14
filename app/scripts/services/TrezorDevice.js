@@ -278,9 +278,9 @@ angular.module('webwalletApp')
       var self = this;
 
       return self.withLoading(function () {
-        return self._session.wipeDevice().then(function () {
-          return self.deregisterAndUnsubscribe();
-        });
+        return self._session.initialize()
+          .then(function () { return self._session.wipeDevice(); })
+          .then(function () { return self.deregisterAndUnsubscribe(); });
       });
     };
 
@@ -289,7 +289,8 @@ angular.module('webwalletApp')
           sett = angular.copy(settings);
 
       return self.withLoading(function () {
-        return self._session.resetDevice(sett)
+        return self._session.initialize()
+          .then(function () { return self._session.resetDevice(sett); })
           .then(function () { return self.initializeDevice(); })
           .then(function () { return self.initializeAccounts(); });
       });
@@ -307,7 +308,8 @@ angular.module('webwalletApp')
       delete sett.payload;
 
       return self.withLoading(function () {
-        return self._session.loadDevice(sett)
+        return self._session.initialize()
+          .then(function () { return self._session.loadDevice(sett); })
           .then(function () { return self.initializeDevice(); })
           .then(function () { return self.initializeAccounts(); });
       });
@@ -320,7 +322,8 @@ angular.module('webwalletApp')
       sett.enforce_wordlist = true;
 
       return self.withLoading(function () {
-        return self._session.recoverDevice(sett)
+        return self._session.initialize()
+          .then(function () { return self._session.recoverDevice(sett); })
           .then(function () { return self.initializeDevice(); })
           .then(function () { return self.initializeAccounts(); });
       });
