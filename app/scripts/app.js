@@ -17,10 +17,6 @@ angular.module('webwalletApp', [
         templateUrl: 'views/device.html',
         controller: 'DeviceCtrl'
       })
-      .when('/device/:deviceId/setup', {
-        templateUrl: 'views/setup.html',
-        controller: 'DeviceCtrl'
-      })
       .when('/device/:deviceId/load', {
         templateUrl: 'views/load.html',
         controller: 'DeviceCtrl'

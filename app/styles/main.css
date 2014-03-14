@@ -81,6 +81,10 @@
   color: #999;
 }
 
+.lead {
+  font-size: 16px;
+}
+
 /* Line divider component */
 
 .line-divider {
@@ -97,6 +101,10 @@
 
 .line-divider > .line-divider-content {
   position: relative;
+}
+
+.slider-horizontal {
+  width: 100% !important;
 }
 
 /* Layout, header, footer */
@@ -335,6 +343,16 @@ body {
 }
 
 /* Device setup */
+
+.devsetup {
+  padding-right: 30px;
+  border-right: 1px solid #EEE;
+}
+
+.devsetup-wipe {
+  padding-left: 20px;
+  padding-right: 20px;
+}
 
 .devsetup-strength {
   margin-top: 10px;
