@@ -77,6 +77,28 @@
   text-transform: capitalize;
 }
 
+.help-block {
+  color: #999;
+}
+
+/* Line divider component */
+
+.line-divider {
+  margin: 20px 0;
+  position: relative;
+}
+
+.line-divider > hr {
+  position: absolute;
+  top: 50%;
+  width: 100%;
+  margin: 0;
+}
+
+.line-divider > .line-divider-content {
+  position: relative;
+}
+
 /* Layout, header, footer */
 
 html {
