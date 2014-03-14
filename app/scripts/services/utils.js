@@ -302,7 +302,7 @@ angular.module('webwalletApp')
         navigator.getUserMedia({ video: true },
           function (vs) {
             stream = vs;
-            video.onloadedmetadata = initCanvas;
+            window.addEventListener('loadedmetadata', initCanvas, true);
             video.src = (window.URL && window.URL.createObjectURL(vs)) || vs;
           },
           function () {
@@ -319,6 +319,7 @@ angular.module('webwalletApp')
           value = val;
         };
         setTimeout(intervalTick, interval);
+        window.removeEventListener('loadedmetadata', initCanvas, true);
       }
 
       function intervalTick() {
