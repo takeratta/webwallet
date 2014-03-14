@@ -2,7 +2,7 @@
 
 angular.module('webwalletApp')
   .service('trezorService', function TrezorService(utils, storage, trezor, firmwareService, TrezorDevice,
-      _, $modal, $q, $rootScope) {
+      _, $modal, $q, $location, $rootScope) {
 
     var self = this,
         STORAGE_DEVICES = 'trezorServiceDevices';
@@ -151,7 +151,14 @@ angular.module('webwalletApp')
           return outdatedFirmware(firmware,
             firmwareService.get(dev.features));
         })
-        .then(function () { return dev.initializeAccounts(); });
+        .then(function () { return dev.initializeAccounts(); })
+        .then(function () {
+          if (dev.accounts.length)
+            $location.path('/device/' + dev.id
+              + '/account/' + dev.accounts[0].id + '/receive');
+          else
+            $location.path('/device/' + dev.id);
+        });
     }
 
     // setups various callbacks, usually information prompts

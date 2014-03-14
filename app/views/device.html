@@ -124,7 +124,7 @@
     </form>
   </div>
 
-  <div class="devsetup-wipe col-md-4 text-center">
+  <div class="devsetup-wipe col-md-4 text-center" ng-show="device.isEmpty()">
     <p class="help-block">Want to restore your wallet from recovery seed?</p>
     <a class="btn btn-default"
        ng-href="#/device/{{device.id}}/recovery"
