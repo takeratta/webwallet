@@ -28,14 +28,11 @@ angular.module('webwalletApp')
       return _.find(self.devices, { id: id });
     };
 
-    // find a device by id and remove it from the dev list and storage
-    self.forget = function (id) {
-      var dev = _.find(self.devices, { id: id });
-
-      if (!dev) return;
+    // remove device from the dev list and storage
+    self.forget = function (dev) {
       dev.disconnect();
       dev.deregisterAndUnsubscribe();
-      _.remove(self.devices, { id: id });
+      _.remove(self.devices, { id: dev.id });
     };
 
     //
