@@ -284,8 +284,9 @@ body {
 }
 
 .txlist-detail dt {
-  font-weight: normal;
+  width: 144px;
   opacity: 0.5;
+  font-weight: normal;
 }
 
 .txlist-address {
