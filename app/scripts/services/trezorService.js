@@ -152,6 +152,9 @@ angular.module('webwalletApp')
         .then(function () {
           var acc = dev.accounts[0];
 
+          if ($location.path() !== '/')
+            return;
+
           if (acc)
             $location.path('/device/' + dev.id + '/account/' + acc.id
               + (acc.isEmpty() ? '/receive' : ''));
