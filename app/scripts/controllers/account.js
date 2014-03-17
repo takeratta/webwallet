@@ -9,7 +9,7 @@ angular.module('webwalletApp')
       return $location.path('/');
 
     $scope.forgetDevice = function () {
-      trezorService.forget($scope.device.id);
+      trezorService.forget($scope.device);
       $location.path('/');
     };
 
