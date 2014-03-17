@@ -13,9 +13,7 @@ angular.module('webwalletApp')
 
     self.devices = deserialize(restore()); // the list of available devices
     self.devices.forEach(function (dev) {
-      dev.withLoading(function () {
-        return dev.registerAndSubscribe();
-      });
+      dev.registerAndSubscribe();
     });
 
     storeWhenChanged();

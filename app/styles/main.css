@@ -220,6 +220,7 @@ body {
   pointer-events: none;
   color: #428BCA !important;
   opacity: 0.6;
+  transition: opacity 0.5s 0.5s;
 }
 
 .nav-devices .active {
@@ -227,24 +228,9 @@ body {
 }
 
 .dev-status {
-  float: right;
-}
-
-.dev-status.dev-status-loading {
-  opacity: 1.0;
-}
-
-.dev-status.dev-status-connected {
-  opacity: 0.5;
-}
-
-.dev-status.dev-status-disconnected {
-  opacity: 0;
-}
-
-.dev-status .glyphicon {
-  height: 20px;
-  margin-top: -2px;
+  display: block;
+  margin-top: -4px;
+  opacity: 0.6;
 }
 
 .dev-acc-info {

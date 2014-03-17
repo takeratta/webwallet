@@ -6,16 +6,18 @@
        ng-class="{ active: isActive('/device/{{device.id}}$') }">
       <h4>
         {{device.label()}}
-        <span class="dev-status dev-status-{{device.status()}}"
-              ng-switch="device.status()">
-          <span ng-switch-when="loading"
-                class="icon-loading"
-                title="Loading..."></span>
-          <span ng-switch-when="connected"
-                class="glyphicon glyphicon-link"
-                title="Connected"></span>
-        </span>
+        <span class="pull-right dev-status-icon icon-loading" title="Loading..."
+              ng-show="device.isLoading()"></span>
       </h4>
+
+      <small class="dev-status">
+        <span class="dev-status-{{device.status()}}"
+              ng-switch="device.status()">
+          <span ng-switch-when="loading">Loading&hellip;</span>
+          <span ng-switch-when="connected">Connected</span>
+          <span ng-switch-when="disconnected">Disconnected</span>
+        </span>
+      </small>
     </a>
 
     <ul class="nav nav-devices-accounts">
