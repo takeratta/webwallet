@@ -46,10 +46,12 @@ angular.module('webwalletApp')
     };
 
     TrezorBackend.prototype.deregister = function (node) {
-      var xpub = utils.node2xpub(node, this.version);
+      // var xpub = utils.node2xpub(node, this.version);
 
-      $log.debug('Deregistering public key', xpub);
-      return $http.delete(this.apiUrl(xpub));
+      // $log.debug('Deregistering public key', xpub);
+      // return $http.delete(this.apiUrl(xpub));
+
+      $log.debug('Ignoring key deregistration');
     };
 
     TrezorBackend.prototype.send = function (rawTx) {
