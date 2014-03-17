@@ -13,11 +13,19 @@
   to { transform:rotate(360deg); }
 }
 
-.glyphicon-spin {
-  /*-moz-animation: spin 2s infinite linear;
-  -o-animation: spin 2s infinite linear;
-  -webkit-animation: spin 2s infinite linear;
-  animation: spin 2s infinite linear;*/
+.icon-loading {
+  display: inline-block;
+  width: 16px;
+  height: 11px;
+  vertical-align: middle;
+  background-position: center left;
+  background-repeat: no-repeat;
+  background-image: url(../images/loader-default.gif);
+}
+
+a .icon-loading,
+.icon-loading-link {
+  background-image: url(../images/loader-link.gif);
 }
 
 /* Global Bootstrap overrides and addons */
@@ -207,6 +215,12 @@ body {
 }
 
 /* Device nav */
+
+.nav-devices .disabled a {
+  pointer-events: none;
+  color: #428BCA !important;
+  opacity: 0.6;
+}
 
 .nav-devices .active {
   background: rgba(66, 139, 202, 0.1);

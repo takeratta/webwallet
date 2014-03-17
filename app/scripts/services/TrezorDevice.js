@@ -7,9 +7,9 @@ angular.module('webwalletApp')
       this.id = ''+id;
       this.accounts = [];
       this.features = null;
-      this._desc = null;
       this._session = null;
-      this._loading = null;
+      this._desc = null;
+      this._loading = 0;
     }
 
     TrezorDevice.deserialize = function (data) {
@@ -37,13 +37,13 @@ angular.module('webwalletApp')
     // Status & features
     //
 
-    TrezorDevice.prototype.isLoading = function () { return this._loading; };
+    TrezorDevice.prototype.isLoading = function () { return !!this._loading; };
     TrezorDevice.prototype.withLoading = function (fn) {
       var self = this;
 
-      self._loading = true;
+      self._loading++;
       return $q.when(fn()).finally(function () {
-        self._loading = false;
+        self._loading--;
       });
     };
 

@@ -1,6 +1,7 @@
 <ul class="nav nav-devices" ng-controller="NavCtrl">
   <!-- Device -->
-  <li ng-repeat="device in devices">
+  <li ng-repeat="device in devices"
+      ng-class="{ disabled: device.isLoading() }">
     <a ng-href="#/device/{{device.id}}"
        ng-class="{ active: isActive('/device/{{device.id}}$') }">
       <h4>
@@ -8,7 +9,7 @@
         <span class="dev-status dev-status-{{device.status()}}"
               ng-switch="device.status()">
           <span ng-switch-when="loading"
-                class="glyphicon glyphicon-refresh glyphicon-spin"
+                class="icon-loading"
                 title="Loading..."></span>
           <span ng-switch-when="connected"
                 class="glyphicon glyphicon-link"
@@ -28,7 +29,7 @@
               ({{account.balance | amount}} {{account.coin.coin_shortcut}})
             </span>
             <span ng-if="account.balance == null">
-              <span class="glyphicon glyphicon-refresh glyphicon-spin"></span>
+              <span class="icon-loading"></span>
             </span>
           </small>
         </a>
