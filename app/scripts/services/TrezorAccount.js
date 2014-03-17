@@ -386,7 +386,10 @@ angular.module('webwalletApp')
     TrezorAccount.prototype._indexTxs = function (txs, wallet) {
       txs.forEach(index);
       txs.forEach(analyze);
-      txs.sort(timestampCmp);
+      txs.sort(combineCmp([
+        timestampCmp,
+        typeCmp
+      ]));
       txs.reduceRight(balance, null);
 
       return txs;
@@ -406,27 +409,43 @@ angular.module('webwalletApp')
         if (tx.analysis) return;
         try {
           tx.analysis = tx.analyze(wallet);
+          if (tx.analysis.impact.value)
+            tx.analysis.impact.signedValue = tx.analysis.impact.value.multiply(
+              new BigInteger(tx.analysis.impact.sign.toString()));
         } catch (e) {
           tx.analysis = null;
         }
       }
 
       function balance(prev, curr) {
-        var sign, val;
         if (!curr.analysis) return prev;
-        sign = new BigInteger(curr.analysis.impact.sign.toString());
-        val = curr.analysis.impact.value.multiply(sign);
-        curr.balance = val.add(prev ? prev.balance : BigInteger.ZERO);
+        curr.balance = curr.analysis.impact.signedValue.add(
+          prev ? prev.balance : BigInteger.ZERO);
         return curr;
       }
 
+      function combineCmp(fns) {
+        return function (a, b) {
+          return fns.reduce(function (c, f) {
+            return c ? c : f(a, b);
+          }, 0);
+        };
+      }
+
       function timestampCmp(a, b) { // compares in reverse
-        var ta = +a.timestamp,
-            tb = +b.timestamp;
-        if (!ta) return -1;
-        if (!tb) return 1;
-        if (ta > tb) return -1;
-        if (ta < tb) return 1;
+        var x = +a.timestamp || Number.MAX_VALUE,
+            y = +b.timestamp || Number.MAX_VALUE;
+        if (x > y) return -1;
+        if (x < y) return 1;
+        return 0;
+      }
+
+      function typeCmp(a, b) {
+        var map = ['sent', 'self', 'recv'],
+            x = map.indexOf(a.analysis.type),
+            y = map.indexOf(b.analysis.type);
+        if (x > y) return 1;
+        if (x < y) return -1;
         return 0;
       }
     };
