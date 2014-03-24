@@ -50,6 +50,10 @@ angular.module('webwalletApp')
     $scope.seedWords = [];
     $scope.seedWordlist = bip39.english;
 
+    $scope.startsWith = function(state, viewValue) {
+        return state.substr(0, viewValue.length).toLowerCase() == viewValue.toLowerCase();
+    }
+
     $scope.recover = function (dev, settings) {
       if (settings.label)
         settings.label = settings.label.trim();
