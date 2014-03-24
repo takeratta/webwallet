@@ -166,11 +166,11 @@ angular.module('webwalletApp')
     // setups various callbacks, usually information prompts
     // FIXME: this doesnt belong here
     function setupCallbacks(dev) {
-      dev.on('pin', function (message, callback) {
+      dev.on('pin', function (type, callback) {
         var scope = $rootScope.$new(),
             modal;
         scope.pin = '';
-        scope.message = message;
+        scope.type = type;
         scope.callback = callback;
         modal = $modal({
           template: 'views/modal.pin.html',
