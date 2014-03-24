@@ -9,8 +9,8 @@ angular.module('webwalletApp')
       this._subscription = null;
       this._subscriptionDfd = null;
       this._transactions = null;
+      this._balance = null;
       this._offset = null;
-      this._utxos = null;
     }
 
     TrezorBranch.prototype.register = function () {
@@ -49,6 +49,15 @@ angular.module('webwalletApp')
       };
     };
 
+    TrezorBranch.prototype.utxos = function () {
+      var self = this;
+
+      if (!this._balance) return;
+      return ['confirmed', 'change', 'receiving']
+        .map(function (k) { return self._balance[k]; })
+        .reduce(function (a, b) { return a.concat(b); });
+    };
+
     TrezorBranch.prototype._processDetailsUpdate = function (details, handlers) {
       var self = this;
 
@@ -56,15 +65,14 @@ angular.module('webwalletApp')
       if (details.status === 'PENDING')
         return;
 
-      // update the utxos
-      this._utxos = this._constructUtxos(details, this.node.path);
-      if (handlers.utxos) handlers.utxos(this._utxos);
+      // update the details
+      this._balance = this._constructBalanceDetails(details, this.node.path);
+      if (handlers.balance) handlers.balance(this._balance);
 
       // load transactions
-      this._backend.transactions(this.node)
-        .then(function (res) {
-          self._processTransactionsUpdate(res.data, handlers);
-        });
+      this._backend.transactions(this.node).then(function (res) {
+        self._processTransactionsUpdate(res.data, handlers);
+      });
     };
 
     TrezorBranch.prototype._processTransactionsUpdate = function (transactions, handlers) {
@@ -79,16 +87,19 @@ angular.module('webwalletApp')
       this._subscriptionDfd.resolve();
     };
 
-    TrezorBranch.prototype._constructUtxos = function (details, basePath) {
-      // take the sum of all unspent outputs from the details
-      return [details.confirmed, details.change, details.receiving]
-        // concat to one list
-        .reduce(function (utxos, x) { return utxos.concat(x); })
-        // prepend basePath
-        .map(function (utxo) {
-          utxo.path = basePath.concat([utxo.addressId]);
-          return utxo;
+    TrezorBranch.prototype._constructBalanceDetails = function (details, basePath) {
+      var ret = {};
+
+      ['confirmed', 'change', 'sending', 'receiving'].forEach(function (k) {
+        ret[k] = details[k].map(function (out) {
+          // fill the address path
+          if (out.addressId != null)
+            out.path = basePath.concat([out.addressId]);
+          return out;
         });
+      });
+
+      return ret;
     };
 
     TrezorBranch.prototype._constructTransactions = function (txs, basePath) {
@@ -99,7 +110,7 @@ angular.module('webwalletApp')
           hash: tx.hash,
           version: tx.version,
           lock_time: tx.lockTime,
-          timestamp: tx.height, // TODO: use tx.timestamp
+          timestamp: tx.height, // TODO: use tx.blockTime
           block: tx.blockHash
         });
         ret.ins = tx.inputs.map(input);

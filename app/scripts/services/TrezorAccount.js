@@ -318,8 +318,8 @@ angular.module('webwalletApp')
 
     TrezorAccount.prototype.subscribe = function () {
       var handlers = {
-        transactions: this._rollupTransactions.bind(this),
-        utxos: this._rollupUtxos.bind(this)
+        transactions: this._rollupTxs.bind(this),
+        balance: this._rollupUtxos.bind(this)
       };
 
       return $q.all([
@@ -333,17 +333,7 @@ angular.module('webwalletApp')
       this._change.unsubscribe();
     };
 
-    TrezorAccount.prototype._rollupUtxos = function () {
-      var external = this._external._utxos,
-          change = this._change._utxos;
-
-      if (external && change) {
-        this.utxos = external.concat(change);
-        this.balance = this._constructBalance(this.utxos);
-      }
-    };
-
-    TrezorAccount.prototype._rollupTransactions = function () {
+    TrezorAccount.prototype._rollupTxs = function () {
       var external = this._external._transactions,
           change = this._change._transactions;
 
@@ -354,10 +344,16 @@ angular.module('webwalletApp')
       }
     };
 
-    TrezorAccount.prototype._constructBalance = function (utxos) {
-      return utxos.reduce(function (bal, txo) {
-        return bal.add(new BigInteger(txo.value.toString()));
-      }, BigInteger.ZERO);
+    TrezorAccount.prototype._rollupUtxos = function () {
+      var external = this._external.utxos(),
+          change = this._change.utxos();
+
+      if (external && change) {
+        this.utxos = external.concat(change);
+        this.balance = this.utxos.reduce(function (sum, out) {
+          return sum.add(new BigInteger(out.value.toString()));
+        }, BigInteger.ZERO);
+      }
     };
 
     TrezorAccount.prototype._mergeTxs = function (txs) {
