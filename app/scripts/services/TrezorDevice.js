@@ -358,7 +358,8 @@ angular.module('webwalletApp')
 
       return self.withLoading(function () {
         return self._session.initialize()
-          .then(function () { return self._session.changePin(); });
+          .then(function () { return self._session.changePin(); })
+          .then(function () { return self.initializeDevice(); });
       });
     };
 
