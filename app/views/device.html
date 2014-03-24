@@ -23,7 +23,7 @@
         <strong>{{device.balance() | amount}} {{device.defaultCoin().coin_shortcut}}</strong> total balance
       </li>
       <li>
-        <strong>{{device.accounts.length}}</strong>
+        <strong>{{device.accounts.length}}</strong>&nbsp;
         <ng-pluralize count="device.accounts.length"
                       when="{'one': 'account', 'other': 'accounts'}"></ng-pluralize>
       </li>
