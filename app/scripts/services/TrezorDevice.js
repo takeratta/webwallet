@@ -350,6 +350,18 @@ angular.module('webwalletApp')
       });
     };
 
+    TrezorDevice.prototype.ratePin = function (pin) {
+      var digits = _.uniq(pin.split('')).length,
+          strength = fac(9) / fac(9 - digits);
+      return strength;
+
+      function fac(n) {
+        var i, nf = 1;
+        for (i = 2; i <= n; i++) nf *= i;
+        return nf;
+      }
+    };
+
     return TrezorDevice;
 
   });

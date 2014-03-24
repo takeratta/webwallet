@@ -67,6 +67,15 @@ angular.module('webwalletApp')
       $scope.seedWord = '';
     };
 
+    $scope.ratePin = function (pin) {
+      var strength = $scope.device.ratePin(pin);
+
+      if (strength < 3000) return 'weak';
+      if (strength < 60000) return 'fine';
+      if (strength < 360000) return 'strong';
+      return 'ultimate';
+    };
+
     $scope.changePin = function (dev) {
       dev.changePin().then(
         function (res) { flash.success('PIN was successfully changed'); },

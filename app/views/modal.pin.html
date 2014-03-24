@@ -67,10 +67,20 @@
                       ng-click="pin = pin + '3'">&nbsp;</button>
             </span>
           </div>
+
           <div class="form-group">
             <input type="password" class="form-control h4 input-lg text-center pinmodal-pin"
                    autocomplete="off"
                    ng-model="pin">
+            <div class="text-center"
+                 ng-if="pin && type === 'PinMatrixRequestType_NewFirst'"
+                 ng-controller="DeviceCtrl"
+                 ng-switch="ratePin(pin)">
+              <span ng-switch-when="weak" class="text-danger">Weak</span>
+              <span ng-switch-when="fine" class="text-warning">Fine</span>
+              <span ng-switch-when="strong" class="text-success">Strong</span>
+              <span ng-switch-when="ultimate" class="text-success">Ultimate</span>
+            </div>
           </div>
 
         </div>
