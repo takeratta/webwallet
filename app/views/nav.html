@@ -20,6 +20,14 @@
       </small>
     </a>
 
+    <div class="dev-blocked tooltip tooltip-danger in right"
+         ng-show="device.blocked">
+      <div class="tooltip-inner">
+        The device cannot be open. Make sure you don't have Wallet running in other tabs!
+      </div>
+      <div class="tooltip-arrow"></div>
+    </div>
+
     <ul class="nav nav-devices-accounts">
       <!-- Account -->
       <li ng-repeat="account in device.accounts">

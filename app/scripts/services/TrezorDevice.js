@@ -8,6 +8,7 @@ angular.module('webwalletApp')
       this.id = ''+id;
       this.accounts = [];
       this.features = null;
+      this.blocked = false;
       this._session = null;
       this._desc = null;
       this._loading = 0;
@@ -107,6 +108,7 @@ angular.module('webwalletApp')
           max = 60; // give up after n attempts
 
       // keep trying to initialize
+      self.blocked = false;
       return utils.endure(callInitialize, delay, max)
         .then(
           function (res) {
@@ -119,10 +121,20 @@ angular.module('webwalletApp')
         );
 
       function callInitialize() {
-        if (self.isConnected())
-          return self._session.initialize();
-        // return falsey to cancel endure()
-        return false;
+        if (!self.isConnected()) // return falsey to cancel endure()
+          return false;
+
+        return self._session.initialize().then(
+          function (features) {
+            self.blocked = false;
+            return features;
+          },
+          function (err) {
+            if (err.message === 'Opening device failed')
+              self.blocked = true;
+            throw err;
+          }
+        );
       }
     };
 

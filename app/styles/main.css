@@ -112,6 +112,15 @@ a .icon-loading,
   font-size: 16px;
 }
 
+.tooltip.tooltip-danger.right .tooltip-arrow {
+  border-right-color: #F2DEDE;
+}
+.tooltip.tooltip-danger .tooltip-inner {
+  background-color: #F2DEDE;
+  border-color: #EBCCD1;
+  color: #A94442;
+}
+
 /* Line divider component */
 
 .line-divider {
@@ -231,6 +240,12 @@ body {
   display: block;
   margin-top: -4px;
   opacity: 0.6;
+}
+
+.dev-blocked {
+  top: 12px;
+  right: -200px;
+  width: 200px;
 }
 
 .dev-acc-info {
