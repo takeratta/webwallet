@@ -1,7 +1,8 @@
 'use strict';
 
 angular.module('webwalletApp')
-  .controller('DeviceCtrl', function (trezorService, bip39, flash, $scope, $location, $routeParams) {
+  .controller('DeviceCtrl', function (trezorService, bip39, flash,
+      $q, $modal, $scope, $location, $routeParams) {
     $scope.device = trezorService.get($routeParams.deviceId);
     if (!$scope.device)
       return $location.path('/');
@@ -65,5 +66,47 @@ angular.module('webwalletApp')
       $scope.wordCallback($scope.seedWord);
       $scope.seedWord = '';
     };
+
+    $scope.changePin = function (dev) {
+      dev.changePin().then(
+        function (res) { flash.success('PIN was successfully changed'); },
+        function (err) { flash.error(err.message || 'PIN change failed'); }
+      );
+    };
+
+    $scope.changeLabel = function (dev) {
+      promptLabel(dev)
+        .then(function (label) { return dev.changeLabel(label); })
+        .then(
+          function (res) { flash.success('Label was successfully changed'); },
+          function (err) {
+            if (err) // closing the label modal triggers rejection without error
+              flash.error(err.message || 'Failed to change the device label');
+          }
+        );
+    };
+
+    function promptLabel(dev) {
+      var dfd = $q.defer(),
+          scope = $scope.$new(),
+          modal;
+
+      scope.label = dev.features.label;
+      scope.callback = function (label) {
+        if (label != null)
+          dfd.resolve(label.trim());
+        else
+          dfd.reject();
+      };
+      modal = $modal({
+        template: 'views/modal.label.html',
+        backdrop: 'static',
+        keyboard: false,
+        scope: scope
+      });
+      modal.$promise.then(null, dfd.reject);
+
+      return dfd.promise;
+    }
 
   });

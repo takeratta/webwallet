@@ -1,7 +1,8 @@
 'use strict';
 
 angular.module('webwalletApp')
-  .factory('TrezorDevice', function (config, trezor, utils, firmwareService, TrezorAccount, _, $q) {
+  .factory('TrezorDevice', function (config, trezor, utils, firmwareService, TrezorAccount,
+      BigInteger, _, $q) {
 
     function TrezorDevice(id) {
       this.id = ''+id;
@@ -58,6 +59,16 @@ angular.module('webwalletApp')
         return this.features.label;
       else
         return 'My TREZOR';
+    };
+
+    TrezorDevice.prototype.balance = function () {
+      return this.accounts.reduce(function (bal, acc) {
+        return bal.add(acc.balance || BigInteger.ZERO);
+      }, BigInteger.ZERO);
+    };
+
+    TrezorDevice.prototype.defaultCoin = function () {
+      return _.find(this.features.coins, { coin_name: config.coin });
     };
 
     //
@@ -155,6 +166,14 @@ angular.module('webwalletApp')
       return _.find(this.accounts, { id: id });
     };
 
+    TrezorDevice.prototype.accountPath = function (id, coin) {
+      return [
+        config.indices[coin.coin_name], // cointype
+        (0 | 0x80000000) >>> 0, // reserved'
+        (id | 0x80000000) >>> 0 // account'
+      ];
+    };
+
     // Account adding
 
     TrezorDevice.prototype.canAddAccount = function () {
@@ -220,11 +239,9 @@ angular.module('webwalletApp')
       }
     };
 
-    // Private methods for creating accounts
-
     TrezorDevice.prototype._createAccount = function (id) {
-      var coin = this._getCoin(config.coin),
-          path = this._getPathForAccount(id, coin);
+      var coin = this.defaultCoin(),
+          path = this.accountPath(id, coin);
 
       return this._session.getPublicKey(path).then(function (res) {
         var node = res.message.node;
@@ -235,23 +252,6 @@ angular.module('webwalletApp')
           change: trezor.deriveChildNode(node, 1)
         });
       });
-    };
-
-    TrezorDevice.prototype._getPathForAccount = function (id, coin) {
-      var cointypes = {
-        'Bitcoin': 0,
-        'Testnet': 0
-      };
-
-      return [
-        cointypes[coin.coin_name], // cointype
-        (0 | 0x80000000) >>> 0, // reserved'
-        (id | 0x80000000) >>> 0 // account'
-      ];
-    };
-
-    TrezorDevice.prototype._getCoin = function (name) {
-      return _.find(this.features.coins, { coin_name: name });
     };
 
     //
@@ -326,6 +326,27 @@ angular.module('webwalletApp')
           .then(function () { return self._session.recoverDevice(sett); })
           .then(function () { return self.initializeDevice(); })
           .then(function () { return self.initializeAccounts(); });
+      });
+    };
+
+    TrezorDevice.prototype.changeLabel = function (label) {
+      var self = this;
+
+      return self.withLoading(function () {
+        return self._session.initialize()
+          .then(function () {
+            return self._session.applySettings({ label: label });
+          })
+          .then(function () { return self.initializeDevice(); });
+      });
+    };
+
+    TrezorDevice.prototype.changePin = function () {
+      var self = this;
+
+      return self.withLoading(function () {
+        return self._session.initialize()
+          .then(function () { return self._session.changePin(); });
       });
     };
 

@@ -9,24 +9,71 @@
   </li>
 </ol>
 
-<div ng-if="!device.isConnected()" class="alert alert-warning">
-  <strong>Please connect your device</strong> to access this section.
-</div>
-
 <fieldset class="row" ng-disabled="!device.isConnected()">
+
   <div class="col-md-12" ng-hide="device.isEmpty()">
-    <a class="btn btn-default"
+    <h3>
+      {{device.label()}}
+      <button class="btn btn-default pull-right"
+              ng-click="changeLabel(device)">
+        <span class="glyphicon glyphicon-pencil"></span> Change label</button>
+    </h3>
+    <ul class="lead lead-sm list-unstyled">
+      <li>
+        <strong>{{device.balance() | amount}} {{device.defaultCoin().coin_shortcut}}</strong> total balance
+      </li>
+      <li>
+        <strong>{{device.accounts.length}}</strong>
+        <ng-pluralize count="device.accounts.length"
+                      when="{'one': 'account', 'other': 'accounts'}"></ng-pluralize>
+      </li>
+    </ul>
+
+    <hr>
+
+    <h5>
+      PIN protection:
+      <span ng-show="device.features.pin_protection" class="text-success">Enabled</span>
+      <span ng-hide="device.features.pin_protection" class="text-danger">Disabled</span>
+      <button class="btn btn-default pull-right"
+              ng-click="changePin(device)">
+        <span class="glyphicon glyphicon-pencil"></span>
+        <span ng-show="device.features.pin_protection">Change PIN</span>
+        <span ng-hide="device.features.pin_protection">Enable PIN</span>
+      </button>
+    </h5>
+    <div class="row">
+      <p class="text-muted col-md-7">
+        Using PIN protection is highly recommended. PIN prevents unauthorized persons from stealing
+        your bitcoins even when they get physical access to your device.
+      </p>
+    </div>
+
+    <h5>
+      Passphrase encryption:
+      <span ng-show="device.features.passphrase_protection" class="text-success">Enabled</span>
+      <span ng-hide="device.features.passphrase_protection" class="text-danger">Disabled</span>
+    </h5>
+    <div class="row">
+      <p class="text-muted col-md-7">
+        Encryption passphrase is additional level of security. You'll be asked for your passhrase every time
+        you want to access your wallet.
+      </p>
+    </div>
+
+    <hr>
+
+    <a class="btn btn-danger"
        ng-href="#/device/{{device.id}}/wipe"
-      ><span class="text-danger">Wipe device</span></a>
-    <small class="text-muted">- delete all private data and reset device to factory defaults</small>
+      ><span class="glyphicon glyphicon-trash"></span> Wipe device</a>
   </div>
 
   <div class="devsetup col-md-8" ng-show="device.isEmpty()">
     <form>
       <h3>Welcome to TREZOR Setup!</h3>
       <p class="lead">
-      Please take your time to read all instructions. The setup might
-      take up to a few minutes. When done, you can start using TREZOR.
+        Please take your time to read all instructions. The setup might
+        take up to a few minutes. When done, you can start using TREZOR.
       </p>
 
       <div class="form-group">
@@ -34,8 +81,10 @@
         <input type="text" name="label" id="label" class="form-control"
                placeholder="My TREZOR"
                ng-model="settings.label">
-        <p class="help-block">This label will be shown on the display.
-        Useful if you have more devices.</p>
+        <p class="help-block">
+          This label will be shown on the display.
+          Useful if you have more devices.
+        </p>
       </div>
 
       <div class="line-divider"
@@ -55,8 +104,8 @@
           <hr>
           <h4>Recovery seed length</h4>
           <p>
-          Recovery seed is a sequence of words. It will help you recovering your wallet
-          (balance and transaction history), even into another device.
+            Recovery seed is a sequence of words. It will help you recovering your wallet
+            (balance and transaction history), even into another device.
           </p>
           <input type="text" name="strength" id="strength"
                  class="form-control"
@@ -130,4 +179,5 @@
        ng-href="#/device/{{device.id}}/recovery"
       >TREZOR Recovery</a>
   </div>
+
 </fieldset>
