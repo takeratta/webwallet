@@ -20,5 +20,11 @@ angular.module('webwalletApp').value('config', {
   versions: {
     Bitcoin: 76067358,
     Testnet: 70617039
+  },
+
+  // coin name -> bip32 tree index
+  indices: {
+    Bitcoin: 0,
+    Testnet: 0 // TODO: change to 1
   }
 });
