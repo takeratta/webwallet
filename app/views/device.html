@@ -29,8 +29,6 @@
       </li>
     </ul>
 
-    <hr>
-
     <h5>
       PIN protection:
       <span ng-show="device.features.pin_protection" class="text-success">Enabled</span>
@@ -49,16 +47,18 @@
       </p>
     </div>
 
-    <h5>
-      Passphrase encryption:
-      <span ng-show="device.features.passphrase_protection" class="text-success">Enabled</span>
-      <span ng-hide="device.features.passphrase_protection" class="text-danger">Disabled</span>
-    </h5>
-    <div class="row">
-      <p class="text-muted col-md-7">
-        Encryption passphrase is additional level of security. You'll be asked for your passhrase every time
-        you want to access your wallet.
-      </p>
+    <div ng-show="device.features.passphrase_protection">
+      <h5>
+        Additional passphrase encryption:
+        <span ng-show="device.features.passphrase_protection" class="text-success">Enabled</span>
+        <span ng-hide="device.features.passphrase_protection" class="text-danger">Disabled</span>
+      </h5>
+      <div class="row">
+        <p class="text-muted col-md-7">
+          Encryption passphrase is additional level of security. You'll be asked for your passhrase every time
+          you want to access your wallet.
+        </p>
+      </div>
     </div>
 
     <hr>
