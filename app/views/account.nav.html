@@ -7,13 +7,13 @@
   </li>
   <li ng-class="{ active: isActive('/device/{{device.id}}/account/{{account.id}}/receive$') }">
     <a class="btn" href="#/device/{{device.id}}/account/{{account.id}}/receive">
-      <span class="glyphicon glyphicon-import"></span> Receive
+      <span class="glyphicon glyphicon-circle-arrow-right"></span> Receive
     </a>
   </li>
   <li ng-class="{ active: isActive('/device/{{device.id}}/account/{{account.id}}/send$') }">
     <a class="btn" href="#/device/{{device.id}}/account/{{account.id}}/send"
        ng-disabled="account.isEmpty() || !device.isConnected()">
-      <span class="glyphicon glyphicon-export"></span> Send
+      <span class="glyphicon glyphicon-circle-arrow-left"></span> Send
     </a>
   </li>
 </ul>

@@ -47,7 +47,7 @@
         ng-repeat-start="tx in account.transactions">
       <td class="txlist-date text-center"
           ng-if="tx.timestamp">
-        {{tx.timestamp | date:'MM/dd/yy'}}
+        {{tx.timestamp | date:'yyyy.MM.dd'}}
         <small class="text-muted">{{tx.timestamp | date:'HH:mm:ss'}}</small>
       </td>
       <td class="txlist-date text-center text-muted"
@@ -62,10 +62,10 @@
           ng-if="!tx.comment"
           ng-switch="tx.analysis.type">
         <span class="text-success" ng-switch-when="recv">
-          <span class="glyphicon glyphicon-plus-sign" title="Received"></span> {{tx.analysis.addr.toString()}}
+          <span class="glyphicon glyphicon-circle-arrow-right" title="Received"></span> {{tx.analysis.addr.toString()}}
         </span>
         <span class="text-danger" ng-switch-when="sent">
-          <span class="glyphicon glyphicon-minus-sign" title="Sent"></span> {{tx.analysis.addr.toString()}}
+          <span class="glyphicon glyphicon-circle-arrow-left" title="Sent"></span> {{tx.analysis.addr.toString()}}
         </span>
         <span class="text-warning" ng-switch-when="self">
           <span class="glyphicon glyphicon-user"></span> Sent to myself
