@@ -13,9 +13,9 @@
       <small class="dev-status">
         <span class="dev-status-{{device.status()}}"
               ng-switch="device.status()">
-          <span ng-switch-when="loading">Loading&hellip;</span>
-          <span ng-switch-when="connected">Connected</span>
-          <span ng-switch-when="disconnected">Disconnected</span>
+          <span ng-switch-when="loading"><span class="glyphicon glyphicon-cog"></span> Loading&nbsp;&hellip;</span>
+          <span ng-switch-when="connected"><span class="glyphicon glyphicon-check"></span> Connected</span>
+          <span ng-switch-when="disconnected"><span class="glyphicon glyphicon-unchecked"></span> Disconnected</span>
         </span>
       </small>
     </a>
