@@ -62,10 +62,10 @@
           ng-if="!tx.comment"
           ng-switch="tx.analysis.type">
         <span class="text-success" ng-switch-when="recv">
-          <span class="glyphicon glyphicon-plus"></span> {{tx.analysis.addr.toString()}}
+          <span class="glyphicon glyphicon-plus-sign" title="Received"></span> {{tx.analysis.addr.toString()}}
         </span>
         <span class="text-danger" ng-switch-when="sent">
-          <span class="glyphicon glyphicon-minus"></span> {{tx.analysis.addr.toString()}}
+          <span class="glyphicon glyphicon-minus-sign" title="Sent"></span> {{tx.analysis.addr.toString()}}
         </span>
         <span class="text-warning" ng-switch-when="self">
           <span class="glyphicon glyphicon-user"></span> Sent to myself

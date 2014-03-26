@@ -2,18 +2,18 @@
     ng-controller="NavCtrl">
   <li ng-class="{ active: isActive('/device/{{device.id}}/account/{{account.id}}$') }">
     <a class="btn" href="#/device/{{device.id}}/account/{{account.id}}">
-      <span class="glyphicon glyphicon-list"></span> Transactions
+      <span class="glyphicon glyphicon-transfer"></span> Transactions
     </a>
   </li>
   <li ng-class="{ active: isActive('/device/{{device.id}}/account/{{account.id}}/receive$') }">
     <a class="btn" href="#/device/{{device.id}}/account/{{account.id}}/receive">
-      <span class="glyphicon glyphicon-cloud-download"></span> Receive
+      <span class="glyphicon glyphicon-import"></span> Receive
     </a>
   </li>
   <li ng-class="{ active: isActive('/device/{{device.id}}/account/{{account.id}}/send$') }">
     <a class="btn" href="#/device/{{device.id}}/account/{{account.id}}/send"
        ng-disabled="account.isEmpty() || !device.isConnected()">
-      <span class="glyphicon glyphicon-cloud-upload"></span> Send
+      <span class="glyphicon glyphicon-export"></span> Send
     </a>
   </li>
 </ul>
