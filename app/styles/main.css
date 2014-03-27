@@ -410,15 +410,11 @@ body {
   word-wrap: break-word;
 }
 
-/* Device setup */
+/* Device setup & restore */
 
 .devsetup {
   padding-right: 30px;
   border-right: 1px solid #EEE;
-}
-
-.devsetup-wipe {
-  padding: 20px;
 }
 
 .devsetup-strength {
@@ -429,6 +425,10 @@ body {
   display: block;
   text-transform: uppercase;
   font-size: 10px;
+}
+
+.devrestore {
+  padding: 20px;
 }
 
 /* PIN modal */

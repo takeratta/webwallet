@@ -9,171 +9,17 @@
   </li>
 </ol>
 
-<fieldset class="row" ng-disabled="!device.isConnected()">
+<fieldset class="row" ng-disabled="device.status !== 'connected'">
 
-  <div class="col-md-12" ng-hide="device.isEmpty()">
-    <h3>
-      {{device.label()}}
-      <button class="btn btn-default pull-right"
-              ng-click="changeLabel(device)">
-        <span class="glyphicon glyphicon-pencil"></span> Change label</button>
-    </h3>
-    <ul class="lead lead-sm list-unstyled">
-      <li>
-        <strong>{{device.balance() | amount}} {{device.defaultCoin().coin_shortcut}}</strong> total balance
-      </li>
-      <li>
-        <strong>{{device.accounts.length}}</strong>&nbsp;
-        <ng-pluralize count="device.accounts.length"
-                      when="{'one': 'account', 'other': 'accounts'}"></ng-pluralize>
-      </li>
-    </ul>
-
-    <h5>
-      PIN protection:
-      <span ng-show="device.features.pin_protection" class="text-success">Enabled</span>
-      <span ng-hide="device.features.pin_protection" class="text-danger">Disabled</span>
-      <button class="btn btn-default pull-right"
-              ng-click="changePin(device)">
-        <span class="glyphicon glyphicon-pencil"></span>
-        <span ng-show="device.features.pin_protection">Change PIN</span>
-        <span ng-hide="device.features.pin_protection">Enable PIN</span>
-      </button>
-    </h5>
-    <div class="row">
-      <p class="text-muted col-md-7">
-        Using PIN protection is highly recommended. PIN prevents unauthorized persons from stealing
-        your bitcoins even when they get physical access to your device.
-      </p>
-    </div>
-
-    <div ng-show="device.features.passphrase_protection">
-      <h5>
-        Additional passphrase encryption:
-        <span ng-show="device.features.passphrase_protection" class="text-success">Enabled</span>
-        <span ng-hide="device.features.passphrase_protection" class="text-danger">Disabled</span>
-      </h5>
-      <div class="row">
-        <p class="text-muted col-md-7">
-          Encryption passphrase is additional level of security. You'll be asked for your passhrase every time
-          you want to access your wallet.
-        </p>
-      </div>
-    </div>
-
-    <hr>
-
-    <a class="btn btn-danger"
-       ng-href="#/device/{{device.id}}/wipe"
-      ><span class="glyphicon glyphicon-trash"></span> Wipe device</a>
+  <div class="devinfo col-md-12" ng-hide="device.isEmpty()">
+    <ng-include src="'views/device.info.html'"></ng-include>
   </div>
 
   <div class="devsetup col-md-8" ng-show="device.isEmpty()">
-    <form>
-      <h3>Welcome to TREZOR Setup!</h3>
-      <p class="lead">
-        Please take your time to read all instructions. The setup might
-        take up to a few minutes. When done, you can start using TREZOR.
-      </p>
-
-      <div class="form-group">
-        <label for="label">Device label</label>
-        <input type="text" name="label" id="label" class="form-control"
-               placeholder="My TREZOR"
-               ng-model="settings.label">
-        <p class="help-block">
-          This label will be shown on the display.
-          Useful if you have more devices.
-        </p>
-      </div>
-
-      <div class="line-divider"
-           ng-hide="advanced">
-        <hr>
-        <div class="line-divider-content text-center">
-          <button class="btn btn-xs btn-default"
-                  ng-click="advanced = !advanced">
-            Advanced features
-            <span class="caret"></span>
-          </button>
-        </div>
-      </div>
-
-      <div ng-show="advanced">
-        <div class="form-group">
-          <hr>
-          <h4>Recovery seed length</h4>
-          <p>
-            Recovery seed is a sequence of words. It will help you recovering your wallet
-            (balance and transaction history), even into another device.
-          </p>
-          <input type="text" name="strength" id="strength"
-                 class="form-control"
-                 slider
-                 data-slider-value="128"
-                 data-slider-min="128"
-                 data-slider-max="256"
-                 data-slider-step="64"
-                 data-slider-tooltip="hide"
-                 ng-model="settings.strength">
-          <div class="row devsetup-strength">
-            <p class="col-sm-4 text-left">
-              12 words <span class="devsetup-strength-label">Good enough</span>
-            </p>
-            <p class="col-sm-4 text-center">
-              18 words <span class="devsetup-strength-label">Even stronger</span>
-            </p>
-            <p class="col-sm-4 text-right">
-              24 words <span class="devsetup-strength-label">Paranoid</span>
-            </p>
-          </div>
-          <p class="help-block">We believe 12 words are safe enough but you have the option to choose 18 or 24
-          for more security. Just keep in mind that the recovery
-          process using longer seed takes slightly more time.</p>
-        </div>
-
-        <hr>
-        <h4>PIN protection</h4>
-        <p>
-          Using PIN protection is highly recommended. PIN prevents unauthorized persons from stealing
-          your bitcoins even when they get physical access to your device.
-        </p>
-        <p>PIN can be set or changed later as well. Careful, PIN does not protect your Recovery seed.</p>
-        <div class="checkbox">
-          <label>
-            <input type="checkbox" name="pin-protection"
-                   ng-model="settings.pin_protection"> Enable PIN protection
-          </label>
-        </div>
-
-        <hr>
-        <h4>Additional passphrase encryption</h4>
-        <p>
-          Encryption passphrase is additional level of security. You'll be asked for your passhrase every time
-          you want to access your wallet. Careful, if you forget the passphrase,
-          nothing will help you to get access to your wallet. Not even the Recovery seed.
-          Also note that passphrase is case-sensitive.
-          <span class="text-danger">For experts only!</span>
-        </p>
-        <div class="checkbox">
-          <label>
-            <input type="checkbox" name="passphrase-protection"
-                   ng-model="settings.passphrase_protection">
-            I take the responsibility and want to enable passphrase encryption
-          </label>
-        </div>
-        <hr>
-
-      </div>
-
-      <div class="form-group text-center">
-        <button class="btn btn-lg btn-success"
-                ng-click="setup(device, settings)">Continue</button>
-      </div>
-    </form>
+    <ng-include src="'views/device.setup.html'"></ng-include>
   </div>
 
-  <div class="devsetup-wipe col-md-4 text-center" ng-show="device.isEmpty()">
+  <div class="devrestore col-md-4 text-center" ng-show="device.isEmpty()">
     <p class="help-block">Want to restore your wallet from recovery seed?</p>
     <a class="btn btn-default"
        ng-href="#/device/{{device.id}}/recovery"

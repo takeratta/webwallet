@@ -1,0 +1,48 @@
+<h3>
+  {{device.label()}}
+  <button class="btn btn-default pull-right"
+          ng-click="changeLabel(device)">
+    <span class="glyphicon glyphicon-pencil"></span> Change label
+  </button>
+</h3>
+<p class="lead">
+  <strong>{{device.balance() | amount}} {{device.defaultCoin().coin_shortcut}}</strong> total balance
+</p>
+
+<h5>
+  PIN protection:
+  <span ng-show="device.features.pin_protection" class="text-success">Enabled</span>
+  <span ng-hide="device.features.pin_protection" class="text-danger">Disabled</span>
+  <button class="btn btn-default pull-right"
+          ng-click="changePin(device)">
+    <span class="glyphicon glyphicon-pencil"></span>
+    <span ng-show="device.features.pin_protection">Change PIN</span>
+    <span ng-hide="device.features.pin_protection">Enable PIN</span>
+  </button>
+</h5>
+<div class="row">
+  <p class="text-muted col-md-7">
+    Using PIN protection is highly recommended. PIN prevents unauthorized persons from stealing
+    your bitcoins even when they get physical access to your device.
+  </p>
+</div>
+
+<div ng-show="device.features.passphrase_protection">
+  <h5>
+    Additional passphrase encryption:
+    <span ng-show="device.features.passphrase_protection" class="text-success">Enabled</span>
+    <span ng-hide="device.features.passphrase_protection" class="text-danger">Disabled</span>
+  </h5>
+  <div class="row">
+    <p class="text-muted col-md-7">
+      Encryption passphrase is additional level of security. You'll be asked for your passhrase every time
+      you want to access your wallet.
+    </p>
+  </div>
+</div>
+
+<hr>
+
+<a class="btn btn-danger"
+   ng-href="#/device/{{device.id}}/wipe"
+  ><span class="glyphicon glyphicon-trash"></span> Wipe device</a>

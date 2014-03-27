@@ -5,4 +5,9 @@ angular.module('errorApp')
     $scope.error = error;
     $scope.installed = error.installed !== false;
     $scope.installers = trezorApi.installers();
+
+    $scope.installers.forEach(function (inst) {
+      if (inst.preferred)
+        $scope.selected = inst;
+    });
   });
