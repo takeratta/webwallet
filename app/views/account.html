@@ -47,7 +47,7 @@
         ng-repeat-start="tx in account.transactions">
       <td class="txlist-date text-center"
           ng-if="tx.timestamp">
-        {{tx.timestamp | date:'yyyy.MM.dd'}}
+        {{tx.timestamp | date:'yyyy-MM-dd'}}
         <small class="text-muted">{{tx.timestamp | date:'HH:mm:ss'}}</small>
       </td>
       <td class="txlist-date text-center text-muted"
