@@ -35,6 +35,8 @@ angular.module('webwalletApp')
     TrezorBranch.prototype.unsubscribe = function () {
       if (this._subscription)
         this._subscription.unsubscribe();
+      this._subscription = null;
+      this._subscriptionDfd = null;
     };
 
     TrezorBranch.prototype.address = function (n, coin) {
