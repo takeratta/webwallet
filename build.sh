@@ -13,10 +13,10 @@ cd app/data
 cd ../../
 
 rm -rf app/bower_components
-bower install
+bower install || $(npm bin)/bower install
 #npm install
 
-grunt build
+grunt build || $(npm bin)/grunt build
 cp -r app/data dist/data
 
 # Put current revision to http://mytrezor.com/revision.txt
