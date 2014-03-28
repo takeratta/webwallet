@@ -9,7 +9,7 @@
   </li>
 </ol>
 
-<fieldset class="row" ng-disabled="device.status !== 'connected'">
+<fieldset class="row" ng-disabled="device.status() !== 'connected'">
 
   <div class="devinfo col-md-12" ng-hide="device.isEmpty()">
     <ng-include src="'views/device.info.html'"></ng-include>
