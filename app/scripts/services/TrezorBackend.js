@@ -114,6 +114,13 @@ angular.module('webwalletApp')
 
       $log.debug('Subscribing to balance updates for', xpub);
       atmosphere.subscribe(req);
+
+      return {
+        unsubscribe: function () {
+          $log.debug('Unsubscribing', xpub);
+          return req.close();
+        }
+      };
     };
 
     return TrezorBackend;
