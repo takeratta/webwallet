@@ -21,11 +21,11 @@
         </p>
 
         <div class="btn-group btn-group-lg text-left">
-          <button class="btn-installer-download btn btn-success"
-                  ng-disabled="!agree"
-                  ng-click="download(selected)">
+          <a class="btn-installer-download btn btn-success"
+             ng-href="{{ selected.url }}"
+             ng-disabled="!agree">
             <span class="glyphicon glyphicon-download"></span> Download
-          </button>
+          </a>
           <button class="btn-installer-platform btn btn-success"
                   data-html="true"
                   ng-model="selected"
