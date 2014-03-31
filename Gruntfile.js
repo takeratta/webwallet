@@ -203,7 +203,7 @@ module.exports = function (grunt) {
       },
       errorApp: {
         cwd: '<%= yeoman.app %>',
-        src: ['views/error.html', ],
+        src: ['views/error.*'],
         dest: '.tmp/scripts/templates.error.js',
         options: {
           htmlmin: {
