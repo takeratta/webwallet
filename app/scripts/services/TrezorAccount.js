@@ -158,12 +158,13 @@ angular.module('webwalletApp')
                 val.sequence = inp.sequence;
               return val;
             }),
-            outputs: tx.outputs.map(function (out) {
+            bin_outputs: tx.outputs.map(function (out) {
               return {
                 amount: out.value,
                 script_pubkey: utils.bytesToHex(utils.base64ToBytes(out.script))
               };
-            })
+            }),
+            lock_time: tx.lockTime
           };
         });
       });
