@@ -127,6 +127,7 @@ angular.module('webwalletApp')
         function () {
           $location.path('/device/' + $scope.device.id
             + '/account/' + $scope.account.id);
+          flash.success('Transaction successfully sent.');
         },
         function (err) {
           flash.error(err.message || 'Failed to send transaction.');

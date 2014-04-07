@@ -71,6 +71,16 @@ angular.module('webwalletApp')
     this.hexToUtf8 = hexToUtf8;
 
     //
+    // crypto
+    //
+
+    function sha256x2(value, options) {
+      return Crypto.SHA256(Crypto.SHA256(value, {asBytes: true}), options);
+    }
+
+    this.sha256x2 = sha256x2;
+
+    //
     // hdnode
     //
 

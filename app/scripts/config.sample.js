@@ -4,6 +4,9 @@ angular.module('webwalletApp').value('config', {
   // default coin name for new accounts
   coin: 'Bitcoin',
 
+  // fee per kb for new txs
+  feePerKb: 10000,
+
   // coin name -> backend config
   backends: {
     Bitcoin: {

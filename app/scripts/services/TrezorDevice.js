@@ -2,7 +2,7 @@
 
 angular.module('webwalletApp')
   .factory('TrezorDevice', function (config, trezor, utils, firmwareService, TrezorAccount,
-      Crypto, BigInteger, _, $q) {
+      BigInteger, _, $q) {
 
     function TrezorDevice(id) {
       this.id = ''+id;
@@ -100,7 +100,7 @@ angular.module('webwalletApp')
 
     TrezorDevice.prototype._hashPassphrase = function (passphrase) {
       var secret = 'TREZOR#' + this.id + '#' + passphrase;
-      return Crypto.SHA256(Crypto.SHA256(secret, {asBytes: true}));
+      return utils.sha256x2(secret);
     };
 
     //
@@ -175,7 +175,7 @@ angular.module('webwalletApp')
       // reset accounts if the device is empty, make sure to deregister
       // existing accounts first
       if (this.isEmpty())
-        return this.deregisterAndUnsubscribe().then(function () {
+        return this.unsubscribe().then(function () {
           return (self.accounts = []);
         });
 
@@ -193,15 +193,15 @@ angular.module('webwalletApp')
     // Account management
     //
 
-    TrezorDevice.prototype.registerAndSubscribe = function () {
+    TrezorDevice.prototype.subscribe = function () {
       return $q.all(this.accounts.map(function (acc) {
-        return acc.registerAndSubscribe();
+        return acc.subscribe();
       }));
     };
 
-    TrezorDevice.prototype.deregisterAndUnsubscribe = function () {
+    TrezorDevice.prototype.unsubscribe = function () {
       return $q.all(this.accounts.map(function (acc) {
-        return acc.deregisterAndUnsubscribe();
+        return acc.unsubscribe();
       }));
     };
 
@@ -235,7 +235,7 @@ angular.module('webwalletApp')
 
       return this._createAccount(this.accounts.length).then(function (acc) {
         self.accounts.push(acc);
-        acc.registerAndSubscribe();
+        acc.subscribe();
         return acc;
       });
     };
@@ -269,10 +269,10 @@ angular.module('webwalletApp')
 
       function discoverAccount(n) {
         return self._createAccount(n).then(function (acc) {
-          return acc.registerAndSubscribe().then(function () {
+          return acc.subscribe().then(function () {
             // stop the discovery if empty
             if (acc.isEmpty())
-              return acc.deregisterAndUnsubscribe();
+              return acc.unsubscribe();
 
             // add to list and continue
             self.accounts.push(acc);
@@ -287,13 +287,7 @@ angular.module('webwalletApp')
           path = this.accountPath(id, coin);
 
       return this._session.getPublicKey(path).then(function (res) {
-        var node = res.message.node;
-
-        return new TrezorAccount(id, coin, {
-          main: node,
-          external: trezor.deriveChildNode(node, 0),
-          change: trezor.deriveChildNode(node, 1)
-        });
+        return new TrezorAccount(id, coin, res.message.node);
       });
     };
 
@@ -323,7 +317,7 @@ angular.module('webwalletApp')
       return self.withLoading(function () {
         return self._session.initialize()
           .then(function () { return self._session.wipeDevice(); })
-          .then(function () { return self.deregisterAndUnsubscribe(); });
+          .then(function () { return self.unsubscribe(); });
       });
     };
 

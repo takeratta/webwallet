@@ -12,9 +12,7 @@ angular.module('webwalletApp')
         disconnectFn = disconnect;
 
     self.devices = deserialize(restore()); // the list of available devices
-    self.devices.forEach(function (dev) {
-      dev.registerAndSubscribe();
-    });
+    self.devices.forEach(function (dev) { dev.subscribe(); });
 
     storeWhenChanged();
     watchDevices(1000);
@@ -31,7 +29,7 @@ angular.module('webwalletApp')
     // remove device from the dev list and storage
     self.forget = function (dev) {
       dev.disconnect();
-      dev.deregisterAndUnsubscribe();
+      dev.unsubscribe();
       _.remove(self.devices, { id: dev.id });
     };
 
