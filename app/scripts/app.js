@@ -69,13 +69,23 @@ angular.module('errorApp', [
 
 // load trezor plugin and bootstrap application
 angular.element(document).ready(function () {
-  window.trezor.load({ configUrl: '/data/plugin/config_signed.bin' }).then(
-    webwalletApp,
-    errorApp
-  );
+  var injector = angular.injector(['webwalletApp']),
+      config = injector.get('config');
+
+  window.trezor.load({ configUrl: config.pluginConfigUrl })
+    .then(webwalletApp)
+    .catch(errorApp);
 
   function webwalletApp(trezorObject) {
-    var container = document.getElementById('webwalletApp-container');
+    var container = document.getElementById('webwalletApp-container'),
+        minVersion = config.pluginMinVersion,
+        err;
+
+    if (minVersion && trezorObject.version() < minVersion) {
+      err = new Error('The plugin is outdated');
+      err.installed = false;
+      throw err;
+    }
 
     angular.module('webwalletApp')
       .value('trezorApi', window.trezor)
@@ -88,7 +98,7 @@ angular.element(document).ready(function () {
 
     angular.module('errorApp')
       .value('trezorApi', window.trezor)
-      .value('error', error);
+      .value('trezorError', error);
     angular.bootstrap(container, ['errorApp']);
   }
 });

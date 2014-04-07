@@ -1,9 +1,9 @@
 'use strict';
 
 angular.module('errorApp')
-  .controller('ErrorCtrl', function (error, trezorApi, $scope) {
-    $scope.error = error;
-    $scope.installed = error.installed !== false;
+  .controller('ErrorCtrl', function (trezorError, trezorApi, $scope) {
+    $scope.error = trezorError;
+    $scope.installed = trezorError.installed !== false;
     $scope.installers = trezorApi.installers();
 
     $scope.installers.forEach(function (inst) {
