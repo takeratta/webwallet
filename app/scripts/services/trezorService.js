@@ -167,41 +167,60 @@ angular.module('webwalletApp')
     // FIXME: this doesnt belong here
     function setupCallbacks(dev) {
       dev.on('pin', function (type, callback) {
-        var scope = $rootScope.$new(),
-            modal;
-        scope.pin = '';
-        scope.type = type;
-        scope.callback = callback;
-        modal = $modal({
-          template: 'views/modal.pin.html',
-          backdrop: 'static',
-          keyboard: false,
-          scope: scope
+        pinModal(function (pin) {
+          callback(null, pin);
         });
-        modal.$promise.then(null, function () {
-          callback();
-        });
+
+        function pinModal(cb) {
+          var scope = $rootScope.$new(),
+              modal;
+          scope.pin = '';
+          scope.type = type;
+          scope.callback = cb;
+          modal = $modal({
+            template: 'views/modal.pin.html',
+            backdrop: 'static',
+            keyboard: false,
+            scope: scope
+          });
+          modal.$promise.then(null, cb);
+        }
       });
 
       dev.on('passphrase', function (callback) {
-        var scope = $rootScope.$new(),
-            modal;
-        scope.passphrase = '';
-        scope.callback = scopeCallback;
-        modal = $modal({
-          template: 'views/modal.passphrase.html',
-          backdrop: 'static',
-          keyboard: false,
-          scope: scope
-        });
-        modal.$promise.then(null, function () {
-          scopeCallback();
+        passphraseModal(false, function (pp) {
+          if (pp == null)
+            return callback();
+
+          if (dev.hasSavedPassphrase()) {
+            if (!dev.checkPassphrase(pp))
+              return callback(new Error('Passphrases do not match'));
+            return callback(null, pp);
+          } else {
+            passphraseModal(true, function (ppcheck) {
+              if (ppcheck == null || ppcheck !== pp)
+                return callback();
+              dev.savePassphrase(pp);
+              return callback(null, pp);
+            });
+          }
         });
 
-        function scopeCallback(passphrase) {
-          if (passphrase)
-            passphrase = passphrase.normalize('NFKD');
-          callback(passphrase);
+        function passphraseModal(check, cb) {
+          var scope = $rootScope.$new(),
+              modal;
+          scope.message = check
+            ? 'Please re-type your passphrase again, for control'
+            : 'Please enter your passphrase';
+          scope.passphrase = '';
+          scope.callback = cb;
+          modal = $modal({
+            template: 'views/modal.passphrase.html',
+            backdrop: 'static',
+            keyboard: false,
+            scope: scope
+          });
+          modal.$promise.then(null, cb);
         }
       });
 
@@ -235,7 +254,7 @@ angular.module('webwalletApp')
         $rootScope.wordCallback = function (word) {
           $rootScope.wordCallback = null;
           $rootScope.seedWord = '';
-          callback(word);
+          callback(null, word);
         };
       });
     }
