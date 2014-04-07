@@ -2,13 +2,14 @@
 
 angular.module('webwalletApp')
   .factory('TrezorDevice', function (config, trezor, utils, firmwareService, TrezorAccount,
-      BigInteger, _, $q) {
+      Crypto, BigInteger, _, $q) {
 
     function TrezorDevice(id) {
       this.id = ''+id;
       this.accounts = [];
       this.features = null;
       this.blocked = false;
+      this._passphrase = null;
       this._session = null;
       this._desc = null;
       this._loading = 0;
@@ -17,6 +18,7 @@ angular.module('webwalletApp')
     TrezorDevice.deserialize = function (data) {
       var dev = new TrezorDevice(data.id);
 
+      dev._passphrase = data.passphrase;
       dev.features = data.features;
       dev.accounts = data.accounts.map(function (item) {
         return TrezorAccount.deserialize(item);
@@ -28,6 +30,7 @@ angular.module('webwalletApp')
     TrezorDevice.prototype.serialize = function () {
       return {
         id: this.id,
+        passphrase: this._passphrase,
         features: this.features,
         accounts: this.accounts.map(function (acc) {
           return acc.serialize();
@@ -70,6 +73,34 @@ angular.module('webwalletApp')
 
     TrezorDevice.prototype.defaultCoin = function () {
       return _.find(this.features.coins, { coin_name: config.coin });
+    };
+
+    //
+    // Passphrase
+    //
+
+    TrezorDevice.prototype.savePassphrase = function (passphrase) {
+      this._passphrase = this._hashPassphrase(passphrase);
+    };
+
+    TrezorDevice.prototype.hasSavedPassphrase = function () {
+      return !!this._passphrase;
+    };
+
+    TrezorDevice.prototype.checkPassphrase = function (passphrase) {
+      var hash = this._hashPassphrase(passphrase);
+
+      if (this._passphrase)
+        return this._passphrase === hash;
+      else {
+        this._passphrase = hash;
+        return true;
+      }
+    };
+
+    TrezorDevice.prototype._hashPassphrase = function (passphrase) {
+      var secret = 'TREZOR#' + this.id + '#' + passphrase;
+      return Crypto.SHA256(Crypto.SHA256(secret, {asBytes: true}));
     };
 
     //
