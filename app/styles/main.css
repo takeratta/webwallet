@@ -259,6 +259,10 @@ body {
   white-space: nowrap;
 }
 
+.dev-acc-info .icon-loading {
+  margin-left: 10px;
+}
+
 .nav-devices-accounts {
   margin-bottom: 10px;
 }
@@ -296,6 +300,11 @@ body {
 }
 
 /* Transaction list */
+
+.txlist-loading,
+.txlist-empty {
+  margin-top: 50px;
+}
 
 .txlist thead th {
   font-size: 85%;

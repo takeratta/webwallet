@@ -19,22 +19,11 @@
 
 <ng-include src="'views/account.nav.html'"></ng-include>
 
-<p class="text-center text-muted h1"
-   ng-show="account.transactions == null">
-  <span class="glyphicon glyphicon-refresh glyphicon-spin"></span>
-</p>
-<div class="text-center text-muted"
-     ng-show="account.transactions != null && !account.transactions.length">
-  <h4>No transactions to display</h4>
-  <a href="" class="btn btn-default"
-     ng-show="device.canHideAccount(account)"
-     ng-click="hideAccount()">Hide this account</a>
-</div>
 <table class="txlist table table-hover"
        ng-show="account.transactions != null && account.transactions.length">
   <thead>
     <tr class="text-muted">
-      <th width="20%" class="text-center">Timestamp</th>
+      <th width="22%" class="text-center">Timestamp</th>
       <th class="txlist-header-address">Address</th>
       <th width="16%" class="txlist-header-amount">Amount</th>
       <th width="16%">Balance</th>
@@ -90,9 +79,25 @@
       <td colspan="5">
         <dl class="dl-horizontal">
           <dt>Transaction details:</dt>
-          <dd class="txlist-hash"><a target="_blank" href="https://blockchain.info/tx/{{tx.hash}}">Blockchain</a></dd>
+          <dd class="txlist-hash">
+            <a target="_blank" href="https://blockchain.info/tx/{{tx.hash}}">Blockchain</a>
+          </dd>
         </dl>
       </td>
     </tr>
   </tbody>
 </table>
+
+<div class="txlist-loading text-center text-muted"
+     ng-show="account.transactions == null">
+  <span class="icon-loading" title="Loading transactions..."></span>
+<div>
+
+<div class="txlist-empty text-center text-muted"
+     ng-show="account.transactions != null && !account.transactions.length">
+  <h4>No transactions to display</h4>
+  <button class="btn btn-default"
+          ng-show="device.canHideAccount(account)"
+          ng-click="hideAccount()"
+    >Hide this account</button>
+</div>
