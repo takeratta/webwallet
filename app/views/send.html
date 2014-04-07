@@ -83,7 +83,7 @@
     <h5>Inputs</h5>
     <ol class="list-unstyled">
       <li ng-repeat="input in transaction.prepared.inputs">
-        {{input.prev_hash}}:{{input.prev_index}}
+        {{input.prev_hash.substr(0, 32)}}&#8203;{{input.prev_hash.substr(33)}}:{{input.prev_index}}
       </li>
     </ol>
     <h5>Outputs</h5>
