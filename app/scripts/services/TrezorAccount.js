@@ -87,8 +87,9 @@ angular.module('webwalletApp')
         });
 
         balance = utxos.reduce(function (bal, utxo) {
-          var val = utxo.value.toString();
-          return bal.add(new BigInteger(val));
+          return bal.add(new BigInteger(
+            utxo.value.toString()
+          ));
         }, BigInteger.ZERO);
 
         return {
@@ -350,6 +351,7 @@ angular.module('webwalletApp')
             out.state = k;
             if (out.keyPathForAddress)
               out.path = basePath.concat(out.keyPathForAddress);
+            return out;
           });
         })
         .reduce(function (xss, xs) { return xss.concat(xs); });
