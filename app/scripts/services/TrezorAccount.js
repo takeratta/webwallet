@@ -201,7 +201,7 @@ angular.module('webwalletApp')
           var bytes = parseInt(res.message.tx_size, 10),
               kbytes = Math.ceil(bytes / 1000),
               space = tx.total - amount,
-              fee = kbytes * self._feePerKb;
+              fee = kbytes * config.feePerKb;
 
           if (fee <= space) { // we have a space for the fee, set it and return
             if (space - fee < minAmount) { // there is no need for a change address
