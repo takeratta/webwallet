@@ -15,12 +15,16 @@
 </div>
 
 <fieldset ng-disabled="!device.isConnected()">
-  <p>Do you really want to wipe the device?</p>
-  <p>All data from the device will be lost. But you can recover your funds using recovery seed.</p>
+  <div class="alert alert-danger alert-withicon">
+    <span class="glyphicon glyphicon-warning-sign alert-icon"></span>
+    <h4>Do you really want to wipe the device?</h4>
+    <p>All data from the device will be lost! You can recover your funds using recovery seed.</p>
+    <p>If you are running Mac OS X, please unplug and reconnect the device after wiping.</p>
+    <p>
+      <button class="btn btn-danger"
+              ng-click="wipe(device)">Wipe</button>
+      <a href="#/device/{{device.id}}" class="btn btn-link">Cancel</a>
+    </p>
+  </div>
 
-  <button class="btn btn-danger"
-          ng-click="wipe(device)">Wipe</button>
-  <a href="#/device/{{device.id}}" class="btn btn-link">Cancel</a>
-
-  <p>If you are running Mac OS X, you need to unplug and reconnect the device before using it again after wiping.</p>
 </fieldset>
