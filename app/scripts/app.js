@@ -49,23 +49,7 @@ angular.module('webwalletApp', [
 angular.module('errorApp', [
   'ngSanitize',
   'mgcrea.ngStrap'
-])
-  .controller('ErrorCtrl', function (error, trezorApi, $scope) {
-    $scope.error = error;
-    $scope.installed = error.installed;
-    $scope.installers = trezorApi.installers();
-    $scope.selected = preferred($scope.installers);
-    $scope.download = download;
-
-    function preferred(is) {
-      var i = is.filter(function (i) { return i.preferred; })[0];
-      return (i || is[0]);
-    }
-
-    function download(selected) {
-      window.location.href = selected.url;
-    }
-  });
+]);
 
 // load trezor plugin and bootstrap application
 angular.element(document).ready(function () {
