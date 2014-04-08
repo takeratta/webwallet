@@ -1,24 +1,15 @@
 'use strict';
 
 angular.module('webwalletApp')
-  .value('atmosphere', window.atmosphere);
-
-angular.module('webwalletApp')
-  .config(function ($httpProvider) {
-    $httpProvider.defaults.useXDomain = true;
-    delete $httpProvider.defaults.headers.common['X-Requested-With'];
-  });
-
-angular.module('webwalletApp')
   .value('backends', {})
-  .factory('TrezorBackend', function (backends, config, utils, atmosphere, $http, $log, $q) {
+  .factory('TrezorBackend', function (backends, config, utils, $http, $log, $q) {
 
     function TrezorBackend(coin) {
       this.version = config.versions[coin.coin_name];
       this.endpoint = config.backends[coin.coin_name].endpoint;
+      this._streamUrlP = null;
+      this._stream = null;
       this._handlers = {};
-      this._socket = null;
-      this._deferred = null;
     }
 
     TrezorBackend.singleton = function (coin) {
@@ -27,91 +18,76 @@ angular.module('webwalletApp')
       return backends[coin.coin_name];
     };
 
-    TrezorBackend.prototype.apiUrl = function (path) {
-      return this.endpoint + '/trezor/' + path;
+    TrezorBackend.prototype._connectUrl = function () {
+      return this.endpoint + '/ws/lp';
     };
 
-    TrezorBackend.prototype.streamUrl = function () {
-      return this.endpoint + '/ws/lp';
+    TrezorBackend.prototype._apiUrl = function (path) {
+      return this.endpoint + '/trezor/' + path;
     };
 
     // Stream
 
     TrezorBackend.prototype.connect = function () {
-      var url = this.streamUrl();
+      if (!this._streamUrlP)
+        this._openStream();
+      return this._streamUrlP;
+    };
 
-      if (this._deferred)
-        return this._deferred.promise;
+    TrezorBackend.prototype._openStream = function () {
+      var self = this;
 
-      $log.log('[backend] Opening connection to', url);
-      this._deferred = $q.defer();
-      this._socket = atmosphere.subscribe({
-        url: url,
-        enableXDR: true,
-        trackMessageLength: true,
-        executeCallbackBeforeReconnect: true,
-        contentType: 'application/json',
-
-        onOpen: this._onOpen.bind(this),
-        onClose: this._onClose.bind(this),
-        onError: this._onError.bind(this),
-        onMessage: this._onMessage.bind(this)
+      // setup stream url promise
+      $log.log('[backend] Requesting stream url');
+      this._streamUrlP = $http.post(this._connectUrl()).then(function (res) {
+        $log.log('[backend] Stream url received');
+        return res.data;
       });
 
-      return this._deferred.promise;
+      // reset if the request fails
+      this._streamUrlP.catch(function (err) {
+        $log.error('[backed] Stream url error', err);
+        self._streamUrlP = null;
+      });
+
+      // listen after the stream is opened
+      this._streamUrlP.then(function (url) {
+        self._listenOnStream(url);
+      });
+    };
+
+    TrezorBackend.prototype._listenOnStream = function (url) {
+      var self = this;
+
+      // setup long-polling loop that gets notified with messages
+      $log.log('[backend] Listening on stream url', url);
+      this._stream = utils.httpPoll({
+        method: 'GET',
+        url: url
+      });
+
+      // reset on stream error
+      this._stream.catch(function (err) {
+        $log.error('[backed] Stream error', err);
+        self._stream = null;
+        self._streamUrlP = null;
+      });
+
+      // process received messages
+      this._stream.then(null, null, function (res) {
+        var msg = res.data,
+            key = msg.publicMaster;
+        if (self._handlers[key])
+          self._handlers[key](msg);
+      });
     };
 
     TrezorBackend.prototype.disconnect = function () {
-      if (!this._socket)
-        return;
-
-      $log.log('[backend] Closing connection');
-      this._socket.close();
-    };
-
-    TrezorBackend.prototype._onOpen = function () {
-      if (this._deferred)
-        this._deferred.resolve();
-      $log.log('[backend] Connection opened');
-    };
-
-    TrezorBackend.prototype._onClose = function () {
-      this._socket = null;
-      this._deferred = null;
-      $log.log('[backend] Connection closed');
-    };
-
-    TrezorBackend.prototype._onError = function (res) {
-      if (this._deferred)
-        this._deferred.reject();
-      $log.error('[backend] Connection error occured', res);
-    };
-
-    TrezorBackend.prototype._onMessage = function (res) {
-      var body = res.responseBody,
-          json;
-
-      try {
-        json = atmosphere.util.parseJSON(body);
-      } catch (e) {
-        $log.error('[backend] Error parsing JSON response:', body);
-      }
-
-      if (json)
-        this._processMessage(json);
-    };
-
-    TrezorBackend.prototype._processMessage = function (msg) {
-      var key;
-
-      if (typeof msg === 'object') { // balance update
-        key = msg.publicMaster;
-        if (this._handlers[key])
-          this._handlers[key](msg);
-      }
-
-      if (typeof msg === 'string') // version report
-        $log.log('[backend] Backend version', msg);
+      $log.log('[backend] Closing stream');
+      if (this._stream)
+        this._stream.cancel();
+      this._stream = null;
+      this._streamUrlP = null;
     };
 
     TrezorBackend.prototype.subscribe = function (node, handler) {
@@ -122,12 +98,14 @@ angular.module('webwalletApp')
       this._handlers[xpub] = handler;
 
       $log.log('[backend] Subscribing', xpub);
-      this._socket.push(atmosphere.util.stringifyJSON({
-        publicMaster: xpub,
-        after: '2014-01-01',
-        lookAhead: 10,
-        firstIndex: 0
-      }));
+      return this.connect().then(function (url) {
+        return $http.post(url, {
+          publicMaster: xpub,
+          after: '2014-01-01',
+          lookAhead: 10,
+          firstIndex: 0
+        });
+      });
     };
 
     TrezorBackend.prototype.unsubscribe = function (node) {
@@ -142,7 +120,7 @@ angular.module('webwalletApp')
           txhash = utils.sha256x2(txbytes, { asBytes: true });
 
       $log.log('[backend] Sending', rawTx);
-      return $http.post(this.apiUrl('send'), {
+      return $http.post(this._apiUrl('send'), {
         transaction: utils.bytesToBase64(txbytes),
         transactionHash: utils.bytesToBase64(txhash)
       });
@@ -154,7 +132,7 @@ angular.module('webwalletApp')
       var xpub = utils.node2xpub(node, this.version);
 
       $log.log('[backend] Requesting tx history for', xpub);
-      return $http.get(this.apiUrl(xpub + '/transactions')).then(function (res) {
+      return $http.get(this._apiUrl(xpub + '/transactions')).then(function (res) {
         return res.data;
       });
     };
@@ -163,7 +141,7 @@ angular.module('webwalletApp')
       var xpub = utils.node2xpub(node, this.version);
 
       $log.log('[backend] Looking up tx', hash, 'for', xpub);
-      return $http.get(this.apiUrl(xpub + '/transactions/' + hash)).then(function (res) {
+      return $http.get(this._apiUrl(xpub + '/transactions/' + hash)).then(function (res) {
         return res.data;
       });
     };
