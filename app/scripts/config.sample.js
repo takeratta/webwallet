@@ -29,6 +29,13 @@ angular.module('webwalletApp').constant('config', {
     Testnet: 76067358, // 70617039
   },
 
+  // coin name -> address type -> script type
+  scriptTypes: {
+    Bitcoin: {
+      5: 'PAYTOSCRIPTHASH'
+    }
+  },
+
   // coin name -> bip32 tree index
   indices: {
     Bitcoin: 0,

@@ -170,24 +170,26 @@ angular.module('webwalletApp')
       return Bitcoin.Base58.encode(bytes);
     }
 
-    function validateAddress(address, version) {
+    function decodeAddress(address) {
       var bytes, hash, csum;
 
       bytes = Bitcoin.Base58.decode(address);
       hash = bytes.slice(0, 21);
       csum = Crypto.SHA256(Crypto.SHA256(hash, {asBytes: true}), {asBytes: true});
 
-      return (csum[0] === bytes[21] &&
-              csum[1] === bytes[22] &&
-              csum[2] === bytes[23] &&
-              csum[3] === bytes[24] &&
-              hash[0] === +version);
+      if (csum[0] === bytes[21] && csum[1] === bytes[22] &&
+          csum[2] === bytes[23] && csum[3] === bytes[24])
+        return {
+          version: hash[0],
+          hash: hash,
+          csum: csum
+        };
     }
 
     this.xprv2node = xprv2node;
     this.node2xpub = node2xpub;
     this.node2address = node2address;
-    this.validateAddress = validateAddress;
+    this.decodeAddress = decodeAddress;
 
     //
     // promise utils

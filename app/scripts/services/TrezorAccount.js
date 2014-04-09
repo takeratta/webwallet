@@ -181,10 +181,20 @@ angular.module('webwalletApp')
 
     TrezorAccount.prototype.buildTx = function (address, amount, device) {
       var self = this,
-          minAmount = 5430;
+          minAmount = 5430,
+          scriptTypes = config.scriptTypes[self.coin.coin_name],
+          addrVals, scriptType;
 
-      if (!utils.validateAddress(address, self.coin.address_type))
+      addrVals = utils.decodeAddress(address);
+      if (!addrVals)
         return $q.reject(new Error('Invalid address'));
+
+      if (addrVals.version === +self.coin.address_type)
+        scriptType = 'PAYTOADDRESS';
+      if (!scriptType && scriptTypes && scriptTypes[addrVals.version])
+        scriptType = scriptTypes[addrVals.version];
+      if (!scriptType)
+        return $q.reject(new Error('Invalid address version'));
 
       if (amount < minAmount)
         return $q.reject(new Error('Amount is too low'));
@@ -192,7 +202,7 @@ angular.module('webwalletApp')
       return buildTx(0);
 
       function buildTx(feeAttempt) {
-        var tx = self._constructTx(address, amount, feeAttempt);
+        var tx = self._constructTx(address, amount, scriptType, feeAttempt);
 
         if (!tx)
           return $q.reject(new Error('Not enough funds'));
@@ -219,7 +229,7 @@ angular.module('webwalletApp')
       }
     };
 
-    TrezorAccount.prototype._constructTx = function (address, amount, fee) {
+    TrezorAccount.prototype._constructTx = function (address, amount, stype, fee) {
       var tx = {},
           utxos = this._selectUtxos(amount + fee),
           chpath = this.node.path.concat([1]),
@@ -242,14 +252,14 @@ angular.module('webwalletApp')
       });
       tx.outputs = [
         { // external output
+          script_type: stype,
           address: address,
-          amount: amount,
-          script_type: 'PAYTOADDRESS'
+          amount: amount
         },
         { // change output
+          script_type: 'PAYTOADDRESS',
           address_n: chpath,
-          amount: change,
-          script_type: 'PAYTOADDRESS'
+          amount: change
         }
       ];
 
