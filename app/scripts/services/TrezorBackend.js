@@ -2,7 +2,7 @@
 
 angular.module('webwalletApp')
   .value('backends', {})
-  .factory('TrezorBackend', function (backends, config, utils, $http, $log, $q) {
+  .factory('TrezorBackend', function (backends, config, utils, $http, $log) {
 
     function TrezorBackend(coin) {
       this.version = config.versions[coin.coin_name];
@@ -40,6 +40,8 @@ angular.module('webwalletApp')
       // setup stream url promise
       $log.log('[backend] Requesting stream url');
       this._streamUrlP = $http.post(this._connectUrl()).then(function (res) {
+        if (!res.data)
+          throw new Error('Invalid stream url');
         $log.log('[backend] Stream url received');
         return res.data;
       });
@@ -57,14 +59,15 @@ angular.module('webwalletApp')
     };
 
     TrezorBackend.prototype._listenOnStream = function (url) {
-      var self = this;
+      var self = this,
+          throttle = 1000; // polling throttle in msec
 
       // setup long-polling loop that gets notified with messages
       $log.log('[backend] Listening on stream url', url);
       this._stream = utils.httpPoll({
         method: 'GET',
         url: url
-      });
+      }, throttle);
 
       // reset on stream error
       this._stream.catch(function (err) {

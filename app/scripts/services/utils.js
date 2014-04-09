@@ -35,7 +35,7 @@ angular.module('webwalletApp')
 // Utils module
 
 angular.module('webwalletApp')
-  .service('utils', function Utils(Crypto, Bitcoin, $q, $http, $interval, $timeout) {
+  .service('utils', function Utils(Crypto, Bitcoin, _, $q, $http, $interval, $timeout) {
 
     //
     // codecs
@@ -84,14 +84,15 @@ angular.module('webwalletApp')
     // http
     //
 
-    function httpPoll(config) {
+    function httpPoll(config, throttle) {
       var deferred = $q.defer(),
           promise = deferred.promise,
-          cancelled = false;
+          cancelled = false,
+          request;
 
       promise.cancel = function () { cancelled = true; };
 
-      (function request() {
+      request = _.throttle(function () {
         $http(config).then(function (res) {
           if (!cancelled) {
             deferred.notify(res);
@@ -99,7 +100,7 @@ angular.module('webwalletApp')
           }
         })
         .catch(deferred.reject);
-      }());
+      }, throttle);
 
       return promise;
     }
