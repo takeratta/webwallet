@@ -201,6 +201,7 @@ angular.module('webwalletApp')
               modal;
           scope.check = check;
           scope.passphrase = '';
+          scope.passphraseCheck = '';
           scope.callback = cb;
           modal = $modal({
             template: 'views/modal.passphrase.html',
