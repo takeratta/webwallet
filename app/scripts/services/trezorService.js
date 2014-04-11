@@ -186,30 +186,20 @@ angular.module('webwalletApp')
       });
 
       dev.on('passphrase', function (callback) {
-        passphraseModal(false, function (pp) {
+        var saved = dev.hasSavedPassphrase();
+
+        passphraseModal(!saved, function (pp) {
           if (pp == null)
             return callback();
-
-          if (dev.hasSavedPassphrase()) {
-            if (!dev.checkPassphrase(pp))
-              return callback(new Error('Passphrases do not match'));
-            return callback(null, pp);
-          } else {
-            passphraseModal(true, function (ppcheck) {
-              if (ppcheck == null || ppcheck !== pp)
-                return callback();
-              dev.savePassphrase(pp);
-              return callback(null, pp);
-            });
-          }
+          if (!dev.checkPassphraseAndSave(pp))
+            return callback(new Error('Invalid passphrase'));
+          return callback(null, pp);
         });
 
         function passphraseModal(check, cb) {
           var scope = $rootScope.$new(),
               modal;
-          scope.message = check
-            ? 'Please re-type your passphrase again, for control'
-            : 'Please enter your passphrase';
+          scope.check = check;
           scope.passphrase = '';
           scope.callback = cb;
           modal = $modal({

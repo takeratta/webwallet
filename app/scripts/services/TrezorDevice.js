@@ -79,15 +79,11 @@ angular.module('webwalletApp')
     // Passphrase
     //
 
-    TrezorDevice.prototype.savePassphrase = function (passphrase) {
-      this._passphrase = this._hashPassphrase(passphrase);
-    };
-
     TrezorDevice.prototype.hasSavedPassphrase = function () {
       return !!this._passphrase;
     };
 
-    TrezorDevice.prototype.checkPassphrase = function (passphrase) {
+    TrezorDevice.prototype.checkPassphraseAndSave = function (passphrase) {
       var hash = this._hashPassphrase(passphrase);
 
       if (this._passphrase)
