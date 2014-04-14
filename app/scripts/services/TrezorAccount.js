@@ -233,7 +233,7 @@ angular.module('webwalletApp')
     TrezorAccount.prototype._constructTx = function (address, amount, stype, fee) {
       var tx = {},
           utxos = this._selectUtxos(amount + fee),
-          chindex = this._changeNode.offset,
+          chindex = (this._changeNode.offset || 0),
           chpath = this._changeNode.path.concat([chindex]),
           total, change;
 
