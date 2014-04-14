@@ -474,6 +474,10 @@ body {
   padding-right: 5px;
 }
 
+.pinmodal .modal-body .btn:focus {
+  outline: 0;
+}
+
 .pinmodal .modal-body {
   padding-bottom: 0;
 }
