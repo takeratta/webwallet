@@ -13,17 +13,30 @@
       <small class="dev-status">
         <span class="dev-status-{{device.status()}}"
               ng-switch="device.status()">
-          <span ng-switch-when="loading"><span class="glyphicon glyphicon-cog"></span> Loading&nbsp;&hellip;</span>
-          <span ng-switch-when="connected"><span class="glyphicon glyphicon-check"></span> Connected</span>
-          <span ng-switch-when="disconnected"><span class="glyphicon glyphicon-unchecked"></span> Disconnected</span>
+          <span ng-switch-when="loading">
+            <span class="glyphicon glyphicon-cog"></span>
+            {{device.statusLabel() || 'Loading'}}&hellip;
+          </span>
+          <span ng-switch-when="connected">
+            <span class="glyphicon glyphicon-check"></span>
+            {{device.statusLabel() || 'Connected'}}
+          </span>
+          <span ng-switch-when="disconnected">
+            <span class="glyphicon glyphicon-unchecked"></span>
+            {{device.statusLabel() || 'Disconnected'}}
+          </span>
         </span>
       </small>
     </a>
 
     <div class="dev-blocked tooltip tooltip-danger in right"
-         ng-show="device.blocked">
-      <div class="tooltip-inner">
-        The device cannot be open. Make sure you don't have Wallet running in other tabs!
+         ng-show="device.error">
+      <div class="tooltip-inner"
+           ng-switch="device.error">
+        <span ng-switch-when="Opening device failed">
+          Device cannot be open. Make sure you don't have myTREZOR running in other tabs!
+        </span>
+        <span ng-switch-default>{{device.error}}</span>
       </div>
       <div class="tooltip-arrow"></div>
     </div>

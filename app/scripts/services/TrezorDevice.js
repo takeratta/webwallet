@@ -8,11 +8,13 @@ angular.module('webwalletApp')
       this.id = ''+id;
       this.accounts = [];
       this.features = null;
-      this.blocked = false;
+      this.error = null;
+
       this._passphrase = null;
       this._session = null;
       this._desc = null;
-      this._loading = 0;
+      this._statusLabel = null;
+      this._loadingLevel = 0;
     }
 
     TrezorDevice.deserialize = function (data) {
@@ -42,13 +44,26 @@ angular.module('webwalletApp')
     // Status & features
     //
 
-    TrezorDevice.prototype.isLoading = function () { return !!this._loading; };
+    TrezorDevice.prototype.isLoading = function () {
+      return !!this._loadingLevel;
+    };
+
     TrezorDevice.prototype.withLoading = function (fn) {
       var self = this;
 
-      self._loading++;
+      self._loadingLevel++;
       return $q.when(fn()).finally(function () {
-        self._loading--;
+        self._loadingLevel--;
+      });
+    };
+
+    TrezorDevice.prototype.withStatusLabel = function (label, fn) {
+      var self = this,
+          label0 = this._statusLabel;
+
+      self._statusLabel = label;
+      return $q.when(fn()).finally(function () {
+        self._statusLabel = label0;
       });
     };
 
@@ -63,6 +78,10 @@ angular.module('webwalletApp')
         return this.features.label;
       else
         return 'My TREZOR';
+    };
+
+    TrezorDevice.prototype.statusLabel = function () {
+      return this._statusLabel;
     };
 
     TrezorDevice.prototype.balance = function () {
@@ -135,7 +154,6 @@ angular.module('webwalletApp')
           max = 60; // give up after n attempts
 
       // keep trying to initialize
-      self.blocked = false;
       return utils.endure(callInitialize, delay, max)
         .then(
           function (res) {
@@ -153,12 +171,11 @@ angular.module('webwalletApp')
 
         return self._session.initialize().then(
           function (features) {
-            self.blocked = false;
+            self.error = null;
             return features;
           },
           function (err) {
-            if (err.message === 'Opening device failed')
-              self.blocked = true;
+            self.error = err.message || 'Failed to initialize the device.';
             throw err;
           }
         );
