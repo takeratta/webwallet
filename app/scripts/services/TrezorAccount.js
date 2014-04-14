@@ -13,9 +13,10 @@ angular.module('webwalletApp')
       this.transactions = null;
 
       this._deferred = null;
-      this._offset = null;
       this._wallet = new Bitcoin.Wallet(coin.address_type);
       this._backend = TrezorBackend.singleton(coin);
+      this._externalNode = trezor.deriveChildNode(this.node, 0);
+      this._changeNode = trezor.deriveChildNode(this.node, 1);
     }
 
     TrezorAccount.deserialize = function (data) {
@@ -51,10 +52,8 @@ angular.module('webwalletApp')
     };
 
     TrezorAccount.prototype.address = function (n) {
-      var index = this._offset + n,
-          masterNode = this.node,
-          externalNode = trezor.deriveChildNode(masterNode, 0),
-          addressNode = trezor.deriveChildNode(externalNode, index),
+      var index = (this._externalNode.offset || 0) + n,
+          addressNode = trezor.deriveChildNode(this._externalNode, index),
           address = utils.node2address(addressNode, this.coin.address_type);
 
       return {
@@ -234,7 +233,8 @@ angular.module('webwalletApp')
     TrezorAccount.prototype._constructTx = function (address, amount, stype, fee) {
       var tx = {},
           utxos = this._selectUtxos(amount + fee),
-          chpath = this.node.path.concat([1]),
+          chindex = this._changeNode.offset,
+          chpath = this._changeNode.path.concat([chindex]),
           total, change;
 
       if (!utxos)
@@ -350,8 +350,8 @@ angular.module('webwalletApp')
       this.transactions = this._analyzeTxs(this.transactions, this._wallet);
       this.transactions = this._balanceTxs(this.transactions);
 
-      // update the address offset
-      this._offset = this._incrementOffset(this.transactions, this._offset || 0);
+      // update the address offsets
+      this._incrementOffsets(this.transactions);
 
       // the subscription is considered initialized now
       this._deferred.resolve();
@@ -498,18 +498,30 @@ angular.module('webwalletApp')
       }
     };
 
-    TrezorAccount.prototype._incrementOffset = function (txs, offset) {
+    TrezorAccount.prototype._incrementOffsets = function (txs) {
+      var self = this;
+
       txs.forEach(function (tx) {
         tx.outs
           .filter(function (out) { return out.path; })
           .forEach(function (out) {
-            var id = out.path[out.path.length-1];
-            if (id >= offset)
-              offset = id + 1;
+            var id = out.path[out.path.length-1],
+                branch = out.path[out.path.length-2],
+                node;
+
+            if (branch === 0)
+              node = self._externalNode;
+            else if (branch === 1)
+              node = self._changeNode;
+            else {
+              $log.warn('[account] Tx with unknown branch', tx);
+              return;
+            }
+
+            if (id >= (node.offset || 0))
+              node.offset = id + 1;
           });
       });
-
-      return offset;
     };
 
     // Decorator around Bitcoin.Transaction, contains BIP32 index and path
