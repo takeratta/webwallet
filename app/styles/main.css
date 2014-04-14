@@ -82,7 +82,30 @@ a .icon-loading,
   display: none;
 }
 
-/* ngAnimate modals */
+.text-capitals {
+  text-transform: capitalize;
+}
+
+.help-block {
+  color: #999;
+}
+
+.lead {
+  font-size: 16px;
+}
+
+.tooltip.tooltip-danger.right .tooltip-arrow {
+  border-right-color: #A94442;
+}
+
+.tooltip.tooltip-danger .tooltip-inner {
+  background-color: #A94442;
+  border-color: #A94442;
+  color: #FFFFFF;
+}
+
+/* Animations */
+
 .modal-backdrop.am-fade {
   opacity: .5;
   transition: opacity .15s linear;
@@ -100,26 +123,24 @@ a .icon-loading,
   opacity: 0;
 }
 
-.text-capitals {
-  text-transform: capitalize;
+/*.txlist-detail,
+.txlist-detail * {
+  -webkit-transition: all ease-in-out 0.1s;
+  -moz-transition: all ease-in-out 0.1s;
+  transition: all ease-in-out 0.1s;
+  overflow: hidden;
 }
-
-.help-block {
-  color: #999;
+.txlist-detail.ng-hide-add,
+.txlist-detail.ng-hide-remove {
+  display: table-row !important;
 }
-
-.lead {
-  font-size: 16px;
-}
-
-.tooltip.tooltip-danger.right .tooltip-arrow {
-  border-right-color: #F2DEDE;
-}
-.tooltip.tooltip-danger .tooltip-inner {
-  background-color: #F2DEDE;
-  border-color: #EBCCD1;
-  color: #A94442;
-}
+.txlist-detail.ng-hide,
+.txlist-detail.ng-hide * {
+  opacity: 0 !important;
+  line-height: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}*/
 
 /* Line divider component */
 
