@@ -37,8 +37,9 @@
     </form>
 
     <h5 ng-show="seedWords.length">Recovered seed words:</h5>
-    <ul>
-      <li ng-repeat="word in seedWords track by $index">{{word}}</li>
+    <ul class="list-group">
+      <li class="list-group-item"
+          ng-repeat="word in seedWords track by $index">{{word}}</li>
     </ul>
   </fieldset>
 
