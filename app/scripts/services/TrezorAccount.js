@@ -52,11 +52,13 @@ angular.module('webwalletApp')
 
     TrezorAccount.prototype.address = function (n) {
       var index = this._offset + n,
-          child = trezor.deriveChildNode(this.node, index),
-          address = utils.node2address(child, this.coin.address_type);
+          masterNode = this.node,
+          externalNode = trezor.deriveChildNode(masterNode, 0),
+          addressNode = trezor.deriveChildNode(externalNode, index),
+          address = utils.node2address(addressNode, this.coin.address_type);
 
       return {
-        path: child.path,
+        path: addressNode.path,
         address: address,
         index: index
       };
