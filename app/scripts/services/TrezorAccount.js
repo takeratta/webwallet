@@ -334,6 +334,7 @@ angular.module('webwalletApp')
       this.balance = this._constructBalance(details);
 
       // load transactions
+      this.transactions = null;
       this._backend.transactions(this.node).then(
         this._processTransactionsUpdate.bind(this));
     };
