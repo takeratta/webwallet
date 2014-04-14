@@ -102,6 +102,8 @@ angular.module('webwalletApp')
         .catch(deferred.reject);
       }, throttle);
 
+      request();
+
       return promise;
     }
 

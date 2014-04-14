@@ -1,13 +1,18 @@
 'use strict';
 
 angular.module('webwalletApp')
+  .config(function ($httpProvider) {
+    $httpProvider.defaults.useXDomain = true;
+  });
+
+angular.module('webwalletApp')
   .value('backends', {})
   .factory('TrezorBackend', function (backends, config, utils, $http, $log) {
 
     function TrezorBackend(coin) {
       this.version = config.versions[coin.coin_name];
       this.endpoint = config.backends[coin.coin_name].endpoint;
-      this._streamUrlP = null;
+      this._clientIdP = null;
       this._stream = null;
       this._handlers = {};
     }
@@ -18,8 +23,11 @@ angular.module('webwalletApp')
       return backends[coin.coin_name];
     };
 
-    TrezorBackend.prototype._connectUrl = function () {
-      return this.endpoint + '/ws/lp';
+    TrezorBackend.prototype._streamUrl = function (id) {
+      if (id != null)
+        return this.endpoint + '/lp/' + id;
+      else
+        return this.endpoint + '/lp';
     };
 
     TrezorBackend.prototype._apiUrl = function (path) {
@@ -29,60 +37,65 @@ angular.module('webwalletApp')
     // Stream
 
     TrezorBackend.prototype.connect = function () {
-      if (!this._streamUrlP)
+      if (!this._clientIdP)
         this._openStream();
-      return this._streamUrlP;
+      return this._clientIdP;
     };
 
     TrezorBackend.prototype._openStream = function () {
       var self = this;
 
-      // setup stream url promise
-      $log.log('[backend] Requesting stream url');
-      this._streamUrlP = $http.post(this._connectUrl()).then(function (res) {
-        if (!res.data)
-          throw new Error('Invalid stream url');
-        $log.log('[backend] Stream url received');
-        return res.data;
+      // setup client ID promise
+      $log.log('[backend] Requesting client ID');
+      this._clientIdP = $http.post(this._streamUrl(), {}).then(function (res) {
+        if (!res.data || res.data.clientId == null)
+          throw new Error('Invalid client ID');
+        $log.log('[backend] Client ID received');
+        return res.data.clientId;
       });
 
       // reset if the request fails
-      this._streamUrlP.catch(function (err) {
-        $log.error('[backed] Stream url error', err);
-        self._streamUrlP = null;
+      this._clientIdP.catch(function () {
+        // $log.error('[backed] Client ID error', err);
+        self._clientIdP = null;
       });
 
       // listen after the stream is opened
-      this._streamUrlP.then(function (url) {
-        self._listenOnStream(url);
+      this._clientIdP.then(function (id) {
+        self._listenOnStream(id);
       });
     };
 
-    TrezorBackend.prototype._listenOnStream = function (url) {
+    TrezorBackend.prototype._listenOnStream = function (id) {
       var self = this,
+          url = this._streamUrl(id),
           throttle = 1000; // polling throttle in msec
 
       // setup long-polling loop that gets notified with messages
-      $log.log('[backend] Listening on stream url', url);
+      $log.log('[backend] Listening on client ID', id);
       this._stream = utils.httpPoll({
         method: 'GET',
         url: url
       }, throttle);
 
       // reset on stream error
-      this._stream.catch(function (err) {
-        $log.error('[backed] Stream error', err);
+      this._stream.catch(function () {
+        // $log.error('[backed] Stream error', err);
         self._stream = null;
-        self._streamUrlP = null;
+        self._clientIdP = null;
       });
 
       // process received messages
       this._stream.then(null, null, function (res) {
-        var msg = res.data,
-            key = msg.publicMaster;
-        if (self._handlers[key])
-          self._handlers[key](msg);
+        if (res.status !== 204 && res.data.forEach)
+          res.data.forEach(self._processMessage.bind(self));
       });
+    };
+
+    TrezorBackend.prototype._processMessage = function (msg) {
+      var key = msg.publicMaster;
+      if (this._handlers[key])
+        this._handlers[key](msg);
     };
 
     TrezorBackend.prototype.disconnect = function () {
@@ -90,23 +103,27 @@ angular.module('webwalletApp')
       if (this._stream)
         this._stream.cancel();
       this._stream = null;
-      this._streamUrlP = null;
+      this._clientIdP = null;
     };
 
     TrezorBackend.prototype.subscribe = function (node, handler) {
-      var xpub = utils.node2xpub(node, this.version);
+      var self = this,
+          xpub = utils.node2xpub(node, this.version),
+          req = {
+            publicMaster: xpub,
+            after: '2014-01-01',
+            lookAhead: 10,
+            firstIndex: 0
+          };
 
       if (this._handlers[xpub])
         return;
       this._handlers[xpub] = handler;
 
       $log.log('[backend] Subscribing', xpub);
-      return this.connect().then(function (url) {
-        return $http.post(url, {
-          publicMaster: xpub,
-          after: '2014-01-01',
-          lookAhead: 10,
-          firstIndex: 0
+      return this.connect().then(function (id) {
+        return $http.post(self._streamUrl(id), req).then(function (res) {
+          self._processMessage(res.data);
         });
       });
     };
