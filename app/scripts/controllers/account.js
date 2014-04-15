@@ -18,7 +18,7 @@ angular.module('webwalletApp')
       return $location.path('/');
 
     $scope.hideAccount = function () {
-      $scope.account.deregisterAndUnsubscribe();
+      $scope.account.unsubscribe();
       $scope.device.hideAccount($scope.account);
       $location.path('/device/' + $scope.device.id + '/account/'
         + ($scope.device.accounts.length - 1));
