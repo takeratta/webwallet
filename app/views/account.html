@@ -88,11 +88,6 @@
   </tbody>
 </table>
 
-<div class="txlist-loading text-center text-muted"
-     ng-show="account.transactions == null">
-  <span class="icon-loading" title="Loading transactions..."></span>
-<div>
-
 <div class="txlist-empty text-center text-muted"
      ng-show="account.transactions != null && !account.transactions.length">
   <h4>No transactions to display</h4>
@@ -101,3 +96,8 @@
           ng-click="hideAccount()"
     >Hide this account</button>
 </div>
+
+<div class="txlist-loading text-center text-muted"
+     ng-show="account.transactions == null">
+  <span class="icon-loading" title="Loading transactions..."></span>
+<div>
