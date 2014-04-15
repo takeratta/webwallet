@@ -7,6 +7,9 @@ angular.module('webwalletApp').constant('config', {
   // minimal version of plugin this wallet supports
   pluginMinVersion: '1.0.5',
 
+  // version of storage this wallet is compatible with
+  storageVersion: '1.0.0',
+
   // fee per kb for new txs
   feePerKb: 10000,
 

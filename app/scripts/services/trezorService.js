@@ -1,11 +1,13 @@
 'use strict';
 
 angular.module('webwalletApp')
-  .service('trezorService', function TrezorService(utils, storage, trezor, firmwareService, TrezorDevice,
+  .service('trezorService', function TrezorService(
+      utils, config, storage, trezor, firmwareService, TrezorDevice,
       _, $modal, $q, $location, $rootScope) {
 
     var self = this,
-        STORAGE_DEVICES = 'trezorServiceDevices';
+        STORAGE_DEVICES = 'trezorServiceDevices',
+        STORAGE_VERSION = 'trezorStorageVersion';
 
     var enumeratePaused = false,
         connectFn = connect,
@@ -54,13 +56,18 @@ angular.module('webwalletApp')
     // takes serialized device list, puts it to storage
     function store(data) {
       storage[STORAGE_DEVICES] = JSON.stringify(data);
+      storage[STORAGE_VERSION] = config.storageVersion;
     }
 
     // loads a serialized device list from storage
     function restore() {
-      return storage[STORAGE_DEVICES]
-        ? JSON.parse(storage[STORAGE_DEVICES])
-        : [];
+      var devices = storage[STORAGE_DEVICES],
+          version = storage[STORAGE_VERSION];
+
+      if (devices && version === config.storageVersion)
+        return JSON.parse(devices);
+      else
+        return [];
     }
 
     // watches the device list and persist it to storage on change
