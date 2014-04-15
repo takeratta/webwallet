@@ -302,11 +302,13 @@ angular.module('webwalletApp')
 angular.module('webwalletApp')
   .value('jsqrcode', window.qrcode)
   .directive('qrScan', function (jsqrcode) {
+    var URL, getUserMedia;
 
-    // TODO: do this locally
-    window.URL = window.URL || window.webkitURL || window.mozURL || window.msURL;
-    navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia ||
-                             navigator.mozGetUserMedia || navigator.msGetUserMedia;
+    URL = window.URL || window.webkitURL || window.mozURL || window.msURL;
+    getUserMedia =
+      navigator.getUserMedia || navigator.webkitGetUserMedia ||
+      navigator.mozGetUserMedia || navigator.msGetUserMedia;
+    if (getUserMedia) getUserMedia = getUserMedia.bind(navigator);
 
     return {
       link: link,
@@ -328,7 +330,7 @@ angular.module('webwalletApp')
       if (!ngModel)
         throw new Error('ng-model attribute is required');
 
-      if (!navigator.getUserMedia)
+      if (!getUserMedia)
         throw new Error('getUserMedia is not supported');
 
       initVideo();
@@ -340,14 +342,16 @@ angular.module('webwalletApp')
       });
 
       function initVideo() {
-        navigator.getUserMedia({ video: true },
+        getUserMedia({ video: true },
           function (vs) {
             stream = vs;
             window.addEventListener('loadedmetadata', initCanvas, true);
-            video.src = (window.URL && window.URL.createObjectURL(vs)) || vs;
+            video.src = (URL && URL.createObjectURL(vs)) || vs;
           },
           function () {
-            ngModel.$setViewValue(null);
+            scope.$apply(function () {
+              ngModel.$setViewValue(null);
+            });
           }
         );
       }

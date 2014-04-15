@@ -159,14 +159,19 @@ angular.module('webwalletApp')
 
     $scope.qrScanEnabled = navigator.getUserMedia || navigator.webkitGetUserMedia ||
                            navigator.mozGetUserMedia || navigator.msGetUserMedia;
-    $scope.qrAddress = null;
     $scope.qrScanning = false;
+    $scope.qrAddress = undefined;
 
     $scope.$watch('qrAddress', function (val) {
       var values;
 
       if (!$scope.qrScanning) return;
       $scope.qrScanning = false;
+
+      if (!val) {
+        $scope.qrAddress = undefined;
+        return;
+      }
 
       values = parseQr(val);
       if (!values)
