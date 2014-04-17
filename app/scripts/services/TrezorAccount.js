@@ -148,6 +148,7 @@ angular.module('webwalletApp')
       txs = $q.all(txs).then(function (txs) {
         return txs.map(function (tx) {
           return {
+            hash: tx.hash,
             version: tx.version,
             inputs: tx.inputs.map(function (inp) {
               var val = {
