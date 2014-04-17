@@ -313,7 +313,8 @@ angular.module('webwalletApp')
     };
 
     TrezorDevice.prototype.signTx = function (tx, refTxs, coin) {
-      return this._session.signTx(tx.inputs, tx.outputs, refTxs, coin);
+      // return this._session.signTx(tx.inputs, tx.outputs, refTxs, coin);
+      return this._session.simpleSignTx(tx.inputs, tx.outputs, refTxs, coin);
     };
 
     TrezorDevice.prototype.flash = function (firmware) {
