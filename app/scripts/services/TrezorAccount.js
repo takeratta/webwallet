@@ -159,7 +159,7 @@ angular.module('webwalletApp')
                 val.sequence = inp.sequence;
               return val;
             }),
-            outputs: tx.outputs.map(function (out) {
+            bin_outputs: tx.outputs.map(function (out) {
               return {
                 amount: out.value,
                 script_pubkey: utils.bytesToHex(utils.base64ToBytes(out.script))
@@ -172,7 +172,7 @@ angular.module('webwalletApp')
 
       // sign by device
       return txs.then(function (txs) {
-        return device.signTx(tx, self.coin, txs).then(function (res) {
+        return device.signTx(tx, txs, self.coin).then(function (res) {
           var message = res.message,
               serializedTx = message.serialized_tx;
           return self._backend.send(serializedTx);
@@ -524,7 +524,7 @@ angular.module('webwalletApp')
       });
     };
 
-    // Decorator around Bitcoin.Transaction, contains BIP32 index and path
+    // Decorator around Bitcoin.Transaction, contains tx index and BIP32 path
 
     function TrezorTransactionOut(data) {
       Bitcoin.TransactionOut.call(this, data);
