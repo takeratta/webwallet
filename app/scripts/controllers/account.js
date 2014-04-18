@@ -123,13 +123,16 @@ angular.module('webwalletApp')
       var tx = $scope.transaction.prepared;
       if (!tx) return;
       $scope.outputIndex = 0;
+      $scope.sending = true;
       $scope.account.sendTx(tx, $scope.device).then(
         function () {
+          $scope.sending = false;
           $location.path('/device/' + $scope.device.id
             + '/account/' + $scope.account.id);
           flash.success('Transaction successfully sent.');
         },
         function (err) {
+          $scope.sending = false;
           flash.error(err.message || 'Failed to send transaction.');
         }
       );

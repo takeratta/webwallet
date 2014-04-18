@@ -15,7 +15,8 @@
 <ng-include src="'views/account.nav.html'"></ng-include>
 
 <div class="row">
-  <form name="form" class="form-horizontal col-md-8">
+  <form name="form" class="form-horizontal overlay-container col-md-8"
+        ng-disabled="device.status() !== 'connected'">
 
     <div class="form-group">
       <label for="address" class="control-label col-sm-3">Address:</label>
@@ -66,6 +67,16 @@
         <a href="#/device/{{device.id}}/account/{{account.id}}"
            class="btn btn-link">Cancel</a>
         <span class="text-danger pull-right">{{transaction.error}}</span>
+      </div>
+    </div>
+
+    <div class="overlay overlay-default"
+         ng-if="sending">
+      <div class="overlay-content text-center">
+        <p><span class="icon-loading"></span></p>
+        <p class="h4 text-muted">
+          Signing and sending transaction&hellip;
+        </p>
       </div>
     </div>
 
