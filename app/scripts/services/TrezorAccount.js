@@ -175,7 +175,7 @@ angular.module('webwalletApp')
       return txs.then(function (txs) {
         return device.signTx(tx, txs, self.coin).then(function (res) {
           var message = res.message,
-              serializedTx = message.serialized_tx;
+              serializedTx = message.serialized.serialized_tx;
           return self._backend.send(serializedTx);
         });
       });
