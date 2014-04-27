@@ -42,6 +42,9 @@ angular.module('webwalletApp').constant('config', {
   // coin name -> bip32 tree index
   indices: {
     Bitcoin: 0,
-    Testnet: 0 // TODO: change to 1
-  }
+    Testnet: 1
+  },
+
+  useBip44: true
+
 });

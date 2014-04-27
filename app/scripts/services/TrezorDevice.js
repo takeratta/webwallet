@@ -223,11 +223,19 @@ angular.module('webwalletApp')
     };
 
     TrezorDevice.prototype.accountPath = function (id, coin) {
-      return [
-        config.indices[coin.coin_name], // cointype
-        (0 | 0x80000000) >>> 0, // reserved'
-        (id | 0x80000000) >>> 0 // account'
-      ];
+      if (config.useBip44) {
+        return [
+          (44 | 0x80000000) >>> 0, // purpose 44' (BIP-0044)
+          (config.indices[coin.coin_name] | 0x80000000) >>> 0, // coin_type
+          (id | 0x80000000) >>> 0 // account'
+        ];
+      } else {
+        return [
+          config.indices[coin.coin_name], // cointype
+          (0 | 0x80000000) >>> 0, // reserved'
+          (id | 0x80000000) >>> 0 // account'
+        ];
+       }
     };
 
     // Account adding
@@ -313,8 +321,8 @@ angular.module('webwalletApp')
     };
 
     TrezorDevice.prototype.signTx = function (tx, refTxs, coin) {
-      // return this._session.signTx(tx.inputs, tx.outputs, refTxs, coin);
-      return this._session.simpleSignTx(tx.inputs, tx.outputs, refTxs, coin);
+      return this._session.signTx(tx.inputs, tx.outputs, refTxs, coin);
+      // return this._session.simpleSignTx(tx.inputs, tx.outputs, refTxs, coin);
     };
 
     TrezorDevice.prototype.flash = function (firmware) {
