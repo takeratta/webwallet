@@ -7,6 +7,7 @@ cd `dirname $0`
 
 git pull
 git submodule update --recursive
+git rev-parse HEAD > app/revision.txt
 
 cd app/data
 ./check_releases.py
@@ -18,9 +19,6 @@ bower install || $(npm bin)/bower install
 
 grunt build || $(npm bin)/grunt build
 cp -r app/data dist/data
-
-# Put current revision to http://mytrezor.com/revision.txt
-git rev-parse HEAD > app/revision.txt
 
 echo "DONE. Please run ./deploy.sh"
 exit 0
