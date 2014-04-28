@@ -35,13 +35,14 @@
         ng-click="tx.active = !tx.active"
         ng-repeat-start="tx in account.transactions">
       <td class="txlist-date text-center"
-          ng-if="tx.timestamp">
+          ng-if="tx.block">
         {{tx.timestamp | date:'yyyy-MM-dd'}}
         <small class="text-muted">{{tx.timestamp | date:'HH:mm:ss'}}</small>
       </td>
       <td class="txlist-date text-center text-muted"
-          ng-if="!tx.timestamp">
-        <small>Unconfirmed</small>
+          ng-if="!tx.block">
+        <small title="Transaction received at {{tx.timestamp | date:'yyyy-MM-dd HH:mm:ss'}}"
+          >Unconfirmed</small>
       </td>
       <td class="txlist-comment"
           ng-if="tx.comment">
