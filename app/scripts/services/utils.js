@@ -184,7 +184,7 @@ angular.module('webwalletApp')
           csum[2] === bytes[23] && csum[3] === bytes[24])
         return {
           version: hash[0],
-          hash: hash,
+          hash: hash.slice(1),
           csum: csum
         };
     }

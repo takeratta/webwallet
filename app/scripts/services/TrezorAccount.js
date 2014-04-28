@@ -133,6 +133,8 @@ angular.module('webwalletApp')
     //
 
     TrezorAccount.prototype.sendTx = function (tx, device) {
+      // TODO: take Bitcoin.Transaction as an input
+
       var self = this,
           uins, txs;
 
@@ -175,10 +177,112 @@ angular.module('webwalletApp')
       return txs.then(function (txs) {
         return device.signTx(tx, txs, self.coin).then(function (res) {
           var message = res.message,
-              serializedTx = message.serialized.serialized_tx;
+              serializedTx = message.serialized.serialized_tx,
+              parsedTx = self._serializedToTx(serializedTx);
+
+          if (!parsedTx)
+            throw new Error('Failed to parse signed transaction');
+
+          if (!self._verifyTx(tx, parsedTx))
+            throw new Error('Failed to verify signed transaction');
+
           return self._backend.send(serializedTx);
         });
       });
+    };
+
+    TrezorAccount.prototype._serializedToTx = function (tx) {
+      try {
+        return Bitcoin.Transaction.deserialize(tx);
+      } catch (e) {
+        return null;
+      }
+    };
+
+    TrezorAccount.prototype._verifyTx = function (myTx, trezorTx) {
+      return (
+        // 1. check # of inputs and outputs
+        this._verifyTxSize(myTx, trezorTx) &&
+        // 2. check output amounts
+        this._verifyTxAmounts(myTx, trezorTx) &&
+        // 3. check output scripts
+        this._verifyTxScripts(myTx, trezorTx)
+      );
+    };
+
+    TrezorAccount.prototype._verifyTxSize = function (myTx, trezorTx) {
+      return (
+        (myTx.inputs.length === trezorTx.ins.length) &&
+        (myTx.outputs.length === trezorTx.outs.length)
+      );
+    };
+
+    TrezorAccount.prototype._verifyTxAmounts = function (myTx, trezorTx) {
+      var outputs = _.zip(myTx.outputs, trezorTx.outs);
+
+      return _.every(outputs, function (outs) {
+        var o0bn = new BigInteger(outs[0].amount.toString()),
+            o1bn = Bitcoin.Util.valueToBigInt(outs[1].value);
+
+        return o0bn.equals(o1bn);
+      });
+    };
+
+    TrezorAccount.prototype._verifyTxScripts = function (myTx, trezorTx) {
+      var self = this,
+          outputs = _.zip(myTx.outputs, trezorTx.outs);
+
+      return _.every(outputs, function (outs) {
+        var s0 = utils.bytesToHex(computeScript(outs[0])),
+            s1 = utils.bytesToHex(outs[1].script.buffer);
+
+        return s0 === s1;
+      });
+
+      function computeScript(out) {
+        var hash = computePubKeyHash(out);
+
+        switch (out.script_type) {
+        case 'PAYTOADDRESS':
+          return [
+            0x76, // OP_DUP
+            0xA9, // OP_HASH_160
+            0x14  // push 20 bytes
+          ].concat(hash)
+           .concat([
+             0x88, // OP_EQUALVERIFY
+             0xAC  // OP_CHECKSIG
+           ]);
+
+        case 'PAYTOSCRIPTHASH':
+          return [
+            0xA9, // OP_HASH_160
+            0x14  // push 20 bytes
+          ].concat(hash)
+           .concat([
+             0x87 // OP_EQUAL
+           ]);
+
+        default:
+          throw new Error('Unknown script type: ' + out.script_type);
+        }
+      }
+
+      function computePubKeyHash(out) {
+        var address = out.address,
+            address_n = out.address_n,
+            nodes = [self._externalNode, self._changeNode],
+            node, nodeIx, addressIx;
+
+        if (!address) {
+          nodeIx = address_n[address_n.length - 2];
+          addressIx = address_n[address_n.length - 1];
+          node = trezor.deriveChildNode(nodes[nodeIx], addressIx);
+          address = utils.node2address(node, self.coin.address_type);
+        }
+
+        return utils.decodeAddress(address).hash;
+      }
     };
 
     TrezorAccount.prototype.buildTx = function (address, amount, device) {
