@@ -195,6 +195,7 @@ angular.module('webwalletApp')
       try {
         return Bitcoin.Transaction.deserialize(tx);
       } catch (e) {
+        $log.error('Failed to deserialize tx:', e);
         return null;
       }
     };
