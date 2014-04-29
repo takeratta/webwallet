@@ -16,13 +16,13 @@ angular.module('webwalletApp')
       return [
         +features.major_version,
         +features.minor_version,
-        +features.bugfix_version
+        +features.patch_version
       ];
     }
 
     function latest() {
       return self.firmwareList.then(function (res) {
-        return res.data[res.data.length - 1];
+        return res.data[0];
       });
     }
 
