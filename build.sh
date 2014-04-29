@@ -5,7 +5,7 @@ export LC_ALL=C
 
 cd `dirname $0`
 
-git pull
+git pull --ff-only
 git submodule update --recursive
 git rev-parse HEAD > app/revision.txt
 
