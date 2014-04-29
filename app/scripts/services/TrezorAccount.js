@@ -464,7 +464,7 @@ angular.module('webwalletApp')
     };
 
     TrezorAccount.prototype._constructUtxos = function (details, basePath) {
-      return ['confirmed', 'change', 'sending', 'receiving']
+      return ['confirmed', 'change', 'receiving']
         .map(function (k) {
           return details[k].map(function (out) {
             out.state = k;
