@@ -10,20 +10,20 @@
         <form ng-submit="$hide(); callback(passphrase)">
           <div class="form-group">
             <input type="text" class="form-control input-lg" size="12"
-                   autofocus autocomplete="off" autofocus
+                   autofocus autocomplete="off"
                    ng-model="passphrase"
                    ng-show="showPassphrase">
             <input type="password" class="form-control input-lg" size="12"
-                   autofocus autocomplete="off"
+                   autocomplete="off"
                    ng-model="passphrase"
                    ng-hide="showPassphrase">
             <div ng-if="check" style="margin-top: -1px">
               <input type="text" class="form-control input-lg" size="12"
-                     autofocus autocomplete="off" placeholder="Re-type for control"
+                     autocomplete="off" placeholder="Re-type for control"
                      ng-model="$parent.passphraseCheck"
                      ng-show="showPassphrase">
               <input type="password" class="form-control input-lg" size="12"
-                     autofocus autocomplete="off" placeholder="Re-type for control"
+                     autocomplete="off" placeholder="Re-type for control"
                      ng-model="$parent.passphraseCheck"
                      ng-hide="showPassphrase">
             </div>
