@@ -20,7 +20,10 @@
             ng-show="recovering"
             ng-disabled="!device.isConnected()">
     <h4>Seed recovery</h4>
-
+    <div class="alert alert-info">
+      Please follow the instructions on your device. Words are going to be entered in shuffled order.<br/>
+      Also you'll be asked to retype some words that are not part of your recovery seed.
+    </div>
     <form class="form-inline"
           ng-submit="recoverWord()">
       <div class="form-group">
