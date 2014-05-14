@@ -9,6 +9,9 @@ Usage
 Application expects a signed Trezor configuration file at
 `/data/plugin/config_signed.bin`. You can change the url at `app/scripts/app.js`.
 
+Also copy `app/scripts/config.sample.js` to `app/scripts/config.js`
+and adjust to your needs (i.e. point backend URIs to your own server).
+
 Installation
 ------------
 
