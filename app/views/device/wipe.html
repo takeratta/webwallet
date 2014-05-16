@@ -1,0 +1,36 @@
+<div ng-controller="DeviceCtrl">
+
+  <ol class="breadcrumb">
+    <li><a ng-href="#/device/{{device.id}}">{{device.label()}}</a></li>
+    <li class="active">Wipe</li>
+    <li class="pull-right">
+      <a href=""
+         class="text-muted"
+         title="Forget this device"
+         ng-click="forgetDevice()"
+        ><span class="glyphicon glyphicon-log-out"></span> Forget device</a>
+    </li>
+  </ol>
+  <div ng-if="!device.isConnected()" class="alert alert-warning">
+    <strong>Please connect your device</strong> to access this section.
+  </div>
+
+  <div ng-controller="DeviceWipeCtrl">
+
+    <fieldset ng-disabled="!device.isConnected()">
+      <div class="alert alert-danger alert-withicon">
+        <span class="glyphicon glyphicon-warning-sign alert-icon"></span>
+        <h4>Do you really want to wipe the device?</h4>
+        <p>All data from the device will be lost! You can recover your funds using recovery seed.</p>
+        <p>If you are running Mac OS X, please unplug and reconnect the device after wiping.</p>
+        <p>
+          <button class="btn btn-danger"
+                  ng-click="wipeDevice()">Wipe</button>
+          <a href="#/device/{{device.id}}" class="btn btn-link">Cancel</a>
+        </p>
+      </div>
+    </fieldset>
+
+  </div>
+
+</div>

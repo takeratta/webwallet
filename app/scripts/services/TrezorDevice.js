@@ -1,7 +1,8 @@
 'use strict';
 
 angular.module('webwalletApp')
-  .factory('TrezorDevice', function (config, trezor, utils, firmwareService, TrezorAccount,
+  .factory('TrezorDevice', function (
+      config, trezor, utils, firmwareService, TrezorAccount,
       BigInteger, _, $q) {
 
     function TrezorDevice(id) {
@@ -131,6 +132,7 @@ angular.module('webwalletApp')
       this._session = trezor.open(this._desc);
       this.on = this._session.on.bind(this._session);
       this.once = this._session.once.bind(this._session);
+      this.removeListener = this._session.removeListener.bind(this._session);
     };
 
     TrezorDevice.prototype.disconnect = function () {

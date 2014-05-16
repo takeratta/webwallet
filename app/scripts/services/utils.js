@@ -1,14 +1,10 @@
 'use strict';
 
-// External modules
-
 angular.module('webwalletApp')
   .value('_', window._)
   .value('BigInteger', window.BigInteger)
   .value('Crypto', window.Crypto)
   .value('Bitcoin', window.Bitcoin);
-
-// Filters
 
 angular.module('webwalletApp')
   .filter('sign', function () {
@@ -32,10 +28,9 @@ angular.module('webwalletApp')
     };
   });
 
-// Utils module
-
 angular.module('webwalletApp')
-  .service('utils', function Utils(Crypto, Bitcoin, _, $q, $http, $interval, $timeout) {
+  .service('utils', function Utils(
+      Crypto, Bitcoin, _, $q, $http, $interval, $timeout) {
 
     //
     // codecs
@@ -230,163 +225,4 @@ angular.module('webwalletApp')
     this.tick = tick;
     this.endure = endure;
 
-  });
-
-// Flash messages
-
-angular.module('webwalletApp')
-  .factory('flash', function($rootScope, $timeout) {
-    var messages = [];
-
-    var reset;
-    var cleanup = function() {
-      $timeout.cancel(reset);
-      reset = $timeout(function() { messages = []; });
-    };
-
-    var emit = function() {
-      $rootScope.$emit('flash:message', messages, cleanup);
-    };
-
-    $rootScope.$on('$locationChangeSuccess', emit);
-
-    var asMessage = function(level, text) {
-      if (!text) {
-        text = level;
-        level = 'success';
-      }
-      return { level: level, text: text };
-    };
-
-    var asArrayOfMessages = function(level, text) {
-      if (level instanceof Array) return level.map(function(message) {
-        return message.text ? message : asMessage(message);
-      });
-      return text ? [{ level: level, text: text }] : [asMessage(level)];
-    };
-
-    var flash = function(level, text) {
-      emit(messages = asArrayOfMessages(level, text));
-    };
-
-    ['error', 'warning', 'info', 'success'].forEach(function (level) {
-      flash[level] = function (text) { flash(level, text); };
-    });
-
-    return flash;
-  })
-
-  .directive('flashMessages', function() {
-    return {
-      controller: function ($scope, $rootScope) {
-        $rootScope.$on('flash:message', function (_, messages, done) {
-          $scope.messages = messages;
-          done();
-        });
-      },
-      restrict: 'EA',
-      replace: true,
-      template:
-        '<div ng-repeat="m in messages"' +
-        '     ng-switch="m.level">' +
-        '  <div class="alert alert-flash alert-danger"' +
-        '       ng-switch-when="error"><h4 class="text-capitals">{{m.level}}!</h4> {{m.text}}</div>' +
-        '  <div class="alert alert-flash alert-{{m.level}}"' +
-        '       ng-switch-default><h4 class="text-capitals">{{m.level}}</h4> {{m.text}}</div>' +
-        '</div>'
-    };
-  });
-
-// QR code scanning
-
-angular.module('webwalletApp')
-  .value('jsqrcode', window.qrcode)
-  .directive('qrScan', function (jsqrcode) {
-    var URL, getUserMedia;
-
-    URL = window.URL || window.webkitURL || window.mozURL || window.msURL;
-    getUserMedia =
-      navigator.getUserMedia || navigator.webkitGetUserMedia ||
-      navigator.mozGetUserMedia || navigator.msGetUserMedia;
-    if (getUserMedia) getUserMedia = getUserMedia.bind(navigator);
-
-    return {
-      link: link,
-      restrict: 'E',
-      require: '?ngModel',
-      template: '<video class="qrscan-video"></video>',
-      scope: {
-        interval: '='
-      }
-    };
-
-    function link(scope, element, attrs, ngModel) {
-      var interval = scope.interval || 1000,
-          video = element.find('.qrscan-video')[0],
-          canvas = document.createElement('canvas'),
-          context = canvas.getContext('2d'),
-          stream, value;
-
-      if (!ngModel)
-        throw new Error('ng-model attribute is required');
-
-      if (!getUserMedia)
-        throw new Error('getUserMedia is not supported');
-
-      initVideo();
-
-      scope.$on('$destroy', function() {
-        if (!stream) return;
-        stream.stop();
-        stream = null;
-      });
-
-      function initVideo() {
-        getUserMedia({ video: true },
-          function (vs) {
-            stream = vs;
-            window.addEventListener('loadedmetadata', initCanvas, true);
-            video.src = (URL && URL.createObjectURL(vs)) || vs;
-          },
-          function () {
-            scope.$apply(function () {
-              ngModel.$setViewValue(null);
-            });
-          }
-        );
-      }
-
-      function initCanvas() {
-        video.play();
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        jsqrcode.callback = function (val) {
-          value = val;
-        };
-        setTimeout(intervalTick, interval);
-        window.removeEventListener('loadedmetadata', initCanvas, true);
-      }
-
-      function intervalTick() {
-        if (value && value !== 'error decoding QR Code') {
-          video.pause();
-          stream.stop();
-          scope.$apply(function () {
-            ngModel.$setViewValue(value);
-          });
-        } else if (stream) {
-          snapshotVideo();
-          setTimeout(intervalTick, interval);
-        }
-      }
-
-      function snapshotVideo() {
-        context.drawImage(
-          video,
-          0, 0, video.videoWidth, video.videoHeight,
-          0, 0, canvas.width, canvas.height
-        );
-        jsqrcode.decode(canvas.toDataURL());
-      }
-    }
   });

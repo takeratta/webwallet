@@ -61,17 +61,17 @@
 
     <div ng-if="!device.isEmpty()">
       <div ng-if="!device.canAddAccount()"
-           data-title="To add accounts, make sure your device is connected and the last account is not empty."
-           data-trigger="hover"
-           data-placement="bottom"
-           bs-tooltip>
-        <a href="" class="btn btn-block btn-sm" disabled
+           tooltip="
+             To add accounts, make sure your device is connected
+             and the last account is not empty."
+           tooltip-placement="bottom">
+        <a ng-href="" class="btn btn-block btn-sm"
+           disabled
           ><span class="glyphicon glyphicon-plus"></span> Add account</a>
       </div>
 
       <div ng-if="device.canAddAccount()">
         <a ng-href="" class="btn btn-block btn-sm"
-           ng-class="{ active: isActive('/device/{{device.id}}/account-add') }"
            ng-click="addAccount(device)"
           ><span class="glyphicon glyphicon-plus"></span> Add account</a>
       </div>

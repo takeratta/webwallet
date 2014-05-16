@@ -20,23 +20,22 @@
           </span>
         </p>
 
-        <div class="btn-group btn-group-lg text-left">
-          <a class="btn-installer-download btn btn-success"
+        <p class="form-inline">
+          <a class="btn-installer-download btn btn-lg btn-success"
              ng-href="{{ selected.url }}"
              ng-disabled="!agree">
             <span class="glyphicon glyphicon-download"></span> Download
           </a>
-          <button class="btn-installer-platform btn btn-success"
-                  data-html="true"
+          <select class="form-control"
+                  placeholder="Select platform..."
                   ng-model="selected"
                   ng-options="
-                    installer
-                    as '<small>for ' + installer.label + '</small>'
+                    installer as 'for ' + installer.label
                     for installer
                     in installers
-                    track by installer.platform"
-                  bs-select></button>
-        </div>
+                    track by installer.platform">
+          </select>
+        </p>
       </div>
     </div>
     <div class="modal-footer">

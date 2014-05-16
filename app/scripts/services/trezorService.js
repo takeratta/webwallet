@@ -168,150 +168,93 @@ angular.module('webwalletApp')
         });
     }
 
-    // setups various callbacks, usually information prompts
-    // FIXME: this doesnt belong here
     function setupCallbacks(dev) {
-      dev.on('pin', function (type, callback) {
-        pinModal(function (pin) {
-          callback(null, pin);
-        });
+      setupEnumerationPausing(dev);
+      setupEventForwarding(dev);
+    }
 
-        function pinModal(cb) {
-          var scope = $rootScope.$new(),
-              modal;
-          scope.pin = '';
-          scope.type = type;
-          scope.callback = cb;
-          modal = $modal({
-            template: 'views/modal.pin.html',
-            backdrop: 'static',
-            keyboard: false,
-            scope: scope
-          });
-          modal.$promise.then(null, cb);
-        }
-      });
-
-      dev.on('passphrase', function (callback) {
-        var saved = dev.hasSavedPassphrase();
-
-        passphraseModal(!saved, function (pp) {
-          if (pp == null)
-            return callback();
-          if (!dev.checkPassphraseAndSave(pp))
-            return callback(new Error('Invalid passphrase'));
-          return callback(null, pp);
-        });
-
-        function passphraseModal(check, cb) {
-          var scope = $rootScope.$new(),
-              modal;
-          scope.check = check;
-          scope.passphrase = '';
-          scope.passphraseCheck = '';
-          scope.callback = cb;
-          modal = $modal({
-            template: 'views/modal.passphrase.html',
-            backdrop: 'static',
-            keyboard: false,
-            scope: scope
-          });
-          modal.$promise.then(null, cb);
-        }
-      });
-
+    function setupEnumerationPausing(dev) {
       dev.on('send', function () { enumeratePaused = true; });
       dev.on('error', function () { enumeratePaused = false; });
       dev.on('receive', function () { enumeratePaused = false; });
+    }
 
-      dev.on('button', function (code) {
-        var scope = $rootScope.$new(),
-            modal;
-        scope.code = code;
-        scope.$emit('modalShow.button', code);
-        modal = $modal({
-          template: 'views/modal.button.html',
-          backdrop: 'static',
-          keyboard: false,
-          scope: scope
+    function setupEventForwarding(dev) {
+      ['pin', 'passphrase', 'button', 'word', 'send', 'error', 'receive']
+        .forEach(function (type) {
+          forwardEventsOfType($rootScope, dev, type);
         });
-        dev.once('receive', hide);
-        dev.once('error', hide);
+    }
 
-        function hide() {
-          scope.$emit('modalHide.button');
-          modal.hide();
-          modal.destroy();
-        }
-      });
-
-      dev.on('word', function (callback) {
-        $rootScope.seedWord = '';
-        $rootScope.wordCallback = function (word) {
-          $rootScope.wordCallback = null;
-          $rootScope.seedWord = '';
-          callback(null, word);
-        };
+    function forwardEventsOfType(scope, dev, type) {
+      dev.on(type, function () {
+        var args = [].slice.call(arguments);
+        args.unshift(dev);
+        args.unshift('device.' + type);
+        scope.$broadcast.apply(scope, args);
       });
     }
 
     function outdatedFirmware(firmware, version) {
-      var dfd = $q.defer(),
-          modal = firmwareModal({
-            state: 'initial',
-            firmware: firmware,
-            version: version,
-            update: update,
-            cancel: cancel,
-            device: null
-          });
+      var scope, modal;
 
-      connectFn = connected;
-      disconnectFn = disconnected;
-      return dfd.promise;
+      scope = angular.extend($rootScope.$new(), {
+        state: 'initial',
+        firmware: firmware,
+        version: version,
+        device: null,
+        update: function () {
+          updateFirmware(scope, firmware);
+        },
+      });
 
-      function connected(desc) {
+      modal = $modal.open({
+        templateUrl: 'views/modal/firmware.html',
+        backdrop: 'static',
+        keyboard: false,
+        scope: scope
+      });
+
+      modal.opened.then(function () {
+        connectFn = myConnect;
+        disconnectFn = myDisconnect;
+      });
+      modal.result.finally(function () {
+        connectFn = connect;
+        disconnectFn = disconnect;
+      });
+
+      return modal.result;
+
+      function myConnect(desc) {
         var dev = new TrezorDevice(desc.path);
 
         dev.connect(desc);
         setupCallbacks(dev);
         dev.initializeDevice().then(
           function (features) {
-            modal.$scope.state = features.bootloader_mode
+            scope.state = features.bootloader_mode
               ? 'device-bootloader'
               : 'device-normal';
-            modal.$scope.device = dev;
+            scope.device = dev;
           },
-          function () {
-            dev.disconect();
-          }
+          function () { dev.disconnect(); }
         );
       }
 
-      function disconnected(desc) {
-        var dev = modal.$scope.device,
-            state = modal.$scope.state;
+      function myDisconnect(desc) {
+        if (!scope.device || scope.device.id !== desc.path) {
+          disconnect(desc);
+          return;
+        }
+        scope.device.disconnect();
+        scope.device = null;
 
-        if (!dev || dev.id !== desc.path)
-          return disconnect(desc);
-        dev.disconnect();
-        modal.$scope.device = null;
-
-        if (state === 'update-success' || state === 'update-error')
-          return cancel();
-        modal.$scope.state = 'initial';
-      }
-
-      function update() {
-        updateFirmware(modal, firmware);
-      }
-
-      function cancel() {
-        connectFn = connect;
-        disconnectFn = disconnect;
-        dfd.resolve();
-        modal.hide();
-        modal.destroy();
+        if (scope.state === 'update-success' || scope.state === 'update-error') {
+          modal.close();
+          return;
+        }
+        scope.state = 'initial';
       }
     }
 
@@ -326,30 +269,36 @@ angular.module('webwalletApp')
     }
 
     function candidateFirmware(firmware, dev) {
-      var dfd = $q.defer(),
-          modal = firmwareModal({
-            state: 'device-bootloader',
-            firmware: firmware,
-            update: update,
-            cancel: cancel,
-            device: dev
-          });
+      var scope, modal;
 
-      disconnectFn = cancel;
-      return dfd.promise;
+      scope = angular.extend($rootScope.$new(), {
+        state: 'device-bootloader',
+        firmware: firmware,
+        device: dev,
+        update: function () {
+          updateFirmware(scope, firmware);
+        },
+      });
 
-      function update() {
-        updateFirmware(modal, firmware);
-      }
+      modal = $modal.open({
+        templateUrl: 'views/modal/firmware.html',
+        backdrop: 'static',
+        keyboard: false,
+        scope: scope
+      });
 
-      function cancel(desc) {
-        if (desc && desc.path !== dev.id)
-          return disconnect(desc);
-        disconnectFn = disconnect;
+      modal.opened.then(function () { disconnectFn = myDisconnect; });
+      modal.result.finally(function () { disconnectFn = disconnect; });
+
+      return modal.result;
+
+      function myDisconnect(desc) {
+        if (desc && desc.path !== dev.id) {
+          disconnect(desc);
+          return;
+        }
         dev.disconnect();
-        modal.hide();
-        modal.destroy();
-        dfd.resolve();
+        modal.close();
       }
     }
 
@@ -357,39 +306,20 @@ angular.module('webwalletApp')
     // utils
     //
 
-    function firmwareModal(params) {
-      var scope = $rootScope.$new(),
-          k;
-
-      for (k in params)
-        if (params.hasOwnProperty(k))
-          scope[k] = params[k];
-
-      return $modal({
-        template: 'views/modal.firmware.html',
-        backdrop: 'static',
-        keyboard: false,
-        scope: scope
-      });
-    }
-
-    function updateFirmware(modal, firmware) {
-      var dev = modal.$scope.device;
-
-      modal.$scope.state = 'update-downloading';
-
+    function updateFirmware(scope, firmware) {
+      scope.state = 'update-downloading';
       firmwareService.download(firmware)
         .then(function (data) {
-          modal.$scope.state = 'update-flashing';
-          return dev.flash(data);
+          scope.state = 'update-flashing';
+          return scope.device.flash(data);
         })
         .then(
           function () {
-            modal.$scope.state = 'update-success';
+            scope.state = 'update-success';
           },
           function (err) {
-            modal.$scope.state = 'update-error';
-            modal.$scope.error = err.message;
+            scope.state = 'update-error';
+            scope.error = err.message;
           }
         );
     }

@@ -1,55 +1,42 @@
 'use strict';
 
+angular.module('errorApp', []);
+
 angular.module('webwalletApp', [
   'ngRoute',
-  'ngAnimate',
-  'ngSanitize',
-  'mgcrea.ngStrap',
+  'ui.bootstrap',
   'ja.qr'
 ])
   .config(function ($routeProvider) {
     $routeProvider
       .when('/', {
-        templateUrl: 'views/main.html',
-        controller: 'MainCtrl'
+        templateUrl: 'views/main.html'
       })
       .when('/device/:deviceId', {
-        templateUrl: 'views/device.html',
-        controller: 'DeviceCtrl'
+        templateUrl: 'views/device/index.html'
       })
       .when('/device/:deviceId/load', {
-        templateUrl: 'views/load.html',
-        controller: 'DeviceCtrl'
+        templateUrl: 'views/device/load.html'
       })
       .when('/device/:deviceId/recovery', {
-        templateUrl: 'views/recovery.html',
-        controller: 'DeviceCtrl'
+        templateUrl: 'views/device/recovery.html'
       })
       .when('/device/:deviceId/wipe', {
-        templateUrl: 'views/wipe.html',
-        controller: 'DeviceCtrl'
+        templateUrl: 'views/device/wipe.html'
       })
       .when('/device/:deviceId/account/:accountId', {
-        templateUrl: 'views/account.html',
-        controller: 'AccountCtrl'
+        templateUrl: 'views/account/index.html'
       })
       .when('/device/:deviceId/account/:accountId/send', {
-        templateUrl: 'views/send.html',
-        controller: 'AccountCtrl'
+        templateUrl: 'views/account/send.html'
       })
       .when('/device/:deviceId/account/:accountId/receive', {
-        templateUrl: 'views/receive.html',
-        controller: 'AccountCtrl'
+        templateUrl: 'views/account/receive.html'
       })
       .otherwise({
         redirectTo: '/'
       });
   });
-
-angular.module('errorApp', [
-  'ngSanitize',
-  'mgcrea.ngStrap'
-]);
 
 // load trezor plugin and bootstrap application
 angular.element(document).ready(function () {

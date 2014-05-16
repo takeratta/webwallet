@@ -2,21 +2,17 @@
   "name": "webwallet",
   "version": "1.0.0",
   "dependencies": {
-    "es5-shim": "~2.3.0",
-    "json3": "~3.3.0",
+    "lodash": "~2.4.1",
     "jquery": "~2.1.0",
     "angular": "~1.2.10",
     "angular-qr": "~0.1.4",
-    "angular-route": "~1.2.10",
-    "angular-sanitize": "~1.2.10",
-    "angular-animate": "~1.2.10",
-    "angular-strap": "~2.0.0",
+    "angular-route": "~1.2.16",
+    "angular-bootstrap": "~0.11.0",
     "bootstrap": "~3.1.0",
-    "trezor.js": "trezor/trezor.js",
-    "bitcoinjs-lib": "trezor/bitcoinjs-lib",
     "bootstrap-slider": "seiyria/bootstrap-slider#~1.9.0",
-    "jsqrcode": "LazarSoft/jsqrcode",
-    "lodash": "~2.4.1"
+    "bitcoinjs-lib": "trezor/bitcoinjs-lib",
+    "trezor.js": "trezor/trezor.js",
+    "jsqrcode": "LazarSoft/jsqrcode"
   },
   "devDependencies": {
     "angular-mocks": "~1.2.10",

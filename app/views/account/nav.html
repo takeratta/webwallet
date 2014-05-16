@@ -1,5 +1,5 @@
-<ul class="nav nav-tabs nav-sendrecv"
-    ng-controller="NavCtrl">
+<ul ng-controller="NavCtrl"
+    class="nav nav-tabs nav-sendrecv">
   <li ng-class="{ active: isActive('/device/{{device.id}}/account/{{account.id}}$') }">
     <a class="btn" href="#/device/{{device.id}}/account/{{account.id}}">
       <span class="glyphicon glyphicon-transfer"></span> Transactions

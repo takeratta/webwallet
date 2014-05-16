@@ -1,97 +1,39 @@
 'use strict';
 
 angular.module('webwalletApp')
-  .controller('DeviceCtrl', function (trezorService, bip39, flash,
-      $q, $modal, $scope, $location, $routeParams) {
+  .controller('DeviceCtrl', function (
+      trezorService, flash,
+      $modal, $scope, $location, $routeParams) {
+
     $scope.device = trezorService.get($routeParams.deviceId);
-    if (!$scope.device)
-      return $location.path('/');
+    if (!$scope.device) {
+      $location.path('/');
+      return;
+    }
+
+    $scope.$on('device.pin', promptPin);
+    $scope.$on('device.button', promptButton);
+    $scope.$on('device.passphrase', promptPassphrase);
 
     $scope.forgetDevice = function () {
       trezorService.forget($scope.device);
       $location.path('/');
     };
 
-    $scope.wipe = function (dev) {
-      dev.wipe()
-        .then(
-          function (res) { $scope.forgetDevice(); },
-          function (err) { flash.error(err.message || 'Wiping failed'); }
-        );
-    };
-
-    $scope.settings = {
-      pin_protection: true,
-      language: 'english'
-    };
-
-    $scope.setup = function (dev, settings) {
-      if (settings.label)
-        settings.label = settings.label.trim();
-      dev.reset(settings)
-        .then(
-          function (res) { $location.path('/device/' + dev.id); },
-          function (err) { flash.error(err.message || 'Setup failed'); }
-        );
-    };
-
-    $scope.load = function (dev, settings) {
-      if (settings.label)
-        settings.label = settings.label.trim();
-      settings.payload = settings.payload.trim();
-      dev.load(settings)
-        .then(
-          function (res) { $location.path('/device/' + dev.id); },
-          function (err) { flash.error(err.message || 'Importing failed'); }
-        );
-    };
-
-    $scope.seedWord = '';
-    $scope.seedWords = [];
-    $scope.seedWordlist = bip39.english;
-
-    $scope.startsWith = function(state, viewValue) {
-        return state.substr(0, viewValue.length).toLowerCase() == viewValue.toLowerCase();
-    }
-
-    $scope.recover = function (dev, settings) {
-      if (settings.label)
-        settings.label = settings.label.trim();
-      $scope.recovering = true;
-      dev.recover(settings)
-        .then(
-          function (res) { $location.path('/device/' + dev.id); },
-          function (err) { flash.error(err.message || 'Recovery failed'); }
-        );
-    };
-
-    $scope.recoverWord = function () {
-      $scope.seedWords.push($scope.seedWord);
-      $scope.wordCallback($scope.seedWord);
-      $scope.seedWord = '';
-    };
-
-    $scope.ratePin = function (pin) {
-      var strength = $scope.device.ratePin(pin);
-
-      if (strength < 3000) return 'weak';
-      if (strength < 60000) return 'fine';
-      if (strength < 360000) return 'strong';
-      return 'ultimate';
-    };
-
-    $scope.changePin = function (dev) {
-      dev.changePin().then(
-        function (res) { flash.success('PIN was successfully changed'); },
+    $scope.changePin = function () {
+      $scope.device.changePin().then(
+        function () { flash.success('PIN was successfully changed'); },
         function (err) { flash.error(err.message || 'PIN change failed'); }
       );
     };
 
-    $scope.changeLabel = function (dev) {
-      promptLabel(dev)
-        .then(function (label) { return dev.changeLabel(label); })
+    $scope.changeLabel = function () {
+      promptLabel()
+        .then(function (label) {
+          return $scope.device.changeLabel(label);
+        })
         .then(
-          function (res) { flash.success('Label was successfully changed'); },
+          function () { flash.success('Label was successfully changed'); },
           function (err) {
             if (err) // closing the label modal triggers rejection without error
               flash.error(err.message || 'Failed to change the device label');
@@ -99,27 +41,111 @@ angular.module('webwalletApp')
         );
     };
 
-    function promptLabel(dev) {
-      var dfd = $q.defer(),
-          scope = $scope.$new(),
-          modal;
+    function promptLabel() {
+      var scope, modal;
 
-      scope.label = dev.features.label;
-      scope.callback = function (label) {
-        if (label != null)
-          dfd.resolve(label.trim());
-        else
-          dfd.reject();
-      };
-      modal = $modal({
-        template: 'views/modal.label.html',
+      scope = angular.extend($scope.$new(), {
+        label: $scope.device.features.label
+      });
+
+      modal = $modal.open({
+        templateUrl: 'views/modal/label.html',
+        size: 'sm',
+        windowClass: 'labelmodal',
+        backdrop: 'static',
+        keyboard: false,
+        scope: scope,
+      });
+      modal.opened.then(function () { scope.$emit('modal.label.show'); });
+      modal.result.finally(function () { scope.$emit('modal.label.hide'); });
+
+      return modal.result;
+    }
+
+    function promptPin(event, dev, type, callback) {
+      var scope, modal;
+
+      if (dev.id !== $scope.device.id)
+        return;
+
+      scope = angular.extend($scope.$new(), {
+        pin: '',
+        type: type
+      });
+
+      modal = $modal.open({
+        templateUrl: 'views/modal/pin.html',
+        size: 'sm',
+        windowClass: 'pinmodal',
         backdrop: 'static',
         keyboard: false,
         scope: scope
       });
-      modal.$promise.then(null, dfd.reject);
+      modal.opened.then(function () { scope.$emit('modal.pin.show', type); });
+      modal.result.finally(function () { scope.$emit('modal.pin.hide'); });
 
-      return dfd.promise;
+      modal.result.then(
+        function (res) { callback(null, res); },
+        function (err) { callback(err); }
+      );
+    }
+
+    function promptPassphrase(event, dev, callback) {
+      var scope, modal;
+
+      if (dev.id !== $scope.device.id)
+        return;
+
+      scope = angular.extend($scope.$new(), {
+        check: !$scope.device.hasSavedPassphrase(),
+        passphrase: '',
+        passphraseCheck: ''
+      });
+
+      modal = $modal.open({
+        templateUrl: 'views/modal/passphrase.html',
+        size: 'sm',
+        windowClass: 'passphrasemodal',
+        backdrop: 'static',
+        keyboard: false,
+        scope: scope
+      });
+      modal.opened.then(function () { scope.$emit('modal.passphrase.show'); });
+      modal.result.finally(function () { scope.$emit('modal.passphrase.hide'); });
+
+      modal.result.then(
+        function (res) {
+          if (!$scope.device.checkPassphraseAndSave(res))
+            callback(new Error('Invalid passphrase'));
+          else
+            callback(null, res);
+        },
+        function (err) { callback(err); }
+      );
+    }
+
+    function promptButton(event, dev, code) {
+      var scope, modal;
+
+      if (dev.id !== $scope.device.id)
+        return;
+
+      scope = angular.extend($scope.$new(), {
+        code: code
+      });
+
+      modal = $modal.open({
+        templateUrl: 'views/modal/button.html',
+        windowClass: 'buttonmodal',
+        backdrop: 'static',
+        keyboard: false,
+        scope: scope
+      });
+      modal.opened.then(function () { scope.$emit('modal.button.show', code); });
+      modal.result.finally(function () { scope.$emit('modal.button.hide'); });
+
+      $scope.device.once('receive', function () { modal.close(); });
+      $scope.device.once('error', function () { modal.close(); });
     }
 
   });
