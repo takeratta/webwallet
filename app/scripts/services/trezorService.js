@@ -119,6 +119,7 @@ angular.module('webwalletApp')
         setupCallbacks(dev);
         return dev.initializeDevice().then(
           function (features) {
+            $location.path('/device/' + desc.id);
             return features.bootloader_mode
               ? bootloaderWorkflow(dev)
               : normalWorkflow(dev);
@@ -161,8 +162,9 @@ angular.module('webwalletApp')
             return;
 
           if (acc)
-            $location.path('/device/' + dev.id + '/account/' + acc.id
-              + (acc.isEmpty() ? '/receive' : ''));
+            $location.path(
+              '/device/' + dev.id +
+              '/account/' + acc.id + (acc.isEmpty() ? '/receive' : ''));
           else
             $location.path('/device/' + dev.id);
         });

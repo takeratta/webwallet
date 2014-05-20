@@ -23,23 +23,24 @@
     <div ng-controller="AccountSendCtrl"
          class="row">
 
-      <form name="form" class="form-horizontal overlay-container col-md-8"
+      <form name="form"
+            class="form-horizontal overlay-container col-md-8"
             ng-disabled="device.status() !== 'connected'">
 
         <div class="form-group">
           <label for="address" class="control-label col-sm-3">Address:</label>
           <div class="col-sm-9">
             <input id="address" class="form-control" type="text"
-                   ng-change="estimate()"
-                   ng-model="transaction.address"
+                   ng-model="tx.values.address"
                    typeahead="
                      address.address as address.label
                      for address in suggestAddresses() | filter:$viewValue"
                    required>
-            <a href="" class="glyphicon glyphicon-qrcode input-icon text-muted"
+            <a href=""
+               class="glyphicon glyphicon-qrcode input-icon text-muted"
                title="Scan QR code"
                ng-click="scanQr()"
-               ng-show="!transaction.address && !qrScanning && qrScanEnabled"></a>
+               ng-show="!tx.values.address && !qr.scanning && qr.enabled"></a>
           </div>
         </div>
 
@@ -47,30 +48,24 @@
           <label for="amount" class="control-label col-sm-3">Send {{account.coin.coin_shortcut}}:</label>
           <div class="col-sm-4">
             <input id="amount" class="form-control" type="text"
-                   ng-change="estimate()"
-                   ng-model="transaction.amount"
+                   ng-model="tx.values.amount"
                    required>
-          </div>
-          <label for="fee" class="control-label col-sm-2">Fee:</label>
-          <div class="col-sm-3">
-            <input id="fee" class="form-control" type="text"
-                   ng-model="transaction.fee"
-                   tabindex="-1"
-                   tooltip="The transaction fee is calculated automatically."
-                   tooltip-placement="bottom"
-                   tooltip-append-to-body="true"
-                   readonly>
           </div>
         </div>
 
         <div class="form-group">
           <div class="col-sm-offset-3 col-sm-9">
             <button type="submit" class="btn btn-primary"
-                    ng-disabled="form.$invalid"
+                    ng-disabled="!tx.prepared"
                     ng-click="send()">Send</button>
+
             <a href="#/device/{{device.id}}/account/{{account.id}}"
+               ng-click="cancelTxValues()"
                class="btn btn-link">Cancel</a>
-            <span class="text-danger pull-right">{{transaction.error}}</span>
+
+            <span class="text-danger pull-right">
+              {{tx.error}}
+            </span>
           </div>
         </div>
 
@@ -87,28 +82,38 @@
       </form>
 
       <div class="qrscan-col col-md-4"
-           ng-if="qrScanning">
-        <qr-scan ng-model="$parent.qrAddress"></qr-scan>
-        <a href="" class="qrscan-cancel pull-right btn btn-xs btn-default text-muted"
-           ng-click="cancelQr()">Cancel</a>
+           ng-if="qr.scanning">
+        <qr-scan ng-model="qr.address"></qr-scan>
+        <button class="qrscan-cancel pull-right btn btn-xs btn-default"
+                ng-click="cancelQr()">Cancel</a>
       </div>
 
       <div class="txpreview col-md-4 text-muted"
-           ng-if="transaction.prepared">
+           ng-if="tx.prepared">
+
+        <h5>Fee</h5>
+        <span tooltip="The transaction fee is calculated automatically."
+              tooltip-placement="bottom"
+              tooltip-append-to-body="true">
+          {{tx.fee}} {{account.coin.coin_shortcut}}
+        </span>
+
         <h5>Inputs</h5>
         <ol class="list-unstyled">
-          <li ng-repeat="input in transaction.prepared.inputs">
-            {{input.prev_hash.substr(0, 32)}}&#8203;{{input.prev_hash.substr(33)}}:{{input.prev_index}}
+          <li ng-repeat="input in tx.prepared.inputs">
+            {{input.prev_hash.substr(0, 31)}}&#8203;{{input.prev_hash.substr(31)}}:{{input.prev_index}}
           </li>
         </ol>
+
         <h5>Outputs</h5>
         <ol class="list-unstyled">
-          <li ng-repeat="output in transaction.prepared.outputs">
+          <li ng-repeat="output in tx.prepared.outputs">
             <strong>{{output.amount | amount}} {{account.coin.coin_shortcut}}</strong><br>
             <span ng-if="output.address">{{output.address}}</span>
             <span ng-if="output.address_n">{{output.address_n | bip32Path}}</span>
           </li>
         </ol>
+
       </div>
 
     </div>

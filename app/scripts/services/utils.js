@@ -14,10 +14,9 @@ angular.module('webwalletApp')
       return '';
     };
   })
-  .filter('amount', function (Bitcoin) {
+  .filter('amount', function (utils) {
     return function (val) {
-      if (val)
-        return Bitcoin.Util.formatValue(val);
+      if (val) return utils.amount2str(val);
     };
   })
   .filter('bip32Path', function () {
@@ -64,6 +63,21 @@ angular.module('webwalletApp')
 
     this.utf8ToHex = utf8ToHex;
     this.hexToUtf8 = hexToUtf8;
+
+    //
+    // numeric amounts
+    //
+
+    function amount2str(n) {
+      return Bitcoin.Util.formatValue(n);
+    }
+
+    function str2amount(s) {
+      return Math.round(s * 100000000);
+    }
+
+    this.amount2str = amount2str;
+    this.str2amount = str2amount;
 
     //
     // crypto

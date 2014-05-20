@@ -1,110 +1,101 @@
 'use strict';
 
 angular.module('webwalletApp')
-  .controller('AccountSendCtrl', function (flash, $scope, $location, $rootScope) {
+  .controller('AccountSendCtrl', function (
+      flash, storage, utils,
+      $log, $scope, $rootScope, $location) {
 
-    $scope.transaction = {};
+    var STORAGE_TXVALUES = 'trezorSendValues:'
+          + $scope.account.publicKey();
 
-    $scope.estimate = function () {
-      var tx = $scope.transaction,
-          dev = $scope.device,
-          amount = Math.round(tx.amount * 100000000);
+    $scope.tx = {
+      values: restoreTxValues(),
+      prepared: null,
+      error: null,
+      fee: null
+    };
+    $scope.sending = false;
+    $scope.outputIndex = null;
 
-      if (!tx.address || !amount) {
-        tx.fee = null;
-        $scope.transaction.prepared = null;
-        $scope.transaction.error = null;
-        $scope.form.$valid = false;
-        $scope.form.$invalid = true;
+    // TODO: make this work
+    // prepareTx($scope.tx.values); // we may have restored some values
+
+    // Tx values save/restore
+
+    function saveTxValues() {
+      storage[STORAGE_TXVALUES] = JSON.stringify($scope.tx.values);
+    }
+
+    function cancelTxValues() {
+      delete storage[STORAGE_TXVALUES];
+    }
+
+    function restoreTxValues() {
+      if (storage[STORAGE_TXVALUES])
+        return JSON.parse(storage[STORAGE_TXVALUES]);
+      return {};
+    }
+
+    $scope.cancelTxValues = cancelTxValues;
+
+    // Tx preparing
+
+    $scope.$watch('tx.values', maybePrepareTx, true);
+
+    function maybePrepareTx(nval, oval) {
+      if (nval !== oval)
+        prepareTx(nval);
+    }
+
+    function prepareTx(vals) {
+      var amount, address;
+
+      if (!vals.address || !vals.amount) {
+        $scope.tx.prepared = null;
+        $scope.tx.error = null;
+        $scope.tx.fee = null;
         return;
       }
 
-      $scope.account.buildTx(tx.address, amount, dev).then(
-        function (preparedTx) {
-          tx.fee = preparedTx.fee / 100000000;
-          $scope.transaction.prepared = preparedTx;
-          $scope.transaction.error = null;
-          $scope.form.$valid = true;
-          $scope.form.$invalid = false;
+      amount = utils.str2amount(vals.amount);
+      address = vals.address.trim();
+
+      $scope.account.buildTx(address, amount, $scope.device).then(
+        function (tx) {
+          saveTxValues();
+          $scope.tx.fee = utils.amount2str(tx.fee);
+          $scope.tx.prepared = tx;
+          $scope.tx.error = null;
         },
         function (err) {
-          tx.fee = null;
-          $scope.transaction.prepared = null;
-          $scope.transaction.error = err.message
-            || 'Failed to prepare transaction.';
-          $scope.form.$valid = false;
-          $scope.form.$invalid = true;
+          cancelTxValues();
+          $scope.tx.fee = null;
+          $scope.tx.prepared = null;
+          $scope.tx.error = err.message || 'Failed to prepare transaction.';
         }
       );
+    }
+
+    // QR scan
+
+    $scope.qr = {
+      address: undefined,
+      scanning: false,
+      enabled:
+        navigator.getUserMedia || navigator.webkitGetUserMedia ||
+        navigator.mozGetUserMedia || navigator.msGetUserMedia
     };
 
-    $scope.send = function () {
-      var tx = $scope.transaction.prepared;
-      if (!tx) return;
-      $scope.outputIndex = 0;
-      $scope.sending = true;
-      $scope.account.sendTx(tx, $scope.device).then(
-        function () {
-          $scope.sending = false;
-          $location.path('/device/' + $scope.device.id
-            + '/account/' + $scope.account.id);
-          flash.success('Transaction successfully sent.');
-        },
-        function (err) {
-          $scope.sending = false;
-          flash.error(err.message || 'Failed to send transaction.');
-        }
-      );
-    };
+    $scope.$watch('qr.address', qrAddressModified);
 
-    $scope.suggestAddresses = function () {
-      var current = $scope.account,
-          accounts = $scope.device.accounts.filter(function (acc) {
-            return acc.id !== current.id;
-          });
-
-      return accounts.map(function (acc) {
-        var address = acc.address(0).address,
-            label = acc.label();
-
-        return {
-          label: label + ': ' + address,
-          address: address,
-          source: 'Accounts'
-        };
-      });
-    };
-
-    // Output confirmation
-
-    $scope.outputIndex = null; // Gets initialized in send()
-
-    $rootScope.$on('modal.button.show', function (event, code) {
-      var account = $scope.account,
-          prepared = $scope.transaction.prepared,
-          output = prepared ? prepared.outputs[$scope.outputIndex++] : null;
-
-      if (code === 'ButtonRequest_ConfirmOutput') {
-        event.targetScope.account = account;
-        event.targetScope.output = output;
-      }
-    });
-
-    // Send address scan
-
-    $scope.qrScanEnabled = navigator.getUserMedia || navigator.webkitGetUserMedia ||
-                           navigator.mozGetUserMedia || navigator.msGetUserMedia;
-    $scope.qrScanning = false;
-    $scope.qrAddress = undefined;
-
-    $scope.$watch('qrAddress', function (val) {
+    function qrAddressModified(val) {
       var values;
 
-      if (!$scope.qrScanning) return;
-      $scope.qrScanning = false;
+      if (!$scope.qr.scanning) return;
+      $scope.qr.scanning = false;
 
       if (!val) {
-        $scope.qrAddress = undefined;
+        $scope.qr.address = undefined;
         return;
       }
 
@@ -112,9 +103,9 @@ angular.module('webwalletApp')
       if (!values)
         return flash.error('Provided QR code does not contain valid address');
 
-      if (values.address) $scope.transaction.address = values.address;
-      if (values.amount) $scope.transaction.amount = values.amount;
-    });
+      if (values.address) $scope.txValues.address = values.address;
+      if (values.amount) $scope.txValues.amount = values.amount;
+    }
 
     function parseQr(str) {
       var vals, query;
@@ -144,6 +135,77 @@ angular.module('webwalletApp')
         }, {});
     }
 
-    $scope.scanQr = function () { $scope.qrScanning = true; };
-    $scope.cancelQr = function () { $scope.qrScanning = false; };
+    $scope.scanQr = function () { $scope.qr.scanning = true; };
+    $scope.cancelQr = function () { $scope.qr.scanning = false; };
+
+    // Output confirmation
+
+    $rootScope.$on('modal.button.show', modalShown);
+
+    function modalShown(event, code) {
+      if (code === 'ButtonRequest_ConfirmOutput')
+        injectTxInfo(event.targetScope);
+    }
+
+    function injectTxInfo(scope) {
+      scope.account = $scope.account;
+
+      if ($scope.tx.prepared)
+        scope.tx = $scope.tx.prepared;
+
+      if ($scope.tx.prepared && $scope.tx.prepared.outputs[$scope.outputIndex]) {
+        scope.output = $scope.tx.prepared.outputs[$scope.outputIndex];
+        $scope.outputIndex++;
+      }
+    }
+
+    // Scope methods
+
+    $scope.send = function () {
+      var tx = $scope.tx.prepared;
+      if (!tx) return;
+
+      $scope.sending = true;
+      $scope.outputIndex = 0;
+
+      $scope.account.sendTx(tx, $scope.device).then(
+        function () {
+          var off;
+
+          cancelTxValues();
+          $scope.sending = false;
+          $location.path(
+            '/device/' + $scope.device.id +
+            '/account/' + $scope.account.id);
+
+          off = $rootScope.on('$locationChangeSuccess', function () {
+            flash.success('Transaction successfully sent.');
+            off();
+          });
+        },
+        function (err) {
+          $scope.sending = false;
+          flash.error(err.message || 'Failed to send transaction.');
+        }
+      );
+    };
+
+    $scope.suggestAddresses = function () {
+      var current = $scope.account,
+          accounts = $scope.device.accounts.filter(function (acc) {
+            return acc.id !== current.id;
+          });
+
+      return accounts.map(function (acc) {
+        var address = acc.address(0).address,
+            label = acc.label();
+
+        return {
+          label: label + ': ' + address,
+          address: address,
+          source: 'Accounts'
+        };
+      });
+    };
+
   });
