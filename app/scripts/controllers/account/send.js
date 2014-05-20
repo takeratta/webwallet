@@ -178,7 +178,7 @@ angular.module('webwalletApp')
             '/device/' + $scope.device.id +
             '/account/' + $scope.account.id);
 
-          off = $rootScope.on('$locationChangeSuccess', function () {
+          off = $rootScope.$on('$locationChangeSuccess', function () {
             flash.success('Transaction successfully sent.');
             off();
           });
