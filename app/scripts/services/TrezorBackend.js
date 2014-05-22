@@ -12,6 +12,7 @@ angular.module('webwalletApp')
     function TrezorBackend(coin) {
       this.version = config.versions[coin.coin_name];
       this.endpoint = config.backends[coin.coin_name].endpoint;
+      this.request = config.backends[coin.coin_name].request || {};
       this._clientIdP = null;
       this._stream = null;
       this._handlers = {};
@@ -111,9 +112,9 @@ angular.module('webwalletApp')
           xpub = utils.node2xpub(node, this.version),
           req = {
             publicMaster: xpub,
-            after: '2014-01-01',
-            lookAhead: 10,
-            firstIndex: 0
+            after: this.request.after || '2014-01-01',
+            lookAhead: this.request.lookAhead || 10,
+            firstIndex: this.request.firstIndex || 0
           };
 
       if (this._handlers[xpub])

@@ -19,10 +19,16 @@ angular.module('webwalletApp').constant('config', {
   // coin name -> backend config
   backends: {
     Bitcoin: {
-      endpoint: 'https://mytrezor.com'
+      endpoint: 'https://mytrezor.com',
+      after: '2014-01-01',
+      lookAhead: 40,
+      firstIndex: 0
     },
     Testnet: {
-      endpoint: 'http://test-api.bitsofproof.com:8080'
+      endpoint: 'http://test-api.bitsofproof.com:8080',
+      after: '2014-01-01',
+      lookAhead: 40,
+      firstIndex: 0
     }
   },
 
