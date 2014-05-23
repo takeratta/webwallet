@@ -36,8 +36,12 @@
          ng-show="check && passphrase && passphraseCheck && passphrase !== passphraseCheck">
         Passphrases do not match!
       </p>
+      <p class="text-danger"
+         ng-show="passphrase.length > 50 || passphraseCheck.length > 50">
+        Passphrase is too long!
+      </p>
       <button type="submit" class="btn btn-block btn-primary btn-lg"
-              ng-disabled="check && passphrase !== passphraseCheck">Enter</button>
+              ng-disabled="check && passphrase !== passphraseCheck || passphrase.length > 50">Enter</button>
     </div>
   </form>
 </div>
