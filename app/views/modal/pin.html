@@ -71,9 +71,10 @@
              autocomplete="off"
              ng-model="pin">
       <div class="text-center"
-           ng-if="pin && type === 'PinMatrixRequestType_NewFirst'"
+           ng-if="pin && type !== 'PinMatrixRequestType_Current'"
            ng-controller="DeviceCtrl"
            ng-switch="ratePin(pin)">
+        <span ng-switch-when="long" class="text-danger">Too Long</span>
         <span ng-switch-when="weak" class="text-danger">Weak</span>
         <span ng-switch-when="fine" class="text-warning">Fine</span>
         <span ng-switch-when="strong" class="text-success">Strong</span>
@@ -83,7 +84,8 @@
 
   </div>
   <div class="modal-footer">
-    <button type="submit" class="btn btn-primary btn-block btn-lg">Enter</button>
+    <button type="submit" class="btn btn-primary btn-block btn-lg"
+            ng-disabled="ratePin(pin) === 'long'">Enter</button>
   </div>
 
 </form>

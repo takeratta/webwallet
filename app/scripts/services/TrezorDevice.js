@@ -413,8 +413,14 @@ angular.module('webwalletApp')
     };
 
     TrezorDevice.prototype.ratePin = function (pin) {
-      var digits = _.uniq(pin.split('')).length,
-          strength = fac(9) / fac(9 - digits);
+      var digits, strength;
+
+      if (pin.length > 9)
+        return 0;
+
+      digits = _.uniq(pin.split('')).length;
+      strength  = fac(9) / fac(9 - digits);
+
       return strength;
 
       function fac(n) {
