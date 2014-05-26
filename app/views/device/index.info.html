@@ -46,32 +46,3 @@
 <a class="btn btn-danger"
    ng-href="#/device/{{device.id}}/wipe"
   ><span class="glyphicon glyphicon-trash"></span> Wipe device</a>
-
-<div class="line-divider"
-     ng-hide="advanced">
-  <hr>
-  <div class="line-divider-content text-center">
-    <button class="btn btn-xs btn-default"
-            ng-click="advanced = !advanced">
-      Advanced details
-      <span class="caret"></span>
-    </button>
-  </div>
-</div>
-
-<div ng-show="advanced">
-  <hr>
-  <h5>Account public keys:</h5>
-  <div class="row">
-    <div class="col-md-8">
-      <ul class="nav nav-devices-accounts text-break">
-        <li ng-repeat="account in device.accounts" class="text-muted">
-          <small>
-            <strong>{{account.label()}}:</strong>
-            {{account.publicKey()}}
-          </small>
-        </li>
-      </ul>
-    </div>
-  </div>
-</div>
