@@ -93,6 +93,10 @@ a .icon-loading,
   text-transform: capitalize;
 }
 
+.text-break {
+  word-break: break-all;
+}
+
 .help-block {
   color: #999;
 }
