@@ -6,7 +6,7 @@ angular.module('webwalletApp')
     $scope.activeAddress = null;
     $scope.usedAddresses = [];
     $scope.addresses = [];
-    $scope.lookAhead = 10;
+    $scope.lookAhead = 20;
 
     $scope.activate = function (address) {
       $scope.activeAddress = address;
