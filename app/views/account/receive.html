@@ -53,25 +53,24 @@
         </div>
 
         <div class="list-group address-list">
-          <div ng-repeat-start="address in addresses"
-               ng-if="$index == lookAhead">
-            <hr>
-            <p class="text-danger">
-              <strong>Caution:</strong>
-              You won't be able to see the transactions of the following addresses until
-              some of the previously generated addresses are used in a transaction.
-            </p>
-          </div>
-
           <a class="list-group-item"
+             ng-repeat="address in addresses"
              ng-class="{ active: activeAddress.address === address.address }"
-             ng-click="activate(address)"
-             ng-repeat-end>
+             ng-click="activate(address)">
             <span class="address-list-address">{{address.address}}</span>
           </a>
         </div>
 
+        <div ng-show="addresses.length == lookAhead">
+          <hr>
+          <p class="text-danger">
+            To access subsequent addresses, please use some of the
+            listed addresses in a transaction.
+          </p>
+        </div>
+
         <button class="btn btn-default"
+                ng-show="addresses.length < lookAhead"
                 ng-click="more()">
           <span class="glyphicon glyphicon-plus"></span> More please
         </button>
