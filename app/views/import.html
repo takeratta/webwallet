@@ -1,0 +1,50 @@
+<div ng-controller="ImportCtrl">
+
+  <ol class="breadcrumb">
+    <li class="active">Import device</li>
+  </ol>
+
+  <div class="row">
+
+    <fieldset>
+      <form name="form" class="devimport col-md-6">
+
+        <div class="alert alert-warning">
+          <p>This is an advanced interface intended for developer use only!</p>
+          <p>Never use this process unless you really know what you are doing!</p>
+        </div>
+
+        <div class="form-group">
+          <label for="label" class="control-label">Device ID</label>
+          <input type="text" name="id" id="id" class="form-control"
+                 ng-model="settings.id">
+        </div>
+
+        <div class="form-group">
+          <label for="label" class="control-label">Device label</label>
+          <input type="text" name="label" id="label" class="form-control"
+                 placeholder="My TREZOR"
+                 ng-model="settings.label">
+        </div>
+
+        <div class="form-group">
+          <label for="payload" class="control-label">
+            Account XPRVs
+            <small>(1 per row)</small>
+          </label>
+          <textarea name="payload" id="payload" class="form-control"
+                    ng-model="settings.payload"></textarea>
+        </div>
+
+        <div class="form-group">
+          <button class="btn btn-primary"
+                  ng-click="importDevice()">Continue</button>
+          <a href="#/" class="btn btn-link">Cancel</a>
+        </div>
+
+      </form>
+    </fieldset>
+
+  </div>
+
+</div>

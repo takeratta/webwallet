@@ -12,6 +12,9 @@ angular.module('webwalletApp', [
       .when('/', {
         templateUrl: 'views/main.html'
       })
+      .when('/import', {
+        templateUrl: 'views/import.html'
+      })
       .when('/device/:deviceId', {
         templateUrl: 'views/device/index.html'
       })

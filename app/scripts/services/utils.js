@@ -140,6 +140,21 @@ angular.module('webwalletApp')
       return node;
     }
 
+    // decode public key from xpub base58 string to hdnode structure
+    function xpub2node(xpub) {
+      var bytes = Bitcoin.Base58.decode(xpub),
+          hex = bytesToHex(bytes),
+          node = {};
+
+      node.depth = parseInt(hex.substring(8, 10), 16);
+      node.fingerprint = parseInt(hex.substring(10, 18), 16);
+      node.child_num = parseInt(hex.substring(18, 26), 16);
+      node.chain_code = hex.substring(26, 90);
+      node.public_key = hex.substring(90, 156);
+
+      return node;
+    }
+
     // encode public key hdnode to xpub base58 string
     function node2xpub(node, version) {
       var hex, bytes, chck, xpub;
@@ -199,6 +214,7 @@ angular.module('webwalletApp')
     }
 
     this.xprv2node = xprv2node;
+    this.xpub2node = xpub2node;
     this.node2xpub = node2xpub;
     this.node2address = node2address;
     this.decodeAddress = decodeAddress;
