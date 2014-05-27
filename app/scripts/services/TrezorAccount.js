@@ -309,7 +309,7 @@ angular.module('webwalletApp')
       return buildTx(0);
 
       function buildTx(feeAttempt) {
-        var tx = self._constructTx(address, amount, scriptType, feeAttempt);
+        var tx = self._constructTx(address, amount, scriptType, feeAttempt, minAmount);
 
         if (!tx)
           return $q.reject(new Error('Not enough funds'));
@@ -336,9 +336,9 @@ angular.module('webwalletApp')
       }
     };
 
-    TrezorAccount.prototype._constructTx = function (address, amount, stype, fee) {
+    TrezorAccount.prototype._constructTx = function (address, amount, stype, fee, dust) {
       var tx = {},
-          utxos = this._selectUtxos(amount + fee),
+          utxos = this._selectUtxos(amount + fee, dust),
           chindex = (this._changeNode.offset || 0),
           chpath = this._changeNode.path.concat([chindex]),
           total, change;
@@ -375,27 +375,27 @@ angular.module('webwalletApp')
     };
 
     // selects utxos for a tx
-    // with a block hash first, smallest first
-    TrezorAccount.prototype._selectUtxos = function (amount) {
+    // sorted by block # asc, value asc
+    TrezorAccount.prototype._selectUtxos = function (amount, minAmount) {
       var self = this,
           utxos = this.utxos.slice(),
           ret = [],
           retval = 0,
           i;
 
-      utxos = utxos.sort(function (a, b) { // sort in reverse
+      utxos = utxos.sort(function (a, b) {
         var txa = self._wallet.txIndex[a.transactionHash],
             txb = self._wallet.txIndex[b.transactionHash],
-            hba = !!txa.block,
-            hbb = !!txb.block,
-            hd = hbb - hba,
-            vd = b.value - a.value;
+            hd = txb.block - txa.block, // reverse by block
+            vd = b.value - a.value; // reverse by value
         return hd !== 0 ? hd : vd;
       });
 
       for (i = 0; i < utxos.length && retval < amount; i++) {
-        ret.push(utxos[i]);
-        retval += utxos[i].value;
+        if (utxos[i].value >= minAmount) { // ignore dust outputs
+          ret.push(utxos[i]);
+          retval += utxos[i].value;
+        }
       }
 
       if (retval >= amount)
@@ -496,7 +496,7 @@ angular.module('webwalletApp')
           version: tx.version,
           lock_time: tx.lockTime,
           timestamp: new Date(tx.blockTime).getTime(),
-          block: tx.blockHash
+          block: tx.height
         });
         ret.ins = tx.inputs.map(input);
         ret.outs = tx.outputs.map(output);
