@@ -44,7 +44,8 @@ angular.module('webwalletApp')
         && this.transactions // has txs loaded
         && this.balance // has balance loaded
         // balance of newest tx does not equal balance from server
-        && !this.transactions[0].balance.equals(this.balance);
+        && (!this.transactions[0].balance ||
+            !this.transactions[0].balance.equals(this.balance));
     };
 
     TrezorAccount.prototype.label = function () {
