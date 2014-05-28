@@ -382,14 +382,18 @@ angular.module('webwalletApp')
           retval = 0,
           i;
 
+      // sort utxos (by block, by value, unconfirmed last)
       utxos = utxos.sort(function (a, b) {
         var txa = self._wallet.txIndex[a.transactionHash],
             txb = self._wallet.txIndex[b.transactionHash],
-            hd = txb.block - txa.block, // reverse by block
-            vd = b.value - a.value; // reverse by value
+            hd = txa.block - txb.block, // order by block
+            vd = a.value - b.value; // order by value
+        if (txa.block == null && txb.block != null) hd = +1;
+        if (txa.block != null && txb.block == null) hd = -1;
         return hd !== 0 ? hd : vd;
       });
 
+      // select utxos from start
       for (i = 0; i < utxos.length && retval < amount; i++) {
         if (utxos[i].value >= minAmount) { // ignore dust outputs
           ret.push(utxos[i]);
