@@ -156,8 +156,8 @@ angular.module('webwalletApp')
             inputs: tx.inputs.map(function (inp) {
               var val = {
                 prev_hash: inp.sourceHash,
-                prev_index: inp.ix,
-                script_sig: utils.bytesToHex(utils.base64ToBytes(inp.script)),
+                prev_index: inp.ix >>> 0, // can be -1 in coinbase
+                script_sig: utils.bytesToHex(utils.base64ToBytes(inp.script))
               };
               if (inp.sequence > 0)
                 val.sequence = inp.sequence;
