@@ -154,14 +154,12 @@ angular.module('webwalletApp')
             hash: tx.hash,
             version: tx.version,
             inputs: tx.inputs.map(function (inp) {
-              var val = {
+              return {
                 prev_hash: inp.sourceHash,
                 prev_index: inp.ix >>> 0, // can be -1 in coinbase
+                sequence: inp.sequence >>> 0, // usually -1, 0 in coinbase
                 script_sig: utils.bytesToHex(utils.base64ToBytes(inp.script))
               };
-              if (inp.sequence > 0)
-                val.sequence = inp.sequence;
-              return val;
             }),
             bin_outputs: tx.outputs.map(function (out) {
               return {
