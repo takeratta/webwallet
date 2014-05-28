@@ -1,6 +1,9 @@
 'use strict';
 
 angular.module('webwalletApp').constant('config', {
+  // show debug information in the interface
+  debug: false,
+
   // address of the plugin configuration file
   pluginConfigUrl: '/data/plugin/config_signed.bin',
 

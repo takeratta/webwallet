@@ -7,6 +7,19 @@ angular.module('webwalletApp')
   .value('Bitcoin', window.Bitcoin);
 
 angular.module('webwalletApp')
+  .directive('debug', function () {
+    return {
+      restrict: 'E',
+      replace: true,
+      transclude: true,
+      template: '<div class="debug {{debug}}" ng-transclude></div>',
+      controller: function (config, $scope) {
+        $scope.debug = config.debug;
+      }
+    };
+  });
+
+angular.module('webwalletApp')
   .filter('sign', function () {
     return function (sign) {
       if (sign > 0) return '+';
