@@ -559,6 +559,7 @@ angular.module('webwalletApp')
             tx.analysis.impact.signedValue = tx.analysis.impact.value.multiply(
               new BigInteger(tx.analysis.impact.sign.toString()));
         } catch (e) {
+          $log.error('[account] Analysis failed for tx', tx.hash, 'with:', e);
           tx.analysis = null;
         }
       });
