@@ -10,9 +10,8 @@ angular.module('webwalletApp')
   .directive('debug', function () {
     return {
       restrict: 'E',
-      replace: true,
       transclude: true,
-      template: '<div class="debug {{debug}}" ng-transclude></div>',
+      template: '<div class="debug" ng-if="debug" ng-transclude></div>',
       controller: function (config, $scope) {
         $scope.debug = config.debug;
       }
