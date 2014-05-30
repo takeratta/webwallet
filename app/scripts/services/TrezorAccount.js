@@ -368,7 +368,7 @@ angular.module('webwalletApp')
       }
 
       // TODO: shuffle before signing, not here?
-      outputs = _.shuffle(outputs);
+      // outputs = _.shuffle(outputs); // disable for now
 
       return {
         fee: fee,
