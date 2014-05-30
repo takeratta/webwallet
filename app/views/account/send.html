@@ -23,104 +23,106 @@
     <div ng-controller="AccountSendCtrl"
          class="row">
 
-      <form name="form"
-            class="form-horizontal overlay-container col-md-8"
-            ng-disabled="device.status() !== 'connected'">
+      <fieldset ng-disabled="!device.isConnected()">
+        <form name="form"
+              class="form-horizontal overlay-container col-md-8"
+              ng-disabled="device.status() !== 'connected'">
 
-        <div ng-repeat="output in tx.values.outputs">
+          <div ng-repeat="output in tx.values.outputs">
 
-          <div class="form-group">
-            <label for="address" class="control-label col-sm-3">Address:</label>
-            <div class="col-sm-9">
-              <input id="address" class="form-control" type="text"
-                     ng-model="output.address"
-                     typeahead="
-                     address.address as address.label
-                     for address in suggestAddresses() | filter:$viewValue"
-                     required>
-              <a href=""
-                 class="glyphicon glyphicon-qrcode input-icon text-muted"
-                 title="Scan QR code"
-                 ng-click="scanQr()"
-                 ng-show="!output.address && !qr.scanning && qr.enabled"></a>
+            <div class="form-group">
+              <label for="address" class="control-label col-sm-3">Address:</label>
+              <div class="col-sm-9">
+                <input id="address" class="form-control" type="text"
+                       ng-model="output.address"
+                       typeahead="
+                       address.address as address.label
+                       for address in suggestAddresses() | filter:$viewValue"
+                       required>
+                <a href=""
+                   class="glyphicon glyphicon-qrcode input-icon text-muted"
+                   tooltip="Scan QR code"
+                   ng-click="scanQr()"
+                   ng-show="!output.address && !qr.scanning && qr.enabled"></a>
+              </div>
             </div>
+
+            <div class="form-group">
+              <label for="amount" class="control-label col-sm-3">
+                Send {{account.coin.coin_shortcut}}:
+              </label>
+              <div class="col-sm-4">
+                <input id="amount" class="form-control" type="text"
+                       ng-model="output.amount"
+                       required>
+                <!-- <a href=""
+                class="glyphicon glyphicon-upload input-icon text-muted"
+                tooltip="Send all {{ account.coin.coin_shortcut }} from {{ account.label() }}"
+                ng-click="output.amount = suggestAmount()"
+                ng-show="!output.amount"></a> -->
+              </div>
+
+              <div class="col-md-5">
+                <p class="text-danger form-control-static">
+                  {{output.error}}
+
+                  <button type="button"
+                          class="btn btn-link pull-right"
+                          ng-click="removeOutput($index)"
+                          ng-show="tx.values.outputs.length > 1">
+                    <span class="text-muted">
+                      <span class="glyphicon glyphicon-minus"
+                            tooltip="Remove output"></span>
+                    </span>
+                  </button>
+                </p>
+              </div>
+            </div>
+
           </div>
 
           <div class="form-group">
-            <label for="amount" class="control-label col-sm-3">
-              Send {{account.coin.coin_shortcut}}:
-            </label>
-            <div class="col-sm-4">
-              <input id="amount" class="form-control" type="text"
-                     ng-model="output.amount"
-                     required>
-              <!-- <a href=""
-              class="glyphicon glyphicon-upload input-icon text-muted"
-              title="Send all {{ account.coin.coin_shortcut }} from {{ account.label() }}"
-              ng-click="output.amount = suggestAmount()"
-              ng-show="!output.amount"></a> -->
+            <div class="col-sm-offset-3 col-sm-9">
+              <button type="submit" class="btn btn-primary"
+                      ng-disabled="!tx.prepared"
+                      ng-click="send()">Send</button>
+
+              <a href="#/device/{{device.id}}/account/{{account.id}}"
+                 class="btn btn-link"
+                 ng-click="cancelTxValues()">Cancel</a>
+
+              <button type="button"
+                      class="btn btn-link pull-right"
+                      ng-click="addOutput()">
+                <span class="text-muted">
+                  <span class="glyphicon glyphicon-plus"
+                        tooltip="Add output"></span>
+                </span>
+              </button>
             </div>
+          </div>
 
-            <div class="col-md-5">
-              <p class="text-danger form-control-static">
-                {{output.error}}
-
-                <button type="button"
-                        class="btn btn-link pull-right"
-                        ng-click="removeOutput($index)"
-                        ng-show="tx.values.outputs.length > 1">
-                  <span class="text-muted">
-                    <span class="glyphicon glyphicon-minus"
-                          title="Remove output"></span>
-                  </span>
-                </button>
+          <div class="form-group"
+               ng-show="tx.error">
+            <div class="col-sm-offset-3 col-sm-9">
+              <p class="form-control-static text-danger">
+                {{tx.error}}
               </p>
             </div>
           </div>
 
-        </div>
-
-        <div class="form-group">
-          <div class="col-sm-offset-3 col-sm-9">
-            <button type="submit" class="btn btn-primary"
-                    ng-disabled="!tx.prepared"
-                    ng-click="send()">Send</button>
-
-            <a href="#/device/{{device.id}}/account/{{account.id}}"
-               class="btn btn-link"
-               ng-click="cancelTxValues()">Cancel</a>
-
-            <button type="button"
-                    class="btn btn-link pull-right"
-                    ng-click="addOutput()">
-              <span class="text-muted">
-                <span class="glyphicon glyphicon-plus"
-                      title="Add output"></span>
-              </span>
-            </button>
+          <div class="overlay overlay-default"
+               ng-if="sending">
+            <div class="overlay-content text-center">
+              <p><span class="icon-loading"></span></p>
+              <p class="h4 text-muted">
+                Signing and sending transaction&hellip;
+              </p>
+            </div>
           </div>
-        </div>
 
-        <div class="form-group"
-             ng-show="tx.error">
-          <div class="col-sm-offset-3 col-sm-9">
-            <p class="form-control-static text-danger">
-              {{tx.error}}
-            </p>
-          </div>
-        </div>
-
-        <div class="overlay overlay-default"
-             ng-if="sending">
-          <div class="overlay-content text-center">
-            <p><span class="icon-loading"></span></p>
-            <p class="h4 text-muted">
-              Signing and sending transaction&hellip;
-            </p>
-          </div>
-        </div>
-
-      </form>
+        </form>
+      </fieldset>
 
       <!-- QR scan  -->
 
