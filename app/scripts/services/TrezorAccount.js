@@ -285,30 +285,42 @@ angular.module('webwalletApp')
       }
     };
 
-    TrezorAccount.prototype.buildTx = function (address, amount, device) {
-      var self = this,
-          minAmount = 5430,
-          scriptTypes = config.scriptTypes[self.coin.coin_name],
-          addrVals, scriptType;
+    var MIN_OUTPUT_AMOUNT = 5340;
+
+    TrezorAccount.prototype.buildTxOutput = function (address, amount) {
+      var addrType = this.coin.address_type,
+          scriptTypes = config.scriptTypes[this.coin.coin_name],
+          scriptType,
+          addrVals;
+
+      if (amount < MIN_OUTPUT_AMOUNT)
+        throw new Error('Amount is too low');
 
       addrVals = utils.decodeAddress(address);
       if (!addrVals)
-        return $q.reject(new Error('Invalid address'));
+        throw new Error('Invalid address');
 
-      if (addrVals.version === +self.coin.address_type)
+      if (addrVals.version === +addrType)
         scriptType = 'PAYTOADDRESS';
       if (!scriptType && scriptTypes && scriptTypes[addrVals.version])
         scriptType = scriptTypes[addrVals.version];
       if (!scriptType)
-        return $q.reject(new Error('Invalid address version'));
+        throw new Error('Invalid address version');
 
-      if (amount < minAmount)
-        return $q.reject(new Error('Amount is too low'));
+      return {
+        script_type: scriptType,
+        address: address,
+        amount: amount
+      };
+    };
 
-      return buildTx(0);
+    TrezorAccount.prototype.buildTx = function (outputs, device) {
+      var self = this;
 
-      function buildTx(feeAttempt) {
-        var tx = self._constructTx(address, amount, scriptType, feeAttempt, minAmount);
+      return tryToBuild(0);
+
+      function tryToBuild(feeAttempt) {
+        var tx = self._constructTx(outputs, feeAttempt);
 
         if (!tx)
           return $q.reject(new Error('Not enough funds'));
@@ -316,66 +328,67 @@ angular.module('webwalletApp')
         return device.measureTx(tx, self.coin).then(function (res) {
           var bytes = parseInt(res.message.tx_size, 10),
               kbytes = Math.ceil(bytes / 1000),
-              space = tx.total - amount,
+              space = tx.inputSum - tx.outputSum,
               fee = kbytes * config.feePerKb;
 
-          if (fee <= space) { // we have a space for the fee, set it and return
-            if (space - fee < minAmount) { // there is no need for a change address
-              tx.outputs.pop();
-              tx.fee = space;
-            } else {
-              tx.outputs[1].amount = space - fee;
-              tx.fee = fee;
-            }
+          if (fee > space)
+            return tryToBuild(fee); // try again with more inputs
+          if (fee === tx.fee)
             return tx;
-          }
-
-          return buildTx(fee); // try again with more inputs
+          return self._constructTx(outputs, fee);
         });
       }
     };
 
-    TrezorAccount.prototype._constructTx = function (address, amount, stype, fee, dust) {
+    TrezorAccount.prototype._constructTx = function (outputs, fee)  {
       var tx = {},
-          utxos = this._selectUtxos(amount + fee, dust),
           chindex = (this._changeNode.offset || 0),
           chpath = this._changeNode.path.concat([chindex]),
-          total, change;
+          utxos,
+          change,
+          inputSum,
+          outputSum;
 
+      outputSum = outputs.reduce(function (a, out) { return a + out.amount; }, 0);
+      utxos = this._selectUtxos(outputSum + fee);
       if (!utxos)
-        return;
+        return null;
+      inputSum = utxos.reduce(function (a, utxo) { return a + utxo.value; }, 0);
 
-      total = utxos.reduce(function (val, utxo) {return val + utxo.value;}, 0);
-      change = total - amount - fee;
-
-      tx.fee = fee;
-      tx.total = total;
-      tx.inputs = utxos.map(function (utxo) {
-        return {
-          prev_hash: utxo.transactionHash,
-          prev_index: utxo.ix,
-          address_n: utxo.path
-        };
-      });
-      tx.outputs = [
-        { // external output
-          script_type: stype,
-          address: address,
-          amount: amount
-        },
-        { // change output
+      change = inputSum - outputSum - fee;
+      if (change >= MIN_OUTPUT_AMOUNT) {
+        outputs = outputs.concat([{ // cannot modify
           script_type: 'PAYTOADDRESS',
           address_n: chpath,
           amount: change
-        }
-      ];
+        }]);
+      } else {
+        change = 0;
+        fee = inputSum - outputSum;
+      }
 
-      return tx;
+      // TODO: shuffle before signing, not here?
+      outputs = _.shuffle(outputs);
+
+      return {
+        fee: fee,
+        change: change,
+        inputSum: inputSum,
+        outputSum: outputSum,
+        outputs: outputs,
+        inputs: utxos.map(function (utxo) {
+          return {
+            prev_hash: utxo.transactionHash,
+            prev_index: utxo.ix,
+            address_n: utxo.path
+          };
+        })
+      };
     };
 
     // selects utxos for a tx
     // sorted by block # asc, value asc
-    TrezorAccount.prototype._selectUtxos = function (amount, minAmount) {
+    TrezorAccount.prototype._selectUtxos = function (amount) {
       var self = this,
           utxos = this.utxos.slice(),
           ret = [],
@@ -395,7 +408,7 @@ angular.module('webwalletApp')
 
       // select utxos from start
       for (i = 0; i < utxos.length && retval < amount; i++) {
-        if (utxos[i].value >= minAmount) { // ignore dust outputs
+        if (utxos[i].value >= MIN_OUTPUT_AMOUNT) { // ignore dust outputs
           ret.push(utxos[i]);
           retval += utxos[i].value;
         }

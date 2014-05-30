@@ -11,7 +11,7 @@
            class="text-muted"
            title="Forget this device"
            ng-click="forgetDevice()"
-          ><span class="glyphicon glyphicon-log-out"></span> Forget device</a>
+           ><!-- <span class="glyphicon glyphicon-log-out"></span> --> Forget device</a>
       </li>
     </ol>
     <div class="alert alert-danger alert-inconsistent"
@@ -27,30 +27,57 @@
             class="form-horizontal overlay-container col-md-8"
             ng-disabled="device.status() !== 'connected'">
 
-        <div class="form-group">
-          <label for="address" class="control-label col-sm-3">Address:</label>
-          <div class="col-sm-9">
-            <input id="address" class="form-control" type="text"
-                   ng-model="tx.values.address"
-                   typeahead="
+        <div ng-repeat="output in tx.values.outputs">
+
+          <div class="form-group">
+            <label for="address" class="control-label col-sm-3">Address:</label>
+            <div class="col-sm-9">
+              <input id="address" class="form-control" type="text"
+                     ng-model="output.address"
+                     typeahead="
                      address.address as address.label
                      for address in suggestAddresses() | filter:$viewValue"
-                   required>
-            <a href=""
-               class="glyphicon glyphicon-qrcode input-icon text-muted"
-               title="Scan QR code"
-               ng-click="scanQr()"
-               ng-show="!tx.values.address && !qr.scanning && qr.enabled"></a>
+                     required>
+              <a href=""
+                 class="glyphicon glyphicon-qrcode input-icon text-muted"
+                 title="Scan QR code"
+                 ng-click="scanQr()"
+                 ng-show="!output.address && !qr.scanning && qr.enabled"></a>
+            </div>
           </div>
-        </div>
 
-        <div class="form-group">
-          <label for="amount" class="control-label col-sm-3">Send {{account.coin.coin_shortcut}}:</label>
-          <div class="col-sm-4">
-            <input id="amount" class="form-control" type="text"
-                   ng-model="tx.values.amount"
-                   required>
+          <div class="form-group">
+            <label for="amount" class="control-label col-sm-3">
+              Send {{account.coin.coin_shortcut}}:
+            </label>
+            <div class="col-sm-4">
+              <input id="amount" class="form-control" type="text"
+                     ng-model="output.amount"
+                     required>
+              <!-- <a href=""
+              class="glyphicon glyphicon-upload input-icon text-muted"
+              title="Send all {{ account.coin.coin_shortcut }} from {{ account.label() }}"
+              ng-click="output.amount = suggestAmount()"
+              ng-show="!output.amount"></a> -->
+            </div>
+
+            <div class="col-md-5">
+              <p class="text-danger form-control-static">
+                {{output.error}}
+
+                <button type="button"
+                        class="btn btn-link pull-right"
+                        ng-click="removeOutput($index)"
+                        ng-show="tx.values.outputs.length > 1">
+                  <span class="text-muted">
+                    <span class="glyphicon glyphicon-minus"
+                          title="Remove output"></span>
+                  </span>
+                </button>
+              </p>
+            </div>
           </div>
+
         </div>
 
         <div class="form-group">
@@ -60,12 +87,26 @@
                     ng-click="send()">Send</button>
 
             <a href="#/device/{{device.id}}/account/{{account.id}}"
-               ng-click="cancelTxValues()"
-               class="btn btn-link">Cancel</a>
+               class="btn btn-link"
+               ng-click="cancelTxValues()">Cancel</a>
 
-            <span class="text-danger pull-right">
+            <button type="button"
+                    class="btn btn-link pull-right"
+                    ng-click="addOutput()">
+              <span class="text-muted">
+                <span class="glyphicon glyphicon-plus"
+                      title="Add output"></span>
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group"
+             ng-show="tx.error">
+          <div class="col-sm-offset-3 col-sm-9">
+            <p class="form-control-static text-danger">
               {{tx.error}}
-            </span>
+            </p>
           </div>
         </div>
 
@@ -81,12 +122,16 @@
 
       </form>
 
+      <!-- QR scan  -->
+
       <div class="qrscan-col col-md-4"
            ng-if="qr.scanning">
         <qr-scan ng-model="qr.address"></qr-scan>
         <button class="qrscan-cancel pull-right btn btn-xs btn-default"
                 ng-click="cancelQr()">Cancel</a>
       </div>
+
+      <!-- Tx preview -->
 
       <div class="txpreview col-md-4 text-muted"
            ng-if="tx.prepared">

@@ -2,11 +2,10 @@
 
 angular.module('webwalletApp')
   .controller('AccountSendCtrl', function (
-      flash, storage, utils,
-      $log, $scope, $rootScope, $location) {
+    flash, storage, utils,
+    $filter, $log, $scope, $rootScope, $location) {
 
-    var STORAGE_TXVALUES = 'trezorSendValues:'
-          + $scope.account.publicKey();
+    var STORAGE_TXVALUES = 'trezorSendValues';
 
     $scope.tx = {
       values: restoreTxValues(),
@@ -33,7 +32,7 @@ angular.module('webwalletApp')
     function restoreTxValues() {
       if (storage[STORAGE_TXVALUES])
         return JSON.parse(storage[STORAGE_TXVALUES]);
-      return {};
+      return { outputs: [{}] };
     }
 
     $scope.cancelTxValues = cancelTxValues;
@@ -48,32 +47,53 @@ angular.module('webwalletApp')
     }
 
     function prepareTx(vals) {
-      var amount, address;
+      var preparedOuts = [],
+          outsOk = true;
 
-      if (!vals.address || !vals.amount) {
-        $scope.tx.prepared = null;
+      vals.outputs.forEach(function (out) {
+        var address = out.address,
+            amount = out.amount,
+            pout;
+
+        address = address ? address.trim() : '';
+        amount = amount ? amount.trim() : '';
+        if (!address || !amount)
+          return; // skip empty fields in silence
+        amount = utils.str2amount(amount);
+
+        try {
+          pout = $scope.account.buildTxOutput(address, amount);
+        } catch (e) {
+          out.error = e.message;
+        }
+
+        if (pout) {
+          preparedOuts.push(pout);
+          out.error = null;
+        }
+        else
+          outsOk = false;
+      });
+
+      if (outsOk && preparedOuts.length)
+        $scope.account.buildTx(preparedOuts, $scope.device).then(success, cancel);
+      else
+        cancel();
+
+      function success(tx) {
+        saveTxValues();
+        $scope.tx.fee = utils.amount2str(tx.fee);
+        $scope.tx.prepared = tx;
         $scope.tx.error = null;
-        $scope.tx.fee = null;
-        return;
       }
 
-      amount = utils.str2amount(vals.amount);
-      address = vals.address.trim();
-
-      $scope.account.buildTx(address, amount, $scope.device).then(
-        function (tx) {
-          saveTxValues();
-          $scope.tx.fee = utils.amount2str(tx.fee);
-          $scope.tx.prepared = tx;
-          $scope.tx.error = null;
-        },
-        function (err) {
-          cancelTxValues();
-          $scope.tx.fee = null;
-          $scope.tx.prepared = null;
+      function cancel(err) {
+        cancelTxValues();
+        $scope.tx.fee = null;
+        $scope.tx.prepared = null;
+        if (err)
           $scope.tx.error = err.message || 'Failed to prepare transaction.';
-        }
-      );
+      }
     }
 
     // QR scan
@@ -159,7 +179,7 @@ angular.module('webwalletApp')
       }
     }
 
-    // Scope methods
+    // Sending
 
     $scope.send = function () {
       var tx = $scope.tx.prepared;
@@ -189,6 +209,28 @@ angular.module('webwalletApp')
         }
       );
     };
+
+    $scope.removeOutput = function (i) {
+      $scope.tx.values.outputs.splice(i, 1);
+    };
+
+    $scope.addOutput = function () {
+      $scope.tx.values.outputs.push({});
+    };
+
+    // Suggest the highest possible amount to pay, taking filled
+    // amounts in consideration
+
+    $scope.suggestAmount = function () {
+      var ptx = $scope.tx.prepared,
+          account = $scope.account,
+          outputSum = ptx ? ptx.outputSum : 0,
+          available = parseInt(account.balance.toString());
+
+      return $filter('amount')(available - outputSum);
+    };
+
+    // Address suggestion
 
     $scope.suggestAddresses = function () {
       var current = $scope.account,
