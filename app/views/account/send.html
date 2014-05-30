@@ -23,9 +23,10 @@
     <div ng-controller="AccountSendCtrl"
          class="row">
 
-      <fieldset ng-disabled="!device.isConnected()">
+      <fieldset ng-disabled="!device.isConnected()"
+                class="overlay-container col-md-8">
         <form name="form"
-              class="form-horizontal overlay-container col-md-8"
+              class="form-horizontal"
               ng-disabled="device.status() !== 'connected'">
 
           <div ng-repeat="output in tx.values.outputs">
