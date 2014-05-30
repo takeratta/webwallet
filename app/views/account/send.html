@@ -27,6 +27,7 @@
                 class="overlay-container col-md-8">
         <form name="form"
               class="form-horizontal"
+              ng-submit="send()"
               ng-disabled="device.status() !== 'connected'">
 
           <div ng-repeat="output in tx.values.outputs">
@@ -85,8 +86,7 @@
           <div class="form-group">
             <div class="col-sm-offset-3 col-sm-9">
               <button type="submit" class="btn btn-primary"
-                      ng-disabled="!tx.prepared"
-                      ng-click="send()">Send</button>
+                      ng-disabled="!tx.prepared">Send</button>
 
               <a href="#/device/{{device.id}}/account/{{account.id}}"
                  class="btn btn-link"
