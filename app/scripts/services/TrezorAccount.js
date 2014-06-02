@@ -368,7 +368,9 @@ angular.module('webwalletApp')
       }
 
       // TODO: shuffle before signing, not here?
-      outputs = _.sortBy(outputs, 'amount');
+      outputs = _.sortBy(outputs, function (out) {
+        return -out.amount;
+      });
 
       return {
         fee: fee,
