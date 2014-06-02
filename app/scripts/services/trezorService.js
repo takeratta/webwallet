@@ -119,7 +119,7 @@ angular.module('webwalletApp')
         setupCallbacks(dev);
         return dev.initializeDevice().then(
           function (features) {
-            $location.path('/device/' + desc.id);
+            navigateTo(dev);
             return features.bootloader_mode
               ? bootloaderWorkflow(dev)
               : normalWorkflow(dev);
@@ -146,6 +146,13 @@ angular.module('webwalletApp')
     // normal workflow
     //
 
+    function navigateTo(dev) {
+      var path = '/device/' + dev.id;
+
+      if ($location.path().indexOf(path) !== 0)
+        $location.path(path);
+    }
+
     function normalWorkflow(dev) {
       return firmwareService.check(dev.features)
         .then(function (firmware) {
@@ -156,17 +163,7 @@ angular.module('webwalletApp')
         })
         .then(function () { return dev.initializeAccounts(); })
         .then(function () {
-          var acc = dev.accounts[0];
-
-          if ($location.path() !== '/')
-            return;
-
-          if (acc)
-            $location.path(
-              '/device/' + dev.id +
-              '/account/' + acc.id + (acc.isEmpty() ? '/receive' : ''));
-          else
-            $location.path('/device/' + dev.id);
+          navigateTo(dev);
         });
     }
 
