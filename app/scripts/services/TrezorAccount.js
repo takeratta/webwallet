@@ -368,7 +368,7 @@ angular.module('webwalletApp')
       }
 
       // TODO: shuffle before signing, not here?
-      // outputs = _.shuffle(outputs); // disable for now
+      outputs = _.shuffle(outputs);
 
       return {
         fee: fee,
@@ -543,6 +543,8 @@ angular.module('webwalletApp')
     };
 
     TrezorAccount.prototype._indexTxs = function (txs, wallet) {
+      wallet.addressHashes = [];
+      wallet.internalAddressHashes = [];
       txs.forEach(function (tx) {
         if (wallet.txIndex[tx.hash])
           return;
@@ -554,8 +556,11 @@ angular.module('webwalletApp')
         tx.outs
           .filter(function (out) {return out.path;})
           .forEach(function (out) {
-            var hash = utils.bytesToBase64(out.script.simpleOutPubKeyHash());
+            var hash = utils.bytesToBase64(out.script.simpleOutPubKeyHash()),
+                internal = out.path[out.path.length - 2] === 1;
             wallet.addressHashes.push(hash);
+            if (internal)
+              wallet.internalAddressHashes.push(hash);
           });
       });
 
