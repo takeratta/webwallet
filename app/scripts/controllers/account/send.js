@@ -177,12 +177,18 @@ angular.module('webwalletApp')
 
     function injectTxInfo(scope) {
       scope.account = $scope.account;
+      scope.tx = $scope.tx.prepared;
 
-      if ($scope.tx.prepared)
-        scope.tx = $scope.tx.prepared;
+      if (!scope.tx)
+        return;
 
-      if ($scope.tx.prepared && $scope.tx.prepared.outputs[$scope.outputIndex]) {
-        scope.output = $scope.tx.prepared.outputs[$scope.outputIndex];
+      // detect internal output
+      if (scope.tx.outputs[$scope.outputIndex] &&
+          scope.tx.outputs[$scope.outputIndex].address_n)
+        $scope.outputIndex++;
+
+      if (scope.tx.outputs[$scope.outputIndex]) {
+        scope.output = scope.tx.outputs[$scope.outputIndex];
         $scope.outputIndex++;
       }
     }
