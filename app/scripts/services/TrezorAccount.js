@@ -543,8 +543,6 @@ angular.module('webwalletApp')
     };
 
     TrezorAccount.prototype._indexTxs = function (txs, wallet) {
-      wallet.addressHashes = [];
-      wallet.internalAddressHashes = [];
       txs.forEach(function (tx) {
         if (wallet.txIndex[tx.hash])
           return;
