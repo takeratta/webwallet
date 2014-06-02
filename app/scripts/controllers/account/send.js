@@ -99,6 +99,7 @@ angular.module('webwalletApp')
     // QR scan
 
     $scope.qr = {
+      outputIndex: undefined,
       address: undefined,
       scanning: false,
       enabled:
@@ -109,7 +110,7 @@ angular.module('webwalletApp')
     $scope.$watch('qr.address', qrAddressModified);
 
     function qrAddressModified(val) {
-      var values;
+      var values, output;
 
       if (!$scope.qr.scanning) return;
       $scope.qr.scanning = false;
@@ -123,8 +124,10 @@ angular.module('webwalletApp')
       if (!values)
         return flash.error('Provided QR code does not contain valid address');
 
-      if (values.address) $scope.txValues.address = values.address;
-      if (values.amount) $scope.txValues.amount = values.amount;
+      output = $scope.tx.values.outputs[$scope.qr.outputIndex];
+      if (values.address) output.address = values.address;
+      if (values.amount) output.amount = values.amount;
+      $scope.qr.address = undefined;
     }
 
     function parseQr(str) {
@@ -155,8 +158,13 @@ angular.module('webwalletApp')
         }, {});
     }
 
-    $scope.scanQr = function () { $scope.qr.scanning = true; };
-    $scope.cancelQr = function () { $scope.qr.scanning = false; };
+    $scope.scanQr = function (i) {
+      $scope.qr.scanning = true;
+      $scope.qr.outputIndex = i;
+    };
+    $scope.cancelQr = function () {
+      $scope.qr.scanning = false;
+    };
 
     // Output confirmation
 

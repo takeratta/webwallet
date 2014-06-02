@@ -44,7 +44,7 @@
                 <a href=""
                    class="glyphicon glyphicon-qrcode input-icon text-muted"
                    tooltip="Scan QR code"
-                   ng-click="scanQr()"
+                   ng-click="scanQr($index)"
                    ng-show="!output.address && !qr.scanning && qr.enabled"></a>
               </div>
             </div>
@@ -71,6 +71,7 @@
                   <button type="button"
                           class="btn btn-link pull-right"
                           ng-click="removeOutput($index)"
+                          ng-disabled="qr.scanning"
                           ng-show="tx.values.outputs.length > 1">
                     <span class="text-muted">
                       <span class="glyphicon glyphicon-minus"
@@ -94,6 +95,7 @@
 
               <button type="button"
                       class="btn btn-link pull-right"
+                      ng-disabled="qr.scanning"
                       ng-click="addOutput()">
                 <span class="text-muted">
                   <span class="glyphicon glyphicon-plus"
