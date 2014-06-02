@@ -166,29 +166,33 @@ angular.module('webwalletApp')
       $scope.qr.scanning = false;
     };
 
-    // Output confirmation
+    // Output/tx confirmation
 
     $rootScope.$on('modal.button.show', modalShown);
 
     function modalShown(event, code) {
       if (code === 'ButtonRequest_ConfirmOutput')
-        injectTxInfo(event.targetScope);
+        injectTxInfo(event.targetScope, true);
+      if (code === 'ButtonRequest_SignTx')
+        injectTxInfo(event.targetScope, false);
     }
 
-    function injectTxInfo(scope) {
-      scope.account = $scope.account;
-      scope.tx = $scope.tx.prepared;
+    function injectTxInfo(scope, injectOutput) {
+      var prepared = $scope.tx.prepared;
 
-      if (!scope.tx)
+      scope.account = $scope.account;
+      scope.tx = prepared;
+
+      if (!prepared || !injectOutput)
         return;
 
       // detect internal output
-      if (scope.tx.outputs[$scope.outputIndex] &&
-          scope.tx.outputs[$scope.outputIndex].address_n)
+      if (prepared.outputs[$scope.outputIndex] &&
+          prepared.outputs[$scope.outputIndex].address_n)
         $scope.outputIndex++;
 
-      if (scope.tx.outputs[$scope.outputIndex]) {
-        scope.output = scope.tx.outputs[$scope.outputIndex];
+      if (prepared.outputs[$scope.outputIndex]) {
+        scope.output = prepared.outputs[$scope.outputIndex];
         $scope.outputIndex++;
       }
     }
