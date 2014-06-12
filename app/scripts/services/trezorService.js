@@ -158,8 +158,11 @@ angular.module('webwalletApp')
         .then(function (firmware) {
           if (!firmware)
             return;
-          return outdatedFirmware(firmware,
-            firmwareService.get(dev.features));
+          return outdatedFirmware(
+            firmware,
+            firmwareService.get(dev.features),
+            dev
+          );
         })
         .then(function () { return dev.initializeAccounts(); })
         .then(function () {
@@ -194,7 +197,25 @@ angular.module('webwalletApp')
       });
     }
 
-    function outdatedFirmware(firmware, version) {
+    function outdatedFirmware(firmware, version, device) {
+      if (firmware.required)
+        return outdatedFirmwareModal(firmware, version);
+      else
+        return outdatedFirmwareBar(firmware, version, device);
+    }
+
+    function outdatedFirmwareBar(firmware, version, device) {
+      $rootScope.optionalFirmware = {
+        device: device,
+        firmware: firmware,
+        version: version,
+        update: function () {
+          outdatedFirmwareModal(firmware, version);
+        }
+      };
+    }
+
+    function outdatedFirmwareModal(firmware, version) {
       var scope, modal;
 
       scope = angular.extend($rootScope.$new(), {

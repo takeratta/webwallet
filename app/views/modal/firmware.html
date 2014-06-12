@@ -25,12 +25,12 @@
         To update the firmware, please plug your device in firmware update mode.
         Keep <strong>both device buttons pressed</strong> while connecting the device to enter this mode.
       </p>
-      <a href="">Need help?<!-- #TODO --></a>
+      <!-- TODO: <a href="" class="pull-left">Need help?</a> -->
     </div>
     <div class="modal-footer"
          ng-if="!firmware.required">
       <button type="button" class="btn btn-default"
-              ng-click="cancel()">Ask me next time</button>
+              ng-click="$dismiss()">Cancel</button>
     </div>
   </div>
 

@@ -39,22 +39,33 @@
 
     <!-- Webwallet Application -->
     <div id="webwalletApp-container"
-         class="page-container container"
          ng-cloak>
 
-      <div class="row">
-        <!-- Navigations -->
-        <div class="col-md-3"
-             ng-include="'views/nav.html'">
-        </div>
-
-        <!-- Content view -->
-        <div class="page-content col-md-9">
-          <flash-messages></flash-messages>
-          <div ng-view></div>
+      <!-- Outdated firmware bar -->
+      <div class="alert alert-warning optfirmware"
+           ng-if="optionalFirmware">
+        <div class="container">
+          <strong>New TREZOR firmware is available.</strong>
+          Upgrade for newest features and bug fixes.
+          <button class="btn btn-sm btn-warning"
+                  ng-click="optionalFirmware.update()">Show details</button>
         </div>
       </div>
 
+      <div class="page-container container">
+        <div class="row">
+          <!-- Navigations -->
+          <div class="col-md-3"
+               ng-include="'views/nav.html'">
+          </div>
+
+          <!-- Content view -->
+          <div class="page-content col-md-9">
+            <flash-messages></flash-messages>
+            <div ng-view></div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Error Application -->
@@ -73,7 +84,7 @@
     <!-- build:js scripts/libs.js -->
     <script src="bower_components/lodash/dist/lodash.js"></script>
     <script src="bower_components/jquery/dist/jquery.js"></script>
-    <script src="bower_components/bitcoinjs-lib/build/bitcoinjs-min.js"></script>
+    <script src="bower_components/bitcoinjs-lib/build/bitcoinjs.js"></script>
     <script src="bower_components/trezor.js/dist/trezor.js"></script>
     <script src="bower_components/qrcode/lib/qrcode.js"></script>
     <script src="bower_components/angular/angular.js"></script>

@@ -276,6 +276,17 @@ body {
   margin-left: 20px;
 }
 
+/* Alert bar for optional firmware */
+
+.optfirmware {
+  margin: 0;
+  padding: 12px;
+}
+
+.optfirmware button {
+  margin-left: 10px;
+}
+
 /* Overlays */
 
 .overlay-container {
