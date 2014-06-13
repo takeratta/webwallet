@@ -117,6 +117,7 @@ angular.module('webwalletApp')
       dev.withLoading(function () {
         dev.connect(desc);
         setupCallbacks(dev);
+        resetOutdatedFirmwareBar(dev);
         return dev.initializeDevice().then(
           function (features) {
             navigateTo(dev);
@@ -139,6 +140,7 @@ angular.module('webwalletApp')
         dev = _.find(self.devices, { id: desc.id });
         if (dev)
           dev.disconnect();
+        resetOutdatedFirmwareBar(desc);
       }
     }
 
@@ -197,22 +199,29 @@ angular.module('webwalletApp')
       });
     }
 
-    function outdatedFirmware(firmware, version, device) {
+    function outdatedFirmware(firmware, version, dev) {
       if (firmware.required)
         return outdatedFirmwareModal(firmware, version);
       else
-        return outdatedFirmwareBar(firmware, version, device);
+        return outdatedFirmwareBar(firmware, version, dev);
     }
 
-    function outdatedFirmwareBar(firmware, version, device) {
+    function outdatedFirmwareBar(firmware, version, dev) {
       $rootScope.optionalFirmware = {
-        device: device,
+        device: dev,
         firmware: firmware,
         version: version,
         update: function () {
           outdatedFirmwareModal(firmware, version);
         }
       };
+    }
+
+    function resetOutdatedFirmwareBar(dev) {
+      if ($rootScope.optionalFirmware &&
+          $rootScope.optionalFirmware.device.id === dev.id) {
+        delete $rootScope.optionalFirmware;
+      }
     }
 
     function outdatedFirmwareModal(firmware, version) {
