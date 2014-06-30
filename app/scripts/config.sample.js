@@ -28,7 +28,7 @@ angular.module('webwalletApp').constant('config', {
       firstIndex: 0
     },
     Testnet: {
-      endpoint: 'http://test-api.bitsofproof.com:8080',
+      endpoint: 'https://test.mytrezor.com',
       after: '2014-01-01',
       lookAhead: 40,
       firstIndex: 0
