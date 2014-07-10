@@ -113,7 +113,7 @@ angular.module('webwalletApp')
           req = {
             publicMaster: xpub,
             after: this.request.after || '2014-01-01',
-            lookAhead: this.request.lookAhead || 10,
+            lookAhead: this.request.lookAhead || 20,
             firstIndex: this.request.firstIndex || 0
           };
 
