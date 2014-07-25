@@ -11,8 +11,7 @@ angular.module('webwalletApp')
 
     function TrezorBackend(coin) {
       this.version = config.versions[coin.coin_name];
-      this.endpoint = config.backends[coin.coin_name].endpoint;
-      this.request = config.backends[coin.coin_name].request || {};
+      this.config = config.backends[coin.coin_name] || {};
       this._clientIdP = null;
       this._stream = null;
       this._handlers = {};
@@ -26,13 +25,13 @@ angular.module('webwalletApp')
 
     TrezorBackend.prototype._streamUrl = function (id) {
       if (id != null)
-        return this.endpoint + '/lp/' + id;
+        return this.config.endpoint + '/lp/' + id;
       else
-        return this.endpoint + '/lp';
+        return this.config.endpoint + '/lp';
     };
 
     TrezorBackend.prototype._apiUrl = function (path) {
-      return this.endpoint + '/trezor/' + path;
+      return this.config.endpoint + '/trezor/' + path;
     };
 
     // Stream
@@ -112,9 +111,9 @@ angular.module('webwalletApp')
           xpub = utils.node2xpub(node, this.version),
           req = {
             publicMaster: xpub,
-            after: this.request.after || '2014-01-01',
-            lookAhead: this.request.lookAhead || 20,
-            firstIndex: this.request.firstIndex || 0
+            after: this.config.after || '2014-01-01',
+            lookAhead: this.config.lookAhead || 20,
+            firstIndex: this.config.firstIndex || 0
           };
 
       if (this._handlers[xpub])
