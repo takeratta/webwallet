@@ -331,10 +331,17 @@ angular.module('webwalletApp')
               space = tx.inputSum - tx.outputSum,
               fee = kbytes * config.feePerKb;
 
-          if (fee > space)
+          $log.log('[account] Measured tx of', kbytes, 'KB, est. fee is', fee);
+
+          if (fee > space) {
+            $log.log('[account] Fee is too high for current inputs, measuring again');
             return tryToBuild(fee); // try again with more inputs
-          if (fee === tx.fee)
+          }
+          if (fee === tx.fee) {
+            $log.log('[account] Estimated fee matches');
             return tx;
+          }
+          $log.log('[account] Re-constructing with final fee');
           return self._constructTx(outputs, fee);
         });
       }
@@ -349,6 +356,8 @@ angular.module('webwalletApp')
           inputSum,
           outputSum;
 
+      $log.log('[account] Constructing tx with fee attempt', fee, 'for', outputs);
+
       outputSum = outputs.reduce(function (a, out) { return a + out.amount; }, 0);
       utxos = this._selectUtxos(outputSum + fee);
       if (!utxos)
@@ -362,9 +371,14 @@ angular.module('webwalletApp')
           address_n: chpath,
           amount: change
         }]);
+        $log.log('[account] Added change output', outputs[outputs.length - 1]);
       } else {
         change = 0;
         fee = inputSum - outputSum;
+        $log.log('[account] Change amount', change,
+                 'is below dust limit', MIN_OUTPUT_AMOUNT,
+                 ', adding to fee');
+        $log.log('[account] New fee:', fee);
       }
 
       // TODO: shuffle before signing, not here?
