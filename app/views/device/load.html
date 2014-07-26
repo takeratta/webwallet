@@ -15,18 +15,20 @@
     <strong>Please connect your device</strong> to access this section.
   </div>
 
+  <div class="alert alert-warning">
+    <p>This is an advanced interface intended for EXPERT use only!</p>
+    <p>If you are a common user and want to setup or recover your TREZOR device,
+       please continue to <a href="#/device/{{device.id}}/setup">TREZOR Setup</a>.</p>
+    <p>Never use this process unless you REALLY know what you are doing!</p>
+    <p>No checks are performed on the provided seed, so it can be binary sequence, dice-throw sequence
+       or a random sentence. Valid BIP32 XPRV keys are interpreted prior loading to the device.</p>
+  </div>
+
   <div ng-controller="DeviceLoadCtrl"
        class="row">
 
     <fieldset ng-disabled="!device.isConnected()">
       <form name="form" class="devload col-md-6">
-
-        <div class="alert alert-warning">
-          <p>This is an advanced interface intended for developer use only!</p>
-          <p>If you are a common user and want to setup or recover your TREZOR device,
-            please continue <a href="#/device/{{device.id}}/setup">here</a>.</p>
-          <p>Never use this process unless you really know what you are doing!</p>
-        </div>
 
         <div class="form-group">
           <label for="label" class="control-label">Device label</label>
