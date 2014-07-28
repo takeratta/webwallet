@@ -291,14 +291,14 @@ body {
   margin-left: 20px;
 }
 
-/* Alert bar for optional firmware */
+/* Alert bar */
 
-.optfirmware {
+.alertbar {
   margin: 0;
   padding: 12px;
 }
 
-.optfirmware button {
+.alertbar .btn {
   margin-left: 10px;
 }
 

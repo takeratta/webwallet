@@ -2,8 +2,8 @@
 
 angular.module('webwalletApp')
   .service('trezorService', function TrezorService(
-      utils, config, storage, trezor, firmwareService, TrezorDevice,
-      _, $modal, $q, $location, $rootScope) {
+    utils, config, storage, trezor, trezorApi, firmwareService, TrezorDevice,
+    _, $modal, $q, $location, $rootScope) {
 
     'use strict';
 
@@ -22,7 +22,16 @@ angular.module('webwalletApp')
     self._forgetModal = false;
 
     storeWhenChanged();
-    watchDevices(1000);
+    watchDevices(5000);
+
+    if (trezor instanceof trezorApi.PluginTransport) {
+      $rootScope.usingPluginTransport = true;
+      $rootScope.installers = trezorApi.installers();
+      $rootScope.installers.forEach(function (inst) {
+        if (inst.preferred)
+          $rootScope.selectedInstaller = inst;
+      });
+    }
 
     //
     // public
@@ -162,29 +171,37 @@ angular.module('webwalletApp')
         dev = new TrezorDevice(desc.path);
 
       dev.withLoading(function () {
-        dev.connect(desc);
-        setupCallbacks(dev);
-        resetOutdatedFirmwareBar(dev);
-        return dev.initializeDevice().then(
-          function (features) {
-            navigateTo(dev);
-            return features.bootloader_mode ?
-              bootloaderWorkflow(dev) :
-              normalWorkflow(dev);
-          },
-          function () {
-            dev.disconnect();
-          }
-        );
+        return trezor.acquire(desc)
+          .then(function (res) {
+            var sessionId = res.session,
+                session = new trezorApi.Session(trezor, sessionId);
+            dev.connect(session);
+            setupCallbacks(dev);
+            resetOutdatedFirmwareBar(dev);
+            return dev.initializeDevice();
+          })
+          .then(
+            function (features) {
+              navigateTo(dev);
+              return features.bootloader_mode
+                ? bootloaderWorkflow(dev)
+                : normalWorkflow(dev);
+            },
+            function () {
+              dev.disconnect();
+            }
+          );
       });
     }
 
     // marks a device of the given descriptor as disconnected
     function disconnect(desc) {
-      var dev;
+      var dev,
+          sn;
 
-      if (desc.id) {
-        dev = _.find(self.devices, { id: desc.id });
+      sn = desc.serialNumber || desc.id;
+      if (sn) {
+        dev = _.find(self.devices, { id: sn });
         if (dev)
           dev.disconnect();
         resetOutdatedFirmwareBar(desc);
@@ -414,10 +431,23 @@ angular.module('webwalletApp')
 
     // maps a promise notifications with connected device descriptors
     function progressWithConnected(pr) {
-      return pr.then(null, null, function () { // ignores the value
-        if (!enumeratePaused)
-          return trezor.devices();
+      var res = $q.defer(),
+          inProgress = false;
+
+      pr.then(null, null, function () {
+        if (enumeratePaused || inProgress)
+          return;
+
+        inProgress = true;
+        trezor.enumerate()
+          .then(function (devices) { res.notify(devices); })
+          .then(
+            function () { inProgress = false; },
+            function () { inProgress = false; }
+          );
       });
+
+      return res.promise;
     }
 
     // maps a promise notifications with a delta between the current and

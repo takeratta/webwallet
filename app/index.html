@@ -41,8 +41,32 @@
     <div id="webwalletApp-container"
          ng-cloak>
 
+      <!-- Bar shown when using the plugin transport -->
+      <div class="alert alert-warning alertbar"
+           ng-if="usingPluginTransport">
+        <div class="container">
+          <div class="form-inline">
+            <strong>Plugin is deprecated.</strong>
+            Long live the bridge! New and shiny, just for you.
+            <a class="btn btn-warning"
+               ng-href="{{ selectedInstaller.url }}">
+              <span class="glyphicon glyphicon-download"></span> Download
+            </a>
+            <select class="form-control"
+                    placeholder="Select platform..."
+                    ng-model="selectedInstaller"
+                    ng-options="
+                    installer as 'for ' + installer.label
+                    for installer
+                    in installers
+                    track by installer.platform">
+            </select>
+          </div>
+        </div>
+      </div>
+
       <!-- Outdated firmware bar -->
-      <div class="alert alert-warning optfirmware"
+      <div class="alert alert-warning alertbar"
            ng-if="optionalFirmware">
         <div class="container">
           <strong>New TREZOR firmware is available.</strong>
@@ -106,6 +130,9 @@
     <script src="bower_components/trezor.js/dist/trezor.js"></script>
     <script src="bower_components/qrcode/lib/qrcode.js"></script>
     <script src="bower_components/angular/angular.js"></script>
+    <script src="scripts/vendor/sha512.js"></script>
+    <script src="scripts/vendor/ecurve.js"></script>
+    <script src="scripts/vendor/buffer.js"></script>
     <!-- jsqrcode -->
     <script src="bower_components/jsqrcode/src/grid.js"></script>
     <script src="bower_components/jsqrcode/src/version.js"></script>

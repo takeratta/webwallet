@@ -4,7 +4,11 @@ angular.module('webwalletApp')
   .value('_', window._)
   .value('BigInteger', window.BigInteger)
   .value('Crypto', window.Crypto)
-  .value('Bitcoin', window.Bitcoin);
+  .value('Bitcoin', window.Bitcoin)
+  .value('jsSHA', window.jsSHA)
+  .value('ecurve', window.ecurve)
+  .value('Buffer', window.Buffer)
+;
 
 angular.module('webwalletApp')
   .directive('debug', function () {
@@ -59,8 +63,10 @@ angular.module('webwalletApp')
 
 angular.module('webwalletApp')
   .service('utils', function Utils(
-      Crypto, Bitcoin, _,
-      $q, $http, $interval, $timeout, $location, $rootScope) {
+    BigInteger, Crypto, Bitcoin, jsSHA, ecurve, Buffer,
+      _, $q, $http, $interval, $timeout, $location, $rootScope) {
+
+    var curve = ecurve.getCurveByName('secp256k1');
 
     //
     // codecs
@@ -244,11 +250,66 @@ angular.module('webwalletApp')
         };
     }
 
+    function deriveChildNode(node, index) {
+      var indexBytes = [
+        (index >> 24) & 0xFF,
+        (index >> 16) & 0xFF,
+        (index >> 8)  & 0xFF,
+        (index >> 0)  & 0xFF
+      ];
+
+      var ccBytes = hexToBytes(node.chain_code);
+
+      // data = serP(point(kpar)) || ser32(index)
+      //      = serP(Kpar) || ser32(index)
+      var sha = new jsSHA(
+        node.public_key.concat(bytesToHex(indexBytes)), "HEX");
+      var I = hexToBytes(
+        sha.getHMAC(bytesToHex(ccBytes), "HEX", "SHA-512", "HEX"));
+      var IL = I.slice(0, 32);
+      var IR = I.slice(32);
+
+      var pIL = new BigInteger(bytesToHex(IL), 16);
+
+      // In case parse256(IL) >= n, proceed with the next value for i
+      if (pIL.compareTo(curve.n) >= 0) {
+        return deriveChildNode(node, index + 1);
+      }
+
+      // Ki = point(parse256(IL)) + Kpar
+      //    = G*IL + Kpar
+      var keyBuffer = new Buffer.Buffer(node.public_key, 'hex');
+      var Q = ecurve.Point.decodeFrom(curve, keyBuffer);
+      var Ki = curve.G.multiply(pIL).add(Q);
+
+      // In case Ki is the point at infinity, proceed with the next value for i
+      if (curve.isInfinity(Ki)) {
+        return deriveChildNode(node, index + 1);
+      }
+
+      var hash = Bitcoin.Util.sha256ripe160(hexToBytes(node.public_key));
+      var fingerprint =
+            (hash[0] << 24) |
+            (hash[1] << 16) |
+            (hash[2] << 8)  |
+            (hash[3] << 0);
+
+      return {
+        public_key: Ki.getEncoded(true).toString('hex'),
+        fingerprint: fingerprint >>> 0,
+        depth: +node.depth + 1,
+        child_num: index,
+        chain_code: bytesToHex(IR),
+        path: node.path.concat([index])
+      };
+    }
+
     this.xprv2node = xprv2node;
     this.xpub2node = xpub2node;
     this.node2xpub = node2xpub;
     this.node2address = node2address;
     this.decodeAddress = decodeAddress;
+    this.deriveChildNode = deriveChildNode;
 
     //
     // promise utils

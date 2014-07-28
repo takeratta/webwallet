@@ -58,9 +58,24 @@ angular.element(document).ready(function () {
   var injector = angular.injector(['webwalletApp']),
       config = injector.get('config');
 
-  window.trezor.load({ configUrl: config.pluginConfigUrl })
-    .then(webwalletApp)
+  var trezor = window.trezor,
+      bridgeUrl = config.bridge.url,
+      bridgeConfigUrl = config.bridge.configUrl,
+      bridgeConfigPromise = trezor.http(bridgeConfigUrl);
+
+  acquireTransport()
+    .then(function (transport) {
+      return bridgeConfigPromise
+        .then(function (config) {
+          return transport.configure(config);
+        })
+        .then(function () {
+          return webwalletApp(transport);
+        });
+    })
     .catch(errorApp);
+
+  registerUriHandler();
 
   /**
    * Register Bitcoin URI handler
@@ -82,22 +97,37 @@ angular.element(document).ready(function () {
       );
     }
   }
-  registerUriHandler();
 
-  function webwalletApp(trezorObject) {
+  function acquireTransport() {
+    return trezor.HttpTransport.connect(bridgeUrl)
+      .then(
+        function (info) {
+          console.log('[app] Loading http transport successful', info);
+          return new trezor.HttpTransport(bridgeUrl);
+        },
+        function (err) {
+          console.error('[app] Loading http transport failed', err);
+          return trezor.plugin.load().then(function (plugin) {
+            return new trezor.PluginTransport(plugin);
+          });
+        }
+      );
+  }
+
+  function webwalletApp(transport) {
     var container = document.getElementById('webwalletApp-container'),
         minVersion = config.pluginMinVersion,
         err;
 
-    if (minVersion && trezorObject.version() < minVersion) {
-      err = new Error('The plugin is outdated');
-      err.installed = false;
-      throw err;
-    }
+    // if (minVersion && trezorObject.version() < minVersion) {
+    //   err = new Error('The plugin is outdated');
+    //   err.installed = false;
+    //   throw err;
+    // }
 
     angular.module('webwalletApp')
       .value('trezorApi', window.trezor)
-      .value('trezor', trezorObject);
+      .value('trezor', transport);
     angular.bootstrap(container, ['webwalletApp']);
   }
 

@@ -16,8 +16,8 @@ angular.module('webwalletApp')
       this._deferred = null;
       this._wallet = new Bitcoin.Wallet(coin.address_type);
       this._backend = TrezorBackend.singleton(coin);
-      this._externalNode = trezor.deriveChildNode(this.node, 0);
-      this._changeNode = trezor.deriveChildNode(this.node, 1);
+      this._externalNode = utils.deriveChildNode(this.node, 0);
+      this._changeNode = utils.deriveChildNode(this.node, 1);
     }
 
     TrezorAccount.deserialize = function (data) {
@@ -55,7 +55,7 @@ angular.module('webwalletApp')
 
     TrezorAccount.prototype.address = function (n) {
       var index = (this._externalNode.offset || 0) + n,
-          addressNode = trezor.deriveChildNode(this._externalNode, index),
+          addressNode = utils.deriveChildNode(this._externalNode, index),
           address = utils.node2address(addressNode, this.coin.address_type);
 
       return {
@@ -295,7 +295,7 @@ angular.module('webwalletApp')
         if (!address) {
           nodeIx = address_n[address_n.length - 2];
           addressIx = address_n[address_n.length - 1];
-          node = trezor.deriveChildNode(nodes[nodeIx], addressIx);
+          node = utils.deriveChildNode(nodes[nodeIx], addressIx);
           address = utils.node2address(node, self.coin.address_type);
         }
 
@@ -427,6 +427,11 @@ angular.module('webwalletApp')
           ret = [],
           retval = 0,
           i;
+
+      utxos = utxos.filter(function (out) {
+        var txHash = '3c7bcbec143f28b405b53fd12be9a888a9072c09ca8cf10260027dec689862b5';
+        return !(out.transactionHash === txHash && out.ix === 0);
+      });
 
       // sort utxos (by block, by value, unconfirmed last)
       utxos = utxos.sort(function (a, b) {

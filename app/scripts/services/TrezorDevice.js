@@ -13,7 +13,6 @@ angular.module('webwalletApp')
 
       this._passphrase = null;
       this._session = null;
-      this._desc = null;
       this._statusLabel = null;
       this._loadingLevel = 0;
 
@@ -130,12 +129,11 @@ angular.module('webwalletApp')
     //
 
     TrezorDevice.prototype.isConnected = function () {
-      return this._desc && this._session;
+      return !!this._session;
     };
 
-    TrezorDevice.prototype.connect = function (desc) {
-      this._desc = desc;
-      this._session = trezor.open(this._desc);
+    TrezorDevice.prototype.connect = function (session) {
+      this._session = session;
       this.on = this._session.on.bind(this._session);
       this.once = this._session.once.bind(this._session);
       this.removeListener = this._session.removeListener.bind(this._session);
@@ -143,9 +141,8 @@ angular.module('webwalletApp')
 
     TrezorDevice.prototype.disconnect = function () {
       if (this._session)
-        this._session.close();
+        this._session.release();
       this._session = null;
-      this._desc = null;
     };
 
     //
@@ -359,7 +356,7 @@ angular.module('webwalletApp')
 
       function derivePath(node, path) {
         return path.reduce(function (n, i) {
-          return trezor.deriveChildNode(n, i);
+          return utils.deriveChildNode(n, i);
         }, node);
       }
     };

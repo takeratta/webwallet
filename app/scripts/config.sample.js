@@ -4,11 +4,16 @@ angular.module('webwalletApp').constant('config', {
   // show debug information in the interface
   debug: false,
 
-  // address of the plugin configuration file
-  pluginConfigUrl: '/data/plugin/config_signed.bin',
+  bridge: {
+    // address that the bridge is available on
+    url: 'http://localhost:21324',
 
-  // minimal version of plugin this wallet supports
-  pluginMinVersion: '1.0.5',
+    // address of the bridge configuration file
+    configUrl: '/data/plugin/config_signed.bin',
+
+    // minimal version of bridge this wallet supports
+    pluginMinVersion: '1.0.5'
+  },
 
   // version of storage this wallet is compatible with
   storageVersion: '1.1.0',
