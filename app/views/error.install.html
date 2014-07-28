@@ -12,18 +12,8 @@
 
       <div class="text-center">
         <p class="form-inline">
-          <span class="checkbox">
-            <label>
-              <input type="checkbox" ng-model="agree">
-              I agree with the <a href="/legal.html" target="_blank">Terms &amp; Conditions</a>
-            </label>
-          </span>
-        </p>
-
-        <p class="form-inline">
           <a class="btn-installer-download btn btn-lg btn-success"
-             ng-href="{{ selected.url }}"
-             ng-disabled="!agree">
+             ng-href="{{ selected.url }}">
             <span class="glyphicon glyphicon-download"></span> Download
           </a>
           <select class="form-control"
