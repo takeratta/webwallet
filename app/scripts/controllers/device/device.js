@@ -99,7 +99,8 @@ angular.module('webwalletApp')
       scope = angular.extend($scope.$new(), {
         check: !$scope.device.hasSavedPassphrase(),
         passphrase: '',
-        passphraseCheck: ''
+        passphraseCheck: '',
+        installHandler: installSubmitHandlers
       });
 
       modal = $modal.open({
@@ -122,6 +123,24 @@ angular.module('webwalletApp')
         },
         function (err) { callback(err); }
       );
+
+      function installSubmitHandlers() {
+        var submit = document.getElementById('passphrase-submit');
+        var form = document.getElementById('passphrase-form');
+
+        submit.addEventListener('submit', submitModal, false);
+        submit.addEventListener('click', submitModal, false);
+        form.addEventListener('submit', submitModal, false);
+        form.addEventListener('keypress', function (e) {
+          if (e.keyCode === 13) submitModal();
+        }, true);
+      }
+
+      function submitModal() {
+        var ppScope = scope.$$childHead.$$childHead.$$nextSibling; // sad panda :(
+        modal.close(ppScope.passphrase);
+        return false;
+      }
     }
 
     function promptButton(event, dev, code) {
