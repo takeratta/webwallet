@@ -234,7 +234,7 @@ angular.module('webwalletApp')
         device: null,
         update: function () {
           updateFirmware(scope, firmware);
-        },
+        }
       });
 
       modal = $modal.open({
@@ -339,18 +339,30 @@ angular.module('webwalletApp')
       scope.state = 'update-downloading';
       firmwareService.download(firmware)
         .then(function (data) {
+          $rootScope.$on('modal.button.show', modalShown);
           scope.state = 'update-flashing';
           return scope.device.flash(data);
         })
         .then(
           function () {
+            $rootScope.$off('modal.button.show', modalShown);
             scope.state = 'update-success';
           },
           function (err) {
+            $rootScope.$off('modal.button.show', modalShown);
             scope.state = 'update-error';
             scope.error = err.message;
           }
         );
+
+      function modalShown(event, code) {
+        if (code === 'ButtonRequest_FirmwareCheck')
+          injectFirmwareInfo(event.targetScope);
+      }
+
+      function injectFirmwareInfo(scope) {
+        scope.firmware = firmware;
+      }
     }
 
     // maps a promise notifications with connected device descriptors
