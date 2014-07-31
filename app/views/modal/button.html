@@ -51,22 +51,6 @@
     This action cannot be undone. Please confirm on your device.
   </div>
 
-  <div ng-switch-when="ButtonRequest_FirmwareCheck"
-       class="alert alert-block alert-info">
-    <h4>Please confirm the firmware fingerprint.</h4>
-    <div class="row">
-      <div class="col-md-6 col-md-offset-3">
-        <samp class="samp-screen"
-              ng-if="firmware && firmware.fingerprint">
-          {{firmware.fingerprint.substr(0, 16)}}<br>
-          {{firmware.fingerprint.substr(16, 16)}}<br>
-          {{firmware.fingerprint.substr(32, 16)}}<br>
-          {{firmware.fingerprint.substr(48, 16)}}
-        </samp>
-      </div>
-    </div>
-  </div>
-
   <div ng-switch-default class="alert alert-block alert-info">
     <h4>Please confirm the action on your device.</h4>
   </div>
