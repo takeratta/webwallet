@@ -20,15 +20,21 @@
       <h5 ng-if="firmware.changelog">Changelog:</h5>
       <pre ng-if="firmware.changelog">{{firmware.changelog}}</pre>
       <p ng-if="firmware.notes">
-        <a ng-href="{{firmware.notes}}">Read the full release notes</a>
+        <a ng-href="{{firmware.notes}}" target="_blank">Read the full release notes</a>
       </p>
 
       <p class="alert alert-info alert-withicon">
         <span class="glyphicon glyphicon-info-sign alert-icon"></span>
         To update the firmware, please plug your device in firmware update mode.
-        Keep <strong>both device buttons pressed</strong> while connecting the device to enter this mode.
+        Keep <strong>both device buttons pressed</strong> while connecting the device to enter this mode.<br>
+        <strong>For more information,
+          <a href="http://doc.satoshilabs.com/trezor-user/updatingfirmware.html"
+             target="_blank"
+             >visit the user manual.</a></strong>
       </p>
-      <!-- TODO: <a href="" class="pull-left">Need help?</a> -->
+
+      <a class="btn btn-link"
+         href="mailto:support@bitcointrezor.com">Support needed?</a>
     </div>
     <div class="modal-footer"
          ng-if="!firmware.required">
@@ -63,7 +69,7 @@
           <pre>{{firmware.changelog}}</pre>
         </p>
         <p ng-if="firmware.notes">
-          <a ng-href="{{firmware.notes}}">Read the full release notes</a>
+          <a ng-href="{{firmware.notes}}" target="_blank">Read the full release notes</a>
         </p>
       </div>
 
@@ -73,10 +79,16 @@
         <strong>Always have your Recovery seed with you before updating firmware!</strong>
         <p>In very rare cases, a firmware update might result in the need to recover the wallet
         from Recovery seed.</p>
+        <p><strong>For more information,
+          <a href="http://doc.satoshilabs.com/trezor-user/updatingfirmware.html"
+             target="_blank"
+             >visit the user manual.</a></strong></p>
       </div>
 
     </div>
     <div class="modal-footer">
+      <a class="btn btn-link pull-left"
+         href="mailto:support@bitcointrezor.com">Support needed?</a>
       <button type="button" class="btn btn-primary"
               ng-click="update()">Yes, update</button>
       <button type="button" class="btn btn-default"
