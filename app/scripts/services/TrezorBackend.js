@@ -93,9 +93,10 @@ angular.module('webwalletApp')
     };
 
     TrezorBackend.prototype._processMessage = function (msg) {
-      var key = msg.publicMaster;
-      if (this._handlers[key])
-        this._handlers[key](msg);
+      var xpub = msg.publicMaster;
+      this._handlers[xpub].forEach(function (handler) {
+        handler(msg);
+      });
     };
 
     TrezorBackend.prototype.disconnect = function () {
@@ -116,9 +117,8 @@ angular.module('webwalletApp')
             firstIndex: this.config.firstIndex || 0
           };
 
-      if (this._handlers[xpub])
-        return;
-      this._handlers[xpub] = handler;
+      this._handlers[xpub] = this._handlers[xpub] || [];
+      this._handlers[xpub].push(handler);
 
       $log.log('[backend] Subscribing', xpub);
       return this.connect().then(function (id) {
