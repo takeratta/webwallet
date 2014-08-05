@@ -335,7 +335,7 @@ angular.module('webwalletApp')
     TrezorAccount.prototype.buildTx = function (outputs, device) {
       var self = this;
 
-      return tryToBuild(0);
+      return $q.when(tryToBuild(0));
 
       function tryToBuild(feeAttempt) {
         var tx = self._constructTx(outputs, feeAttempt);
@@ -343,26 +343,29 @@ angular.module('webwalletApp')
         if (!tx)
           return $q.reject(new Error('Not enough funds'));
 
-        return device.measureTx(tx, self.coin).then(function (res) {
-          var bytes = parseInt(res.message.tx_size, 10),
-              kbytes = Math.ceil(bytes / 1000),
-              space = tx.inputSum - tx.outputSum,
-              fee = kbytes * config.feePerKb;
+        var kbytes = Math.ceil(self._measureTx(tx) / 1000),
+            space = tx.inputSum - tx.outputSum,
+            fee = kbytes * config.feePerKb;
 
-          $log.log('[account] Measured tx of', kbytes, 'KB, est. fee is', fee);
+        $log.log('[account] Measured tx of', kbytes, 'KB, est. fee is', fee);
 
-          if (fee > space) {
-            $log.log('[account] Fee is too high for current inputs, measuring again');
-            return tryToBuild(fee); // try again with more inputs
-          }
-          if (fee === tx.fee) {
-            $log.log('[account] Estimated fee matches');
-            return tx;
-          }
-          $log.log('[account] Re-constructing with final fee');
-          return self._constructTx(outputs, fee);
-        });
+        if (fee > space) {
+          $log.log('[account] Fee is too high for current inputs, measuring again');
+          return tryToBuild(fee); // try again with more inputs
+        }
+        if (fee === tx.fee) {
+          $log.log('[account] Estimated fee matches');
+          return tx;
+        }
+        $log.log('[account] Re-constructing with final fee');
+        return self._constructTx(outputs, fee);
       }
+    };
+
+    TrezorAccount.prototype._measureTx = function (tx) {
+      return 10
+        + tx.inputs.length * 149
+        + tx.outputs.length * 35;
     };
 
     TrezorAccount.prototype._constructTx = function (outputs, fee)  {
