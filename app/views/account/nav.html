@@ -10,12 +10,8 @@
       <span class="glyphicon glyphicon-circle-arrow-right"></span> Receive
     </a>
   </li>
-  <li ng-class="{ active: isActive('/device/{{device.id}}/account/{{account.id}}/send$') }"
-      tooltip="Please connect your device to send coins."
-      tooltip-trigger="{{ device.isConnected() ? 'manual' : 'mouseenter'}}"
-      tooltip-placement="bottom">
-    <a class="btn" href="#/device/{{device.id}}/account/{{account.id}}/send"
-       ng-disabled="!device.isConnected()">
+  <li ng-class="{ active: isActive('/device/{{device.id}}/account/{{account.id}}/send$') }">
+    <a class="btn" href="#/device/{{device.id}}/account/{{account.id}}/send">
       <span class="glyphicon glyphicon-circle-arrow-left"></span> Send
     </a>
   </li>

@@ -19,12 +19,10 @@
       <div ng-controller="AccountSendCtrl"
            class="row">
 
-        <fieldset ng-disabled="!device.isConnected()"
-                  class="overlay-container col-md-8">
+        <fieldset class="overlay-container col-md-8">
           <form name="form"
                 class="form-horizontal"
-                ng-submit="send()"
-                ng-disabled="device.status() !== 'connected'">
+                ng-submit="send()">
 
             <div ng-repeat="output in tx.values.outputs">
 
@@ -82,8 +80,20 @@
 
             <div class="form-group">
               <div class="col-sm-offset-3 col-sm-9">
-                <button type="submit" class="btn btn-primary"
-                        ng-disabled="!tx.prepared">Send</button>
+
+                <span tooltip="Please connect your device to send coins."
+                      tooltip-trigger="{{
+                        device.status() !== 'connected'
+                          ? 'mouseenter'
+                          : 'manual'
+                      }}"
+                      tooltip-placement="bottom">
+                  <button type="submit"
+                          class="btn btn-primary"
+                          ng-disabled="device.status() !== 'connected' || !tx.prepared ">
+                    Send
+                  </button>
+                </span>
 
                 <a href="#/device/{{device.id}}/account/{{account.id}}"
                    class="btn btn-link"
@@ -120,11 +130,6 @@
               </div>
             </div>
 
-          </form>
-
-          <debug>
-            <pre>{{ tx | json }}</pre>
-          </debug>
         </fieldset>
 
         <!-- QR scan  -->
