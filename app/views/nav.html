@@ -66,13 +66,13 @@
              To add accounts, make sure your device is connected
              and the last account is not empty."
            tooltip-placement="bottom">
-        <a ng-href="" class="btn btn-block btn-sm"
+        <a ng-href="" class="btn btn-sm"
            disabled
           ><span class="glyphicon glyphicon-plus"></span> Add account</a>
       </div>
 
       <div ng-if="device.canAddAccount()">
-        <a ng-href="" class="btn btn-block btn-sm"
+        <a ng-href="" class="btn btn-sm"
            ng-click="addAccount(device)"
           ><span class="glyphicon glyphicon-plus"></span> Add account</a>
       </div>

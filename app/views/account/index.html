@@ -16,97 +16,92 @@
          ng-show="account.isInconsistent()">
       <strong>Warning!</strong> Account balance information is inconsistent.
     </div>
+
     <ng-include src="'views/account/nav.html'"></ng-include>
 
-    <table class="txlist table table-hover"
-           ng-show="account.transactions != null && account.transactions.length">
-      <thead>
-        <tr class="text-muted">
-          <th width="22%" class="text-center">Timestamp</th>
-          <th class="txlist-header-address">Address</th>
-          <th width="16%" class="txlist-header-amount">Amount</th>
-          <th width="16%">Balance</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr class="txlist-tx"
-            ng-class="{ active: tx.active }"
-            ng-click="tx.active = !tx.active"
-            ng-repeat-start="tx in account.transactions">
-          <td class="txlist-date text-center"
-              ng-if="tx.block">
-            {{tx.timestamp | date:'yyyy-MM-dd'}}
-            <small class="text-muted">{{tx.timestamp | date:'HH:mm:ss'}}</small>
-          </td>
-          <td class="txlist-date text-center text-muted"
-              ng-if="!tx.block">
-            <small title="Transaction received at {{tx.timestamp | date:'yyyy-MM-dd HH:mm:ss'}}"
-              >Unconfirmed</small>
-          </td>
-          <td class="txlist-comment"
-              ng-if="tx.comment">
-            "{{tx.comment}}"
-          </td>
-          <td class="txlist-address"
-              ng-if="!tx.comment"
-              ng-switch="tx.analysis.type">
-            <span class="text-success" ng-switch-when="recv">
-              <span class="glyphicon glyphicon-circle-arrow-right" title="Received"></span> {{tx.analysis.addr.toString()}}
-            </span>
-            <span class="text-danger" ng-switch-when="sent">
-              <span class="glyphicon glyphicon-circle-arrow-left" title="Sent"></span> {{tx.analysis.addr.toString()}}
-            </span>
-            <span class="text-warning" ng-switch-when="self">
-              <span class="glyphicon glyphicon-user"></span> Sent to myself
-            </span>
-            <span class="text-muted" ng-switch-default>
-              <span class="glyphicon glyphicon-question-sign"></span> Unknown
-            </span>
-          </td>
-          <td class="txlist-amount"
-              ng-class="{ 'text-success': tx.analysis.impact.sign > 0,
-                          'text-danger': tx.analysis.impact.sign < 0 }">
-            {{tx.analysis.impact.sign | sign}}{{tx.analysis.impact.value | amount}}
-          </td>
-          <td class="txlist-balance">
-            {{tx.balance | amount}}
-          </td>
-        </tr>
-        <tr class="txlist-detail"
-            ng-show="tx.active"
-            ng-animate="'txlist-detail'"
-            ng-repeat-end>
-          <td colspan="5">
-            <dl class="dl-horizontal">
-              <dt>Transaction details:</dt>
-              <dd class="txlist-hash">
-                <a target="_blank" href="https://blockchain.info/tx/{{tx.hash}}">Blockchain</a>
-                <a target="_blank" href="http://live.insight.is/tx/{{tx.hash}}">insight</a>
-                <a target="_blank" href="https://blockr.io/tx/info/{{tx.hash}}">blockr</a>
-              </dd>
-            </dl>
+    <div class="tab-content">
+      <table class="txlist table table-hover"
+             ng-show="account.transactions != null && account.transactions.length">
+        <thead>
+          <tr class="text-muted">
+            <th width="20%">Timestamp</th>
+            <th class="txlist-header-address">Address</th>
+            <th width="16%" class="txlist-header-amount">Amount</th>
+            <th width="16%">Balance</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="txlist-tx"
+              ng-mouseenter="tx.active = true"
+              ng-mouseleave="tx.active = false"
+              ng-repeat="tx in account.transactions">
+            <td class="txlist-date"
+                ng-if="tx.block">
+              {{tx.timestamp | date:'yyyy-MM-dd'}}
+              <small class="text-muted">{{tx.timestamp | date:'HH:mm:ss'}}</small>
+            </td>
+            <td class="txlist-date text-center text-muted"
+                ng-if="!tx.block">
+              <small title="Transaction received at {{tx.timestamp | date:'yyyy-MM-dd HH:mm:ss'}}"
+                >Unconfirmed</small>
+            </td>
+            <td class="txlist-comment"
+                ng-if="tx.comment">
+              "{{tx.comment}}"
+            </td>
+            <td class="txlist-address"
+                ng-if="!tx.comment"
+                ng-switch="tx.analysis.type">
+              <span class="text-success" ng-switch-when="recv">
+                <span class="glyphicon glyphicon-circle-arrow-right" title="Received"></span> {{tx.analysis.addr.toString()}}
+              </span>
+              <span class="text-danger" ng-switch-when="sent">
+                <span class="glyphicon glyphicon-circle-arrow-left" title="Sent"></span> {{tx.analysis.addr.toString()}}
+              </span>
+              <span class="text-warning" ng-switch-when="self">
+                <span class="glyphicon glyphicon-user"></span> Sent to myself
+              </span>
+              <span class="text-muted" ng-switch-default>
+                <span class="glyphicon glyphicon-question-sign"></span> Unknown
+              </span>
+              <span class="txlist-hash"
+                  ng-show="tx.active"
+                  ng-animate="'txlist-detail'">
+                <a class="btn btn-primary glyphicon glyphicon-info-sign"
+                  target="_blank" href="{{blockExplorer.urlTx}}{{tx.hash}}"
+                  role="button"
+                  title="Transaction info at {{blockExplorer.name}}"></a>
+              </span>
+              <debug>
+                <pre>{{tx | json}}</pre>
+              </debug>
+            </td>
+            <td class="txlist-amount"
+                ng-class="{ 'text-success': tx.analysis.impact.sign > 0,
+                            'text-danger': tx.analysis.impact.sign < 0 }">
+              {{tx.analysis.impact.sign | sign}}{{tx.analysis.impact.value | amount}}
+            </td>
+            <td class="txlist-balance"
+                ng-repeat-end>
+              {{tx.balance | amount}}
+            </td>
+          </tr>
+        </tbody>
+      </table>
 
-            <debug>
-              <pre>{{tx | json}}</pre>
-            </debug>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+      <div class="txlist-empty text-center text-muted"
+           ng-show="account.transactions != null && !account.transactions.length">
+        <h4>No transactions to display</h4>
+        <button class="btn btn-default"
+                ng-show="device.canHideAccount(account)"
+                ng-click="hideAccount()"
+          >Hide this account</button>
+      </div>
 
-    <div class="txlist-empty text-center text-muted"
-         ng-show="account.transactions != null && !account.transactions.length">
-      <h4>No transactions to display</h4>
-      <button class="btn btn-default"
-              ng-show="device.canHideAccount(account)"
-              ng-click="hideAccount()"
-        >Hide this account</button>
+      <div class="txlist-loading text-center text-muted"
+           ng-show="account.transactions == null">
+        <span class="icon-loading" title="Loading transactions..."></span>
+      <div>
     </div>
-
-    <div class="txlist-loading text-center text-muted"
-         ng-show="account.transactions == null">
-      <span class="icon-loading" title="Loading transactions..."></span>
-    <div>
-
   </div>
 </div>

@@ -120,6 +120,10 @@ a .icon-loading,
   color: #FFFFFF;
 }
 
+.text-monospace {
+  font-family: monospace;
+}
+
 /* Animations */
 
 .modal-backdrop.am-fade {
@@ -204,17 +208,13 @@ body {
   padding-top: 20px;
 }
 
-.page-content {
-}
-
 .page-footer {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  height: 6em;
-  padding: 1.5em 0;
-  text-align: center;
+  height: 5em;
+  padding-left: 30px;
   color: #999;
   font-size: smaller;
 }
@@ -244,6 +244,9 @@ body {
 
 .nav-devices .active {
   background: rgba(66, 139, 202, 0.1);
+}
+.nav-devices .btn {
+  margin-left: 3px;
 }
 
 .dev-status {
@@ -335,51 +338,33 @@ body {
   padding-left: 16px !important;
 }
 
-.txlist-tx {
-  cursor: pointer;
+.table tbody .txlist-tx td {
+  line-height: 27px;
 }
 
-.table-hover .txlist-detail:hover td {
-  background: transparent !important;
-}
-
-.txlist-detail {
-}
-
-.txlist-detail dl {
-  margin-bottom: 0;
-}
-
-.txlist-detail td {
-  padding: 10px 12px !important;
-}
-
-.txlist-detail dt {
-  width: 144px;
-  opacity: 0.5;
-  font-weight: normal;
-}
-
-.txlist-address {
-  font-family: monospace;
-}
-
-.txlist-amount {
-  font-family: monospace;
-}
-
+.txlist-address,
+.txlist-amount,
 .txlist-balance {
   font-family: monospace;
 }
 
 .txlist-hash {
-  font-family: monospace;
+  padding-left: 0.5em;
+}
+.txlist-hash .btn {
+  top: -1px;
 }
 
 /* Device send/receive nav */
 
-.nav-sendrecv {
-  margin-bottom: 20px;
+.tab-content {
+  border: 1px solid #ddd;
+  border-top: 0;
+  padding: 20px;
+  padding-bottom: 5px;
+}
+.tab-content .row {
+  padding-bottom: 20px;
 }
 
 /* Receive */
@@ -398,6 +383,28 @@ body {
   color: hsl(208, 40%, 43%);
   background-color: hsla(208, 56%, 53%, 0.2);
   border-color: hsla(208, 56%, 53%, 0.5);
+}
+
+.address-list-toggleused {
+  padding-top: 8px;
+  padding-right: 1px;
+}
+
+.address-qr-link {
+  display: block;
+  float: left;
+  margin-top: -4px;
+  margin-left: -4px;
+  border: 4px solid transparent;
+  margin-bottom: 1em;
+}
+.address-qr-link:hover,
+.address-qr-link:focus,
+.address-qr-link:active {
+  border-color: #428BCA;
+}
+.address-qr-link canvas {
+  display: block;
 }
 
 /* Send */

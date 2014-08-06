@@ -54,6 +54,36 @@ angular.module('webwalletApp').constant('config', {
     Testnet: 1
   },
 
+  // coin name -> block explorer
+  // Transaction hash will be appended to the block explorer URL.
+  blockExplorers: {
+    Bitcoin: {
+      urlTx: 'https://blockchain.info/tx/',
+      urlAddress: 'https://blockchain.info/address/',
+      name: 'Blockchain'
+    },
+    // Bitcoin: {
+    //   urlTx: 'http://live.insight.is/tx/',
+    //   urlAddress: 'http://live.insight.is/address/',
+    //   name: 'Insight'
+    // },
+    // Bitcoin: {
+    //   urlTx: 'https://blockr.io/tx/info/',
+    //   urlAddress: 'https://blockr.io/address/info/',
+    //   name: 'Blockr'
+    // },
+    // Testnet: {
+    //   url: 'http://test-insight.bitpay.com/tx/',
+    //   urlAddress: 'http://test-insight.bitpay.com/address/',
+    //   name: 'Insight'
+    // }
+    Testnet: {
+      urlTx: 'https://tbtc.blockr.io/tx/info/',
+      urlAddress: 'https://tbtc.blockr.io/address/info/',
+      name: 'Blockr'
+    }
+  },
+
   useBip44: true
 
 });
