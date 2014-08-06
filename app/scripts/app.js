@@ -77,27 +77,6 @@ angular.element(document).ready(function () {
 
   registerUriHandler();
 
-  /**
-   * Register Bitcoin URI handler
-   */
-  function registerUriHandler() {
-    var URI_PROTOCOL = 'bitcoin',
-        URI_TEMPLATE = '/#/send/%s',
-        URI_NAME = 'MyTrezor: Send Bitcoins to address',
-        url;
-
-    url = location.protocol + '//' + location.host + URI_TEMPLATE;
-    if (navigator.registerProtocolHandler &&
-        (!navigator.isProtocolHandlerRegistered ||
-        !navigator.isProtocolHandlerRegistered(URI_PROTOCOL, url))) {
-      navigator.registerProtocolHandler(
-        URI_PROTOCOL,
-        url,
-        URI_NAME
-      );
-    }
-  }
-
   function acquireTransport() {
     return trezor.HttpTransport.connect(bridgeUrl)
       .then(
@@ -138,5 +117,26 @@ angular.element(document).ready(function () {
       .value('trezorApi', window.trezor)
       .value('trezorError', error);
     angular.bootstrap(container, ['errorApp']);
+  }
+
+  /**
+   * Register Bitcoin URI handler
+   */
+  function registerUriHandler() {
+    var URI_PROTOCOL = 'bitcoin',
+        URI_TEMPLATE = '/#/send/%s',
+        URI_NAME = 'MyTrezor: Send Bitcoins to address',
+        url;
+
+    url = location.protocol + '//' + location.host + URI_TEMPLATE;
+    if (navigator.registerProtocolHandler &&
+        (!navigator.isProtocolHandlerRegistered ||
+         !navigator.isProtocolHandlerRegistered(URI_PROTOCOL, url))) {
+      navigator.registerProtocolHandler(
+        URI_PROTOCOL,
+        url,
+        URI_NAME
+      );
+    }
   }
 });
