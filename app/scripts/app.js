@@ -33,8 +33,19 @@ angular.module('webwalletApp', [
       .when('/device/:deviceId/account/:accountId/send', {
         templateUrl: 'views/account/send.html'
       })
+      .when('/device/:deviceId/account/:accountId/send/:output', {
+        templateUrl: 'views/account/send.html'
+      })
+      .when('/device/:deviceId/account/:accountId/send/:output/amount/:amount', {
+        templateUrl: 'views/account/send.html'
+      })
       .when('/device/:deviceId/account/:accountId/receive', {
         templateUrl: 'views/account/receive.html'
+      })
+      .when('/send/:uri', {
+        resolve: {
+          uriRedirect: 'uriRedirect'
+        }
       })
       .otherwise({
         redirectTo: '/'
@@ -49,6 +60,28 @@ angular.element(document).ready(function () {
   window.trezor.load({ configUrl: config.pluginConfigUrl })
     .then(webwalletApp)
     .catch(errorApp);
+
+  /**
+   * Register Bitcoin URI handler
+   */
+  function registerUriHandler() {
+    var URI_PROTOCOL = 'bitcoin',
+        URI_TEMPLATE = '/#/send/%s',
+        URI_NAME = 'MyTrezor: Send Bitcoins to address',
+        url;
+
+    url = location.protocol + '//' + location.host + URI_TEMPLATE;
+    if (navigator.registerProtocolHandler &&
+        (!navigator.isProtocolHandlerRegistered ||
+        !navigator.isProtocolHandlerRegistered(URI_PROTOCOL, url))) {
+      navigator.registerProtocolHandler(
+        URI_PROTOCOL,
+        url,
+        URI_NAME
+      );
+    }
+  }
+  registerUriHandler();
 
   function webwalletApp(trezorObject) {
     var container = document.getElementById('webwalletApp-container'),

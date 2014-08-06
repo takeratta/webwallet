@@ -3,12 +3,33 @@
 angular.module('webwalletApp')
   .controller('AccountSendCtrl', function (
     flash, storage, utils,
-    $filter, $log, $scope, $rootScope, $location) {
+    $filter, $log, $scope, $rootScope, $location, $routeParams) {
 
-    var STORAGE_TXVALUES = 'trezorSendValues';
+    var STORAGE_TXVALUES = 'trezorSendValues',
+        values,
+        output;
+
+    /*
+     * If a transaction output was specified in an HTTP GET param, use that
+     * value first.  Otherwise load previously filled output values from
+     * localStorage.
+     */
+    if ($routeParams.output) {
+      output = {
+        address: $routeParams.output
+      };
+      if ($routeParams.amount) {
+        output.amount = $routeParams.amount;
+      }
+      values = {
+        outputs: [output]
+      };
+    } else {
+      values = restoreTxValues();
+    }
 
     $scope.tx = {
-      values: restoreTxValues(),
+      values: values,
       prepared: null,
       error: null,
       fee: null

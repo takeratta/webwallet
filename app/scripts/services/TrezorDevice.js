@@ -224,6 +224,15 @@ angular.module('webwalletApp')
       return _.find(this.accounts, { id: id });
     };
 
+    /**
+     * Get the default account
+     *
+     * That is currently the first device.
+     */
+    TrezorDevice.prototype.getDefaultAccount = function () {
+      return this.accounts[0];
+    };
+
     TrezorDevice.prototype.accountPath = function (id, coin) {
       if (config.useBip44) {
         return [

@@ -28,6 +28,15 @@ angular.module('webwalletApp')
       return _.find(self.devices, { id: id });
     };
 
+    /**
+     * Get the default device
+     *
+     * That is currently the first device.
+     */
+    self.getDefaultDevice = function () {
+      return self.devices[0];
+    }
+
     // remove device from the dev list and storage
     self.forget = function (dev) {
       dev.disconnect();
