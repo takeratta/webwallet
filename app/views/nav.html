@@ -43,7 +43,8 @@
 
     <ul class="nav nav-devices-accounts">
       <!-- Account -->
-      <li ng-repeat="account in device.accounts">
+      <li ng-repeat="account in device.accounts"
+          ng-class="{ disabled: account.balance == null }">
         <a ng-href="#/device/{{device.id}}/account/{{account.id}}{{account.isEmpty()?'/receive':''}}"
            ng-class="{ active: isActive('/device/{{device.id}}/account/{{account.id}}') }"
           >{{account.label()}}
