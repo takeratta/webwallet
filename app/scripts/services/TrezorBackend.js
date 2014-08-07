@@ -135,14 +135,11 @@ angular.module('webwalletApp')
 
     // POST
 
-    TrezorBackend.prototype.send = function (rawTx) {
-      var txbytes = utils.hexToBytes(rawTx),
-          txhash = utils.sha256x2(txbytes, { asBytes: true });
-
-      $log.log('[backend] Sending', rawTx);
+    TrezorBackend.prototype.send = function (txBytes, txHash) {
+      $log.log('[backend] Sending', txBytes);
       return $http.post(this._apiUrl('send'), {
-        transaction: utils.bytesToBase64(txbytes),
-        transactionHash: utils.bytesToBase64(txhash)
+        transaction: utils.bytesToBase64(txBytes),
+        transactionHash: utils.bytesToBase64(txHash)
       });
     };
 

@@ -177,15 +177,23 @@ angular.module('webwalletApp')
         return device.signTx(tx, txs, self.coin).then(function (res) {
           var message = res.message,
               serializedTx = message.serialized.serialized_tx,
-              parsedTx = self._serializedToTx(serializedTx);
+              parsedTx = self._serializedToTx(serializedTx),
+              txBytes,
+              txHash;
 
           if (!parsedTx)
             throw new Error('Failed to parse signed transaction');
 
           if (!self._verifyTx(tx, parsedTx))
-            throw new Error('Failed to verify signed transaction');
+              throw new Error('Failed to verify signed transaction');
 
-          return self._backend.send(serializedTx);
+          txBytes = utils.hexToBytes(serializedTx);
+          txHash = utils.sha256x2(txBytes, { asBytes: true });
+          parsedTx.hash = txHash;
+
+          return self._backend.send(txBytes, txHash).then(function (res) {
+            return parsedTx;
+          });
         });
       });
     };

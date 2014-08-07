@@ -228,7 +228,7 @@ angular.module('webwalletApp')
       $scope.outputIndex = 0;
 
       $scope.account.sendTx(tx, $scope.device).then(
-        function () {
+        function (tx) {
           var off;
 
           cancelTxValues();
@@ -238,6 +238,7 @@ angular.module('webwalletApp')
             '/account/' + $scope.account.id);
 
           off = $rootScope.$on('$locationChangeSuccess', function () {
+            var hash = tx.hash;
             flash.success('Transaction successfully sent.');
             off();
           });
