@@ -72,9 +72,6 @@
                   role="button"
                   title="Transaction info at {{blockExplorer.name}}"></a>
               </span>
-              <debug>
-                <pre>{{tx | json}}</pre>
-              </debug>
             </td>
             <td class="txlist-amount"
                 ng-class="{ 'text-success': tx.analysis.impact.sign > 0,
