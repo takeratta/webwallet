@@ -1,5 +1,42 @@
 /*global angular*/
 
+/**
+ * Flash Messages
+ *
+ * Usage Examples
+ *
+ * 1. Simple success message
+ *
+ * flash('My success message');
+ *
+ * 2. Error message
+ *
+ * flash('error', 'My error message');
+ *
+ * or
+ *
+ * flash.error('My error message');
+ *
+ * 3. Message with a custom template:
+ *
+ * flash.warning({
+ *   template: 'Angular template as string <strong>{{foo}}</strong> {{bar}}.',
+ *   foo: 'Foooo',
+ *   bar: 'bar baz'
+ * });
+ *
+ * 4. List of messages
+ *
+ * flash(
+ *   [
+ *     'My success message',
+ *     {
+ *       level: 'error',
+ *       info: 'My info message'
+ *     }
+ *   ]
+ * );
+ */
 angular.module('webwalletApp')
   .factory('flash', function($rootScope, $timeout, $interpolate) {
     'use strict';
