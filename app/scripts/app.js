@@ -4,6 +4,7 @@ angular.module('errorApp', []);
 
 angular.module('webwalletApp', [
   'ngRoute',
+  'ngSanitize',
   'ui.bootstrap',
   'ja.qr'
 ])

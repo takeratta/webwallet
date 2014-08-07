@@ -1,42 +1,60 @@
-'use strict';
+/*global angular*/
 
 angular.module('webwalletApp')
-  .factory('flash', function($rootScope, $timeout) {
-    var messages = [];
+  .factory('flash', function($rootScope, $timeout, $interpolate) {
+    'use strict';
 
-    var reset;
-    var cleanup = function() {
+    var messages = [],
+        reset;
+
+    function cleanup() {
       $timeout.cancel(reset);
       reset = $timeout(function() { messages = []; });
-    };
+    }
 
-    var emit = function() {
+    function emit() {
       $rootScope.$emit('flash:message', messages, cleanup);
-    };
+    }
 
     $rootScope.$on('$locationChangeSuccess', emit);
 
-    var asMessage = function(level, text) {
+    function asMessage(level, text) {
       if (!text) {
         text = level;
         level = 'success';
+      } else if (text.template) {
+        return {
+          html: $interpolate(text.template)(text),
+          level: level
+        };
       }
-      return { level: level, text: text };
-    };
+      return {
+        level: level,
+        text: text
+      };
+    }
 
-    var asArrayOfMessages = function(level, text) {
-      if (level instanceof Array) return level.map(function(message) {
-        return message.text ? message : asMessage(message);
-      });
-      return text ? [{ level: level, text: text }] : [asMessage(level)];
-    };
+    function asArrayOfMessages(level, text) {
+      if (level instanceof Array) {
+        return level.map(function(message) {
+          if (message.level || message.text) {
+            return asMessage(message.level, message.text);
+          }
+          return asMessage(message);
+        });
+      }
+      return [asMessage(level, text)];
+    }
 
-    var flash = function(level, text) {
-      emit(messages = asArrayOfMessages(level, text));
+    var flash = function (level, text) {
+      messages = asArrayOfMessages(level, text);
+      emit(messages);
     };
 
     ['error', 'warning', 'info', 'success'].forEach(function (level) {
-      flash[level] = function (text) { flash(level, text); };
+      flash[level] = function (text) {
+        flash(level, text);
+      };
     });
 
     return flash;
@@ -52,13 +70,7 @@ angular.module('webwalletApp')
       },
       restrict: 'EA',
       replace: true,
-      template:
-        '<div ng-repeat="m in messages"' +
-        '     ng-switch="m.level">' +
-        '  <div class="alert alert-flash alert-danger"' +
-        '       ng-switch-when="error"><h4 class="text-capitals">{{m.level}}!</h4> {{m.text}}</div>' +
-        '  <div class="alert alert-flash alert-{{m.level}}"' +
-        '       ng-switch-default><h4 class="text-capitals">{{m.level}}</h4> {{m.text}}</div>' +
-        '</div>'
+      template: '<span ng-transclude></span>',
+      transclude: true
     };
   });

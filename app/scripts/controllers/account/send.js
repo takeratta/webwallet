@@ -1,9 +1,10 @@
-'use strict';
+/*global angular*/
 
 angular.module('webwalletApp')
   .controller('AccountSendCtrl', function (
-    flash, storage, utils,
-    $filter, $log, $scope, $rootScope, $location, $routeParams) {
+    flash, storage, utils, config,
+    $filter, $scope, $rootScope, $location, $routeParams) {
+    'use strict';
 
     var STORAGE_TXVALUES = 'trezorSendValues',
         values,
@@ -238,8 +239,15 @@ angular.module('webwalletApp')
             '/account/' + $scope.account.id);
 
           off = $rootScope.$on('$locationChangeSuccess', function () {
-            var hash = tx.hash;
-            flash.success('Transaction successfully sent.');
+            var hash = utils.bytesToHex(tx.hash);
+            flash.success(
+              {
+                template: 'Transaction <a href="{{url}}" target="_blank" title="Transaction info at {{title}}">{{hash}}</a> was successfully sent.',
+                hash: hash,
+                url: config.blockExplorers[config.coin].urlTx + hash,
+                title: config.blockExplorers[config.coin].name
+              }
+            );
             off();
           });
         },

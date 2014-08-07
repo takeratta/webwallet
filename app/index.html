@@ -61,7 +61,23 @@
 
           <!-- Content view -->
           <div class="page-content col-md-9">
-            <flash-messages></flash-messages>
+            <flash-messages>
+                <div ng-repeat="m in messages"
+                     ng-switch="m.level">
+                  <div class="alert alert-flash alert-danger"
+                       ng-switch-when="error">
+                    <h4 class="text-capitals">{{m.level}}!</h4>
+                    {{m.text}}
+                    <span ng-if="m.html" ng-bind-html="m.html"></span>
+                  </div>
+                  <div class="alert alert-flash alert-{{m.level}}"
+                       ng-switch-default>
+                    <h4 class="text-capitals">{{m.level}}</h4>
+                    {{m.text}}
+                    <span ng-if="m.html" ng-bind-html="m.html"></span>
+                  </div>
+                </div>
+            </flash-messages>
             <div ng-view></div>
           </div>
         </div>
@@ -110,6 +126,7 @@
     <script src="bower_components/angular-qr/angular-qr.js"></script>
     <script src="bower_components/angular-route/angular-route.js"></script>
     <script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.js"></script>
+    <script src="bower_components/angular-sanitize/angular-sanitize.js"></script>
     <!-- bootstrap modules -->
     <script src="bower_components/bootstrap/js/alert.js"></script>
     <script src="bower_components/bootstrap/js/button.js"></script>
