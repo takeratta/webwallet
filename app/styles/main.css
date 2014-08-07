@@ -77,6 +77,11 @@ a .icon-loading,
   opacity: 0.3;
 }
 
+.alert .text-monospace {
+  display: inline-block;
+  word-break: break-all;
+}
+
 .modal-footer {
   margin-top: 0;
 }

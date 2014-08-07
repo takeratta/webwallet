@@ -251,9 +251,25 @@ angular.module('webwalletApp')
             off();
           });
         },
-        function (err) {
+        function (tx) {
           $scope.sending = false;
-          flash.error(err.message || 'Failed to send transaction.');
+
+          var bytes = utils.bytesToHex(tx.bytes);
+          flash.error(
+            {
+              template: [
+                'Failed to send transaction. {{message}}<br><br>',
+                'Raw transaction in hex format:<br>',
+                '<span class="text-monospace">{{bytes}}</span><br>',
+                'You can try to resend this transaction using',
+                '<a href="https://blockchain.info/pushtx" target="_blank">',
+                'Blockchain.info\'s Broadcast Transaction tool</a>.'
+              ].join('\n'),
+              bytes: bytes,
+              message: tx.message,
+              show_raw_tx: false
+            }
+          );
         }
       );
     };

@@ -189,9 +189,13 @@ angular.module('webwalletApp')
 
           txBytes = utils.hexToBytes(serializedTx);
           txHash = utils.sha256x2(txBytes, { asBytes: true });
+          parsedTx.bytes = txBytes;
           parsedTx.hash = txHash;
 
           return self._backend.send(txBytes, txHash).then(function (res) {
+            return parsedTx;
+          }, function (res) {
+            parsedTx.message = res.message;
             return parsedTx;
           });
         });
