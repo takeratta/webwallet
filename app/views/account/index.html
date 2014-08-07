@@ -32,8 +32,6 @@
         </thead>
         <tbody>
           <tr class="txlist-tx"
-              ng-mouseenter="tx.active = true"
-              ng-mouseleave="tx.active = false"
               ng-repeat="tx in account.transactions">
             <td class="txlist-date"
                 ng-if="tx.block">
@@ -64,14 +62,10 @@
               <span class="text-muted" ng-switch-default>
                 <span class="glyphicon glyphicon-question-sign"></span> Unknown
               </span>
-              <span class="txlist-hash"
-                  ng-show="tx.active"
-                  ng-animate="'txlist-detail'">
-                <a class="btn btn-primary glyphicon glyphicon-info-sign"
-                  target="_blank" href="{{blockExplorer.urlTx}}{{tx.hash}}"
-                  role="button"
-                  title="Transaction info at {{blockExplorer.name}}"></a>
-              </span>
+              <a href="{{blockExplorer.urlTx}}{{tx.hash}}"
+                 class="txlist-hash text-muted glyphicon glyphicon-info-sign"
+                 target="_blank"
+                 title="Transaction info at {{blockExplorer.name}}"></a>
             </td>
             <td class="txlist-amount"
                 ng-class="{ 'text-success': tx.analysis.impact.sign > 0,

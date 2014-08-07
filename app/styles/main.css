@@ -338,10 +338,6 @@ body {
   padding-left: 16px !important;
 }
 
-.table tbody .txlist-tx td {
-  line-height: 27px;
-}
-
 .txlist-address,
 .txlist-amount,
 .txlist-balance {
@@ -349,10 +345,13 @@ body {
 }
 
 .txlist-hash {
+  display: none;
   padding-left: 0.5em;
+  top: 2px;
 }
-.txlist-hash .btn {
-  top: -1px;
+
+.txlist-tx:hover .txlist-hash {
+  display: inline;
 }
 
 /* Device send/receive nav */
