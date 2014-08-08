@@ -1,5 +1,7 @@
 /*global angular*/
 
+'use strict';
+
 angular.module('webwalletApp')
   .controller('AccountSendCtrl', function (
     flash, storage, utils, config,

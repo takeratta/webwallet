@@ -1,5 +1,7 @@
 /*global angular*/
 
+'use strict';
+
 /**
  * Flash Messages
  *
