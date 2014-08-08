@@ -333,16 +333,9 @@ angular.module('webwalletApp')
 
         return self._session.getPublicKey(verPath).then(function (res) {
           var verNode = res.message.node,
-              compVerNode = accNode,
-              verXpub,
-              compVerXpub;
-
-          verSuffix.forEach(function (i) {
-            compVerNode = trezor.deriveChildNode(compVerNode, i);
-          });
-
-          verXpub = utils.node2xpub(verNode);
-          compVerXpub = utils.node2xpub(compVerNode);
+              compVerNode = derivePath(accNode, verPath),
+              verXpub = utils.node2xpub(verNode),
+              compVerXpub = utils.node2xpub(compVerNode);
 
           if (verXpub !== compVerXpub)
             throw new Error('Invalid public key transmission detected - ' +
@@ -354,6 +347,12 @@ angular.module('webwalletApp')
           return new TrezorAccount(id, coin, accNode);
         });
       });
+
+      function derivePath(node, path) {
+        return path.reduce(function (n, i) {
+          return trezor.deriveChildNode(n, i);
+        }, node);
+      }
     };
 
     //
