@@ -322,7 +322,14 @@ angular.module('webwalletApp')
           verPath = accPath.concat(verSuffix);
 
       return this._session.getPublicKey(accPath).then(function (res) {
-        var accNode = res.message.node;
+        var accNode = res.message.node,
+            accXpub = utils.node2xpub(accNode);
+
+        if (accNode.xpub && accNode.xpub !== accXpub)
+          throw new Error('Invalid public key transmission detected - ' +
+                          'invalid xpub check. ' +
+                          'Key: ' + accXpub + ', ' +
+                          'Received: ' + accNode.xpub);
 
         return self._session.getPublicKey(verPath).then(function (res) {
           var verNode = res.message.node,
@@ -337,12 +344,12 @@ angular.module('webwalletApp')
           verXpub = utils.node2xpub(verNode);
           compVerXpub = utils.node2xpub(compVerNode);
 
-          if (verXpub !== compVerXpub) {
-            throw new Error('Invalid public key transmission detected. ' +
-                            'Key: ' + utils.node2xpub(accNode) + ', ' +
+          if (verXpub !== compVerXpub)
+            throw new Error('Invalid public key transmission detected - ' +
+                            'invalid child cross-check. ' +
+                            'Key: ' + accXpub + ', ' +
                             'Computed: ' + compVerXpub + ', ' +
                             'Received: ' + verXpub);
-          }
 
           return new TrezorAccount(id, coin, accNode);
         });
