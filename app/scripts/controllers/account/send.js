@@ -3,7 +3,7 @@
 angular.module('webwalletApp')
   .controller('AccountSendCtrl', function (
     flash, temporaryStorage, utils, config, trezorService,
-    $filter, $scope, $rootScope, $routeParams) {
+    $filter, $scope, $rootScope, $location, $routeParams, $modal) {
     'use strict';
 
     var STORAGE_TXVALUES = 'trezorSendValues';
@@ -191,14 +191,6 @@ angular.module('webwalletApp')
         }, {});
     }
 
-    $scope.scanQr = function (i) {
-      $scope.qr.scanning = true;
-      $scope.qr.outputIndex = i;
-    };
-    $scope.cancelQr = function () {
-      $scope.qr.scanning = false;
-    };
-
     // Output/tx confirmation
 
     $rootScope.$on('modal.button.show', modalShown);
@@ -301,6 +293,10 @@ angular.module('webwalletApp')
       $scope.tx.values.outputs.push({});
     };
 
+    $scope.removeAllOutputs = function (i) {
+      $scope.tx.values.outputs = [{}];
+    };
+
     // Suggest the highest possible amount to pay, taking filled
     // amounts in consideration
 
@@ -349,4 +345,86 @@ angular.module('webwalletApp')
       });
     };
 
+    /**
+     * Scan QR
+     */
+    $scope.scanQr = function (i) {
+      promptQr()
+        .then(function () {
+          $scope.qr.scanning = true;
+          $scope.qr.outputIndex = i;
+        }, function () {
+          $scope.qr.scanning = false;
+        });
+    };
+
+    /**
+     * Prompt QR
+     */
+    function promptQr() {
+      var scope,
+          modal;
+
+      scope = angular.extend($scope.$new(), {});
+
+      modal = $modal.open({
+        templateUrl: 'views/modal/qr.html',
+        size: '',
+        windowClass: '',
+        backdrop: 'static',
+        keyboard: false,
+        scope: scope,
+      });
+      modal.opened.then(function () { scope.$emit('modal.qr.show'); });
+      modal.result.finally(function () { scope.$emit('modal.qr.hide'); });
+
+      return modal.result;
+    }
+
+    /**
+     * Import CSV
+     */
+    $scope.importCsv = function () {
+      promptCsv()
+        .then(function (data) {
+          data = data.replace('\r', '\n').replace('\n\n', '\n');
+          /*
+           * Can't use CSV#forEach() because of a bug in the library:
+           * `data is undefined`.
+           */
+          new CSV(data, {line: '\n'}).parse().forEach(function (line) {
+            $scope.tx.values.outputs.push({
+              address: line[0].toString(),
+              amount: line[1].toString()
+            });
+          });
+        });
+    };
+
+    /**
+     * Prompt CSV
+     */
+    function promptCsv() {
+      var scope,
+          modal;
+
+      scope = angular.extend($scope.$new(), {});
+
+      modal = $modal.open({
+        templateUrl: 'views/modal/csv.html',
+        size: '',
+        windowClass: '',
+        backdrop: 'static',
+        keyboard: false,
+        scope: scope,
+      });
+      modal.opened.then(function () { scope.$emit('modal.csv.show'); });
+      modal.result.finally(function () { scope.$emit('modal.csv.hide'); });
+
+      $scope.$on('qr.address', function () {
+        modal.close();
+      });
+
+      return modal.result;
+    }
   });

@@ -389,7 +389,13 @@ body {
 /* Device send/receive nav */
 
 .tab-content {
-  padding-top: 30px;
+  border: 1px solid #ddd;
+  border-top: 0;
+  padding: 20px;
+  padding-bottom: 5px;
+}
+.tab-content .row {
+  padding-bottom: 16px;
 }
 
 /* Receive */
@@ -451,9 +457,17 @@ body {
   visibility: visible;
 }
 
-.txpreview {
+.tx-preview {
   font-size: 10px;
   word-wrap: break-word;
+  color: #666;
+}
+.tx-preview h4 {
+  font-size: 14px;
+  font-weight: bold;
+  margin-top: 0;
+  padding-bottom: 0.5em;
+  color: #666;
 }
 
 /* Device setup & restore */
@@ -552,4 +566,46 @@ body {
 .btn-back:focus .arrow,
 .btn-back:active .arrow {
   border-right-color: #d9d9d9;
+}
+
+.tx-send {
+  border: 0;
+  padding: 0;
+  padding-top: 1.5em;
+}
+.tx-output {
+}
+.tx-output .form-group {
+  margin-right: 11px;
+}
+.tx-output-add {
+  margin-top: -10px;
+  padding-bottom: 0.5em;
+}
+.tx-output-add button,
+.tx-output-add button:hover,
+.tx-output-add button:focus,
+.tx-output-add button:active {
+  padding: 0;
+  color: #000;
+}
+.tx-output-advanced {
+  padding-top: 0.3em;
+  font-size: 85%;
+}
+.tx-output-advanced a {
+  padding-left: 0.8em;
+}
+.tx-output-add a,
+.tx-output-add a:hover,
+.tx-output-add a:focus,
+.tx-output-add a:active {
+  color: #999;
+}
+
+.tx-submit {
+  margin: 0;
+  margin-top: 0.5em;
+  padding-top: 1em;
+  background: #f5f5f5;
 }
