@@ -318,31 +318,34 @@ angular.module('webwalletApp')
       var self = this,
           coin = this.defaultCoin(),
           accPath = this.accountPath(id, coin),
-          verSuffix = [0],
-          verPath = accPath.concat(verSuffix);
+          vfSuffix = [0],
+          vfPath = accPath.concat(vfSuffix),
+          // device always responds with Bitcoin version
+          version = config.versions.Bitcoin;
 
       return this._session.getPublicKey(accPath).then(function (res) {
         var accNode = res.message.node,
-            accXpub = utils.node2xpub(accNode);
+            compAccXpub = utils.node2xpub(accNode, version),
+            accXpub = accNode.xpub || compAccXpub;
 
-        if (accNode.xpub && accNode.xpub !== accXpub)
+        if (accXpub !== compAccXpub)
           throw new Error('Invalid public key transmission detected - ' +
                           'invalid xpub check. ' +
                           'Key: ' + accXpub + ', ' +
                           'Received: ' + accNode.xpub);
 
-        return self._session.getPublicKey(verPath).then(function (res) {
-          var verNode = res.message.node,
-              compVerNode = derivePath(accNode, verPath),
-              verXpub = utils.node2xpub(verNode),
-              compVerXpub = utils.node2xpub(compVerNode);
+        return self._session.getPublicKey(vfPath).then(function (res) {
+          var vfNode = res.message.node,
+              compVfNode = derivePath(accNode, vfSuffix),
+              vfXpub = utils.node2xpub(vfNode, version),
+              compVfXpub = utils.node2xpub(compVfNode, version);
 
-          if (verXpub !== compVerXpub)
+          if (vfXpub !== compVfXpub)
             throw new Error('Invalid public key transmission detected - ' +
                             'invalid child cross-check. ' +
                             'Key: ' + accXpub + ', ' +
-                            'Computed: ' + compVerXpub + ', ' +
-                            'Received: ' + verXpub);
+                            'Computed: ' + compVfXpub + ', ' +
+                            'Received: ' + vfXpub);
 
           return new TrezorAccount(id, coin, accNode);
         });
