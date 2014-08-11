@@ -15,65 +15,61 @@
 
     <ng-include src="'views/account/nav.html'"></ng-include>
 
-    <div class="tab-content tx-send">
-      <div ng-controller="AccountSendCtrl" class="row">
-        <fieldset ng-disabled="!device.isConnected()"
-                  class="overlay-container col-md-8">
-          <form name="form"
-                class="form-horizontal"
-                ng-submit="send()">
-
-            <div class="panel panel-default tx-output"
+    <div ng-controller="AccountSendCtrl">
+      <form name="form" class="form-inline"
+          ng-submit="send()"
+          ng-disabled="device.status() !== 'connected'">
+        <div class="tab-content tx-send">
+          <fieldset ng-disabled="!device.isConnected()"
+              class="overlay-container">
+            <div class="row tx-output"
                 ng-repeat="output in tx.values.outputs">
-              <div class="panel-body">
-                <button type="button" class="close"
+              <div class="col-md-6">
+                <label for="address">Address</label>
+                <div class="input-with-icon">
+                  <input id="address" class="form-control" type="text"
+                      ng-model="output.address"
+                      typeahead="
+                      address.address as address.label
+                      for address in suggestAddresses() | filter:$viewValue"
+                      size=33
+                      required>
+                  <a href=""
+                     class="glyphicon glyphicon-qrcode input-icon text-muted"
+                     tooltip="Scan QR code"
+                     ng-click="scanQr($index)"
+                     ng-show="!output.address && !qr.scanning && qr.enabled"></a>
+                </div>
+              </div>
+              <div class="col-md-5">
+                <label for="amount">Send {{account.coin.coin_shortcut}}</label>
+                <input id="amount" class="form-control" type="text"
+                    ng-model="output.amount"
+                    required
+                    size=5>
+                <!-- <a href=""
+                class="glyphicon glyphicon-upload input-icon text-muted"
+                tooltip="Send all {{ account.coin.coin_shortcut }} from {{ account.label() }}"
+                ng-click="output.amount = suggestAmount()"
+                ng-show="!output.amount"></a> -->
+                <span class="text-danger form-control-static">
+                  {{output.error}}
+                </span>
+              </div>
+              <div class="col-md-1">
+                <button type="button" class="btn btn-sm btn-link pull-right"
                     ng-click="removeOutput($index)"
                     ng-disabled="qr.scanning"
                     ng-show="tx.values.outputs.length > 1"
                     tooltip="Remove recipient">
-                  <span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+                  <span class="glyphicon glyphicon-remove"></span>
+                  <span class="sr-only">Remove</span>
                 </button>
-                <div class="form-group">
-                  <label for="address" class="control-label col-sm-3">Address:</label>
-                  <div class="col-sm-9">
-                    <input id="address" class="form-control" type="text"
-                           ng-model="output.address"
-                           typeahead="
-                           address.address as address.label
-                           for address in suggestAddresses() | filter:$viewValue"
-                           required>
-                    <a href=""
-                       class="glyphicon glyphicon-qrcode input-icon text-muted"
-                       tooltip="Scan QR code"
-                       ng-click="scanQr($index)"
-                       ng-show="!output.address && !qr.scanning && qr.enabled"></a>
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label for="amount" class="control-label col-sm-3">
-                    Send {{account.coin.coin_shortcut}}:
-                  </label>
-                  <div class="col-sm-4">
-                    <input id="amount" class="form-control" type="text"
-                           ng-model="output.amount"
-                           required>
-                    <!-- <a href=""
-                    class="glyphicon glyphicon-upload input-icon text-muted"
-                    tooltip="Send all {{ account.coin.coin_shortcut }} from {{ account.label() }}"
-                    ng-click="output.amount = suggestAmount()"
-                    ng-show="!output.amount"></a> -->
-                  </div>
-                  <div class="col-md-5">
-                    <p class="text-danger form-control-static">
-                      {{output.error}}
-                    </p>
-                  </div>
-                </div>
               </div>
             </div>
 
-            <div class="row tx-output-add">
-              <div class="col-sm-12">
+            <div class="tx-output-add">
+              <div class="btn-group">
                 <span tooltip="Please connect your device to send coins."
                       tooltip-trigger="{{
                         device.status() !== 'connected'
@@ -88,49 +84,30 @@
                   </button>
                 </span>
                 <button type="button"
-                  class="btn btn-link"
+                  class="btn btn-default dropdown-toggle"
                   ng-disabled="qr.scanning"
-                  ng-click="addOutput()"
-                  tooltip="Add recipient">
+                  ng-click="addOutput()">
                   <span class="glyphicon glyphicon-plus"></span>
+                  More please
                 </button>
-                <p class="tx-output-advanced pull-right">
-                  <a href="javascript:void(0)"
-                      ng-click="removeAllOutputs()"
-                      ng-show="tx.values.outputs.length > 1"
-                      tooltip="Remove all addresses">
-                    Remove all
-                    <span class="glyphicon glyphicon-remove"></span>
-                  </a>
-                  <a href="javascript:void(0)"
-                      ng-click="importCsv()"
-                      tooltip="Import addresses from a CSV file">
-                    Import CSV
-                    <span class="glyphicon glyphicon-import"></span>
-                  </a>
-                </p>
-              </div>
-            </div>
-
-            <div class="row tx-submit">
-              <div class="col-sm-3">
-                <a href="#/device/{{device.id}}/account/{{account.id}}"
-                   class="btn btn-default"
-                   ng-click="cancelTxValues()">
-                  Cancel
-                </a>
-              </div>
-              <div class="col-sm-5">
-                <p class="form-control-static text-danger" ng-show="tx.error">
-                  {{tx.error}}
-                </p>
-              </div>
-              <div class="col-sm-4 text-right">
-                <button type="submit" class="btn btn-primary"
-                    ng-disabled="!tx.prepared">
-                  Send
-                  <span class="glyphicon glyphicon-chevron-right"></span>
+                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                  <span class="caret"></span>
+                  <span class="sr-only">Toggle Dropdown</span>
                 </button>
+                <ul class="dropdown-menu" role="menu">
+                  <li ng-show="tx.values.outputs.length > 1">
+                    <a href="javascript:void(0)"
+                        ng-click="removeAllOutputs()">
+                      Remove all
+                    </a>
+                  </li>
+                  <li>
+                    <a href="javascript:void(0)"
+                        ng-click="importCsv()">
+                      Import CSV
+                    </a>
+                  </li>
+                </ul>
               </div>
             </div>
 
@@ -144,37 +121,61 @@
               </div>
             </div>
 
-        </fieldset>
+            <debug>
+              <pre>{{ tx | json }}</pre>
+            </debug>
+          </fieldset>
+        </div>
 
-        <div class="col-md-4"
-            ng-if="tx.prepared">
-          <div class="well tx-preview">
-            <h4>Transaction Preview</h4>
-            <h5>Fee</h5>
-            <span tooltip="The transaction fee is calculated automatically."
-                  tooltip-placement="bottom"
-                  tooltip-append-to-body="true">
-              {{tx.fee}} {{account.coin.coin_shortcut}}
-            </span>
-
-            <h5>Inputs</h5>
-            <ol class="list-unstyled">
-              <li ng-repeat="input in tx.prepared.inputs">
-                {{input.prev_hash.substr(0, 31)}}&#8203;{{input.prev_hash.substr(31)}}:{{input.prev_index}}
-              </li>
-            </ol>
-
-            <h5>Outputs</h5>
-            <ol class="list-unstyled">
-              <li ng-repeat="output in tx.prepared.outputs">
-                <strong>{{output.amount | amount}} {{account.coin.coin_shortcut}}</strong><br>
-                <span ng-if="output.address">{{output.address}}</span>
-                <span ng-if="output.address_n">{{output.address_n | bip32Path}}</span>
-              </li>
-            </ol>
+        <div class="row tx-submit">
+          <div class="col-sm-6">
+            <a href="#/device/{{device.id}}/account/{{account.id}}"
+               class="btn btn-default"
+               ng-click="cancelTxValues()">
+              Cancel
+            </a>
+          </div>
+          <div class="col-sm-3">
+            <p class="form-control-static text-danger" ng-show="tx.error">
+              {{tx.error}}
+            </p>
+          </div>
+          <div class="col-sm-3 text-right">
+            <button type="submit" class="btn btn-primary"
+                ng-disabled="!tx.prepared">
+              Send
+              <span class="glyphicon glyphicon-chevron-right"></span>
+            </button>
           </div>
         </div>
-      </div>
+
+        <div class="well tx-preview"
+            ng-if="tx.prepared">
+          <h4>Transaction Preview</h4>
+          <h5>Fee</h5>
+          <span tooltip="The transaction fee is calculated automatically."
+                tooltip-placement="bottom"
+                tooltip-append-to-body="true">
+            {{tx.fee}} {{account.coin.coin_shortcut}}
+          </span>
+
+          <h5>Inputs</h5>
+          <ol class="list-unstyled">
+            <li ng-repeat="input in tx.prepared.inputs">
+              {{input.prev_hash.substr(0, 31)}}&#8203;{{input.prev_hash.substr(31)}}:{{input.prev_index}}
+            </li>
+          </ol>
+
+          <h5>Outputs</h5>
+          <ol class="list-unstyled">
+            <li ng-repeat="output in tx.prepared.outputs">
+              <strong>{{output.amount | amount}} {{account.coin.coin_shortcut}}</strong><br>
+              <span ng-if="output.address">{{output.address}}</span>
+              <span ng-if="output.address_n">{{output.address_n | bip32Path}}</span>
+            </li>
+          </ol>
+        </div>
+      </form>
     </div>
   </div>
 </div>
