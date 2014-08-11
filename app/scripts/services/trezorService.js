@@ -2,10 +2,16 @@
 
 angular.module('webwalletApp')
   .service('trezorService', function TrezorService(
-    utils, config, storage, trezor, trezorApi, firmwareService, TrezorDevice,
+    utils, config, storage,
+    trezor, trezorApi, trezorError, firmwareService, TrezorDevice,
     _, $modal, $q, $location, $rootScope) {
 
     'use strict';
+
+    if (trezorError) {
+      $rootScope.error = trezorError;
+      return;
+    }
 
     var self = this,
         STORAGE_DEVICES = 'trezorServiceDevices',

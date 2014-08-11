@@ -15,18 +15,19 @@
   </head>
   <body>
     <!--[if lt IE 9]>
-      <div class="browsehappy alert alert-warning">
-        <h4>You are using an <strong>outdated</strong> browser.</h4>
-        Please <a href="http://browsehappy.com">upgrade your browser</a>
-        to improve your experience.
-      </div>
+    <div class="browsehappy alert alert-warning">
+      <h4>You are using an <strong>outdated</strong> browser.</h4>
+      Please <a href="http://browsehappy.com">upgrade your browser</a>
+      to improve your experience.
+    </div>
     <![endif]-->
 
     <div class="page-header navbar navbar-inverse navbar-static-top">
       <div class="container">
         <div class="navbar-header">
-          <a class="navbar-brand" href="/"
-            ><img src="images/logo.png" height="45" alt="myTREZOR Web Wallet"></a>
+          <a class="navbar-brand" href="/">
+            <img src="images/logo.png" height="45" alt="myTREZOR Web Wallet">
+          </a>
         </div>
         <ul class="nav navbar-nav navbar-right">
           <li class="active"><a href="#">Wallet</a></li>
@@ -39,82 +40,88 @@
 
     <!-- Webwallet Application -->
     <div id="webwalletApp-container"
-         ng-cloak>
+      ng-cloak>
 
-      <!-- Bar shown when using the plugin transport -->
-      <div class="alert alert-warning alertbar"
-           ng-if="usingPluginTransport">
-        <div class="container">
-          <div class="form-inline">
-            <strong>Plugin is deprecated.</strong>
-            Long live the bridge! New and shiny, just for you.
-            <a class="btn btn-warning"
-               ng-href="{{ selectedInstaller.url }}">
-              <span class="glyphicon glyphicon-download"></span> Download
-            </a>
-            <select class="form-control"
-                    placeholder="Select platform..."
-                    ng-model="selectedInstaller"
-                    ng-options="
-                    installer as 'for ' + installer.label
-                    for installer
-                    in installers
-                    track by installer.platform">
-            </select>
-          </div>
+      <!-- Error -->
+      <div ng-controller="ErrorCtrl"
+        ng-if="error"
+        ng-cloak>
+        <div class="page-container container">
+          <ng-include src="'views/error.html'"></ng-include>
         </div>
       </div>
 
-      <!-- Outdated firmware bar -->
-      <div class="alert alert-warning alertbar"
-           ng-if="optionalFirmware">
-        <div class="container">
-          <strong>New TREZOR firmware is available.</strong>
-          Upgrade for the newest features and bug fixes.
-          <button class="btn btn-sm btn-warning"
-                  ng-click="optionalFirmware.update()">Show details</button>
-        </div>
-      </div>
-
-      <div class="page-container container">
-        <div class="row">
-          <!-- Navigations -->
-          <div class="col-md-3"
-               ng-include="'views/nav.html'">
+      <div ng-if="!error">
+        <!-- Bar shown when using the plugin transport -->
+        <div class="alert alert-warning alertbar"
+          ng-if="usingPluginTransport">
+          <div class="container">
+            <div class="form-inline">
+              <strong>Plugin is deprecated.</strong>
+              Long live the bridge! New and shiny, just for you.
+              <a class="btn btn-warning"
+                ng-href="{{ selectedInstaller.url }}">
+                <span class="glyphicon glyphicon-download"></span>
+                Download
+              </a>
+              <select class="form-control"
+                placeholder="Select platform..."
+                ng-model="selectedInstaller"
+                ng-options="
+                installer as 'for ' + installer.label
+                for installer
+                in installers
+                track by installer.platform">
+              </select>
+            </div>
           </div>
+        </div>
 
-          <!-- Content view -->
-          <div class="page-content col-md-9">
-            <flash-messages>
+        <!-- Outdated firmware bar -->
+        <div class="alert alert-warning alertbar"
+          ng-if="optionalFirmware">
+          <div class="container">
+            <strong>New TREZOR firmware is available.</strong>
+            Upgrade for the newest features and bug fixes.
+            <button class="btn btn-sm btn-warning"
+                ng-click="optionalFirmware.update()">Show details</button>
+          </div>
+        </div>
+
+        <div class="page-container container">
+          <div class="row">
+            <!-- Navigations -->
+            <div class="col-md-3"
+              ng-include="'views/nav.html'">
+            </div>
+
+            <!-- Content view -->
+            <div class="page-content col-md-9">
+              <flash-messages>
                 <div ng-repeat="m in messages"
-                     ng-switch="m.level">
+                  ng-switch="m.level">
                   <div class="alert alert-flash alert-danger"
-                       ng-switch-when="error">
+                    ng-switch-when="error">
                     <h4 class="text-capitals">{{m.level}}!</h4>
                     {{m.text}}
                     <span ng-if="m.html" ng-bind-html="m.html"></span>
+                    <ng-include src="'views/debug.button.html'"></ng-include>
                   </div>
                   <div class="alert alert-flash alert-{{m.level}}"
-                       ng-switch-default>
+                    ng-switch-default>
                     <h4 class="text-capitals">{{m.level}}</h4>
                     {{m.text}}
                     <span ng-if="m.html" ng-bind-html="m.html"></span>
+                    <ng-include src="'views/debug.button.html'"></ng-include>
                   </div>
                 </div>
-            </flash-messages>
-            <div ng-view></div>
+              </flash-messages>
+              <ng-include src="'views/debug.log.html'"></ng-include>
+              <div ng-view></div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-
-    <!-- Error Application -->
-    <div id="errorApp-container"
-         class="page-container container"
-         ng-controller="ErrorCtrl"
-         ng-cloak>
-      <ng-include src="'views/error.html'">
-    </div>
 
     <div class="page-footer container">
       Copyright &copy; 2014 <a href="http://satoshilabs.com/" target="_blank">SatoshiLabs</a><br>
@@ -123,6 +130,8 @@
          ><img src="/images/bitsofproof.png" height="24" alt="Bits of Proof"></a>
     </div>
 
+    <!-- override window.console -->
+    <script src="scripts/services/console.js"></script>
     <!-- build:js scripts/libs.js -->
     <script src="bower_components/lodash/dist/lodash.js"></script>
     <script src="bower_components/jquery/dist/jquery.js"></script>
@@ -187,6 +196,7 @@
     <script src="scripts/directives/qrScan.js"></script>
     <script src="scripts/directives/focus.js"></script>
     <!-- controllers -->
+    <script src="scripts/controllers/debug.js"></script>
     <script src="scripts/controllers/error.js"></script>
     <script src="scripts/controllers/main.js"></script>
     <script src="scripts/controllers/nav.js"></script>

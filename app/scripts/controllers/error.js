@@ -1,8 +1,9 @@
-'use strict';
+/*global angular*/
 
-angular.module('errorApp')
+angular.module('webwalletApp')
   .controller('ErrorCtrl', function (trezorError, trezorApi, $scope) {
-    $scope.error = trezorError;
+    'use strict';
+
     $scope.installed = trezorError.installed !== false;
     $scope.installers = trezorApi.installers();
 

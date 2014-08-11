@@ -1,0 +1,13 @@
+<div ng-controller="DebugCtrl"
+    ng-cloak>
+    <div class="alert alert-flash alert-danger"
+        ng-if="debug.visible">
+        <button type="button" class="close"
+            ng-click="debug.toggle()">
+            <span aria-hidden="true">&times;</span>
+            <span class="sr-only">Close</span>
+        </button>
+        <h4>Log</h4>
+        <textarea ng-focus="debug.focus($event)">{{debug.logs}}</textarea>
+    </div>
+</div>
