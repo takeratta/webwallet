@@ -1,9 +1,11 @@
-'use strict';
+/*global angular*/
 
 angular.module('webwalletApp')
   .controller('DeviceCtrl', function (
       trezorService, flash,
       $modal, $scope, $location, $routeParams) {
+
+    'use strict';
 
     $scope.device = trezorService.get($routeParams.deviceId);
     if (!$scope.device) {
@@ -16,9 +18,21 @@ angular.module('webwalletApp')
     $scope.$on('device.passphrase', promptPassphrase);
 
     $scope.forgetDevice = function () {
-      trezorService.forget($scope.device);
-      $location.path('/');
+      if (!$scope.device.isConnected()) {
+        _forgetDevice($scope.device);
+      }
+
+      promptForget()
+        .then(function () {
+          _forgetDevice($scope.device);
+        });
     };
+
+    function _forgetDevice(device) {
+      trezorService.forget(device);
+      $location.path('/');
+      return;
+    }
 
     $scope.changePin = function () {
       $scope.device.changePin().then(
@@ -40,6 +54,29 @@ angular.module('webwalletApp')
           }
         );
     };
+
+    function promptForget() {
+      var scope, modal;
+
+      modal = $modal.open({
+        templateUrl: 'views/modal/forget.html',
+        size: 'sm',
+        windowClass: '',
+        backdrop: 'static',
+        keyboard: false,
+        scope: $scope,
+      });
+      modal.opened.then(function () { $scope.$emit('modal.forget.show'); });
+      modal.result.finally(function () { $scope.$emit('modal.forget.hide'); });
+
+      $scope.$on('device.disconnect', function (event, dev) {
+        if ($scope.device.id === dev.id) {
+          modal.close();
+        }
+      });
+
+      return modal.result;
+    }
 
     function promptLabel() {
       var scope, modal;

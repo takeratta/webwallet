@@ -2,13 +2,7 @@
 
   <ol class="breadcrumb">
     <li class="active">{{device.label()}}</li>
-    <li class="pull-right">
-      <a href=""
-         class="text-muted"
-         title="Forget this device"
-         ng-click="forgetDevice()"
-        ><span class="glyphicon glyphicon-log-out"></span> Forget device</a>
-    </li>
+    <ng-include src="'views/device/forget.link.html'"></ng-include>
   </ol>
 
   <fieldset class="row" ng-disabled="device.status() !== 'connected'">

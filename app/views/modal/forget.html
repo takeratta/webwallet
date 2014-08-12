@@ -1,9 +1,11 @@
-<strong>Forget device?</strong>
-
-This will remove all TREZOR-related data from your computer.
-Your wallet will be loaded again when you reconnect TREZOR.
-Forgetting device is recommended if you use a shared or a public computer.
-
-<button />
-
-Did you try the "Watch only" mode? <a>Read more</a>
+<div class="modal-header">
+  <button type="button" class="close" title="Cancel"
+    ng-click="$dismiss()">&times;</button>
+  <h4 class="modal-title">Disconnect your Trezor now</h4>
+</div>
+<div class="modal-body">
+  The Web Wallet will forget your Trezor right after you disconnect it.
+</div>
+<div class="modal-footer">
+  <button type="button" class="btn btn-default pull-left" ng-click="$dismiss()">Cancel</button>
+</div>

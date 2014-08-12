@@ -6,13 +6,7 @@
       <li><a ng-href="#/device/{{device.id}}/account/{{account.id}}"
         >{{account.label()}}</a></li>
       <li class="active">Receive</li>
-      <li class="pull-right">
-        <a href=""
-           class="text-muted"
-           title="Forget this device"
-           ng-click="forgetDevice()"
-          ><span class="glyphicon glyphicon-log-out"></span> Forget device</a>
-      </li>
+      <ng-include src="'views/device/forget.link.html'"></ng-include>
     </ol>
     <div class="alert alert-danger alert-inconsistent"
          ng-show="account.isInconsistent()">

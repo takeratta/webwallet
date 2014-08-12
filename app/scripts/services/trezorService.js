@@ -1,9 +1,11 @@
-'use strict';
+/*global angular*/
 
 angular.module('webwalletApp')
   .service('trezorService', function TrezorService(
       utils, config, storage, trezor, firmwareService, TrezorDevice,
       _, $modal, $q, $location, $rootScope) {
+
+    'use strict';
 
     var self = this,
         STORAGE_DEVICES = 'trezorServiceDevices',
@@ -35,7 +37,7 @@ angular.module('webwalletApp')
      */
     self.getDefaultDevice = function () {
       return self.devices[0];
-    }
+    };
 
     // remove device from the dev list and storage
     self.forget = function (dev) {
@@ -102,8 +104,14 @@ angular.module('webwalletApp')
       delta.then(null, null, function (dd) {
         if (!dd)
           return;
-        dd.added.forEach(connectFn);
-        dd.removed.forEach(disconnectFn);
+        dd.added.forEach(function (dev) {
+          $rootScope.$broadcast('device.connect', dev);
+          connectFn(dev);
+        });
+        dd.removed.forEach(function (dev) {
+          $rootScope.$broadcast('device.disconnect', dev);
+          disconnectFn(dev);
+        });
       });
 
       return tick;
@@ -130,9 +138,9 @@ angular.module('webwalletApp')
         return dev.initializeDevice().then(
           function (features) {
             navigateTo(dev);
-            return features.bootloader_mode
-              ? bootloaderWorkflow(dev)
-              : normalWorkflow(dev);
+            return features.bootloader_mode ?
+              bootloaderWorkflow(dev) :
+              normalWorkflow(dev);
           },
           function () {
             dev.disconnect();
@@ -271,9 +279,9 @@ angular.module('webwalletApp')
         setupCallbacks(dev);
         dev.initializeDevice().then(
           function (features) {
-            scope.state = features.bootloader_mode
-              ? 'device-bootloader'
-              : 'device-normal';
+            scope.state = features.bootloader_mode ?
+              'device-bootloader' :
+              'device-normal';
             scope.device = dev;
           },
           function () { dev.disconnect(); }
