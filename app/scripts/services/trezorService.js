@@ -94,7 +94,18 @@ angular.module('webwalletApp')
       );
     }
 
-    // starts auto-updating the device list
+    /**
+     * Start auto-updating the device list.
+     *
+     * Broadcast event `device.connect(devId)` or `device.disconnect(devId)`
+     * everytime a device is connected / disconnected.  We pass only ID of the
+     * Device and not the whole Device object as a param to these events on
+     * purpose, because if we pass the Device object it gets spoiled by
+     * Angular.js and it needs to be retreived from `TrezorService#get()`
+     * anyway.
+     *
+     * @param {Number} n  Polling period in miliseconds
+     */
     function watchDevices(n) {
       var tick = utils.tick(n),
           desc = progressWithConnected(tick),
@@ -104,13 +115,13 @@ angular.module('webwalletApp')
       delta.then(null, null, function (dd) {
         if (!dd)
           return;
-        dd.added.forEach(function (dev) {
-          $rootScope.$broadcast('device.connect', dev);
-          connectFn(dev);
+        dd.added.forEach(function (device) {
+          $rootScope.$broadcast('device.connect', device.id);
+          connectFn(device);
         });
-        dd.removed.forEach(function (dev) {
-          $rootScope.$broadcast('device.disconnect', dev);
-          disconnectFn(dev);
+        dd.removed.forEach(function (device) {
+          $rootScope.$broadcast('device.disconnect', device.id);
+          disconnectFn(device);
         });
       });
 

@@ -2,10 +2,12 @@
 
 angular.module('webwalletApp')
   .controller('DeviceCtrl', function (
-      trezorService, flash,
+      trezorService, flash, storage,
       $modal, $scope, $location, $routeParams) {
 
     'use strict';
+
+    var STORAGE_FORGET_ON_DISCONNECT = 'trezorForgetOnDisconnect';
 
     $scope.device = trezorService.get($routeParams.deviceId);
     if (!$scope.device) {
@@ -16,18 +18,39 @@ angular.module('webwalletApp')
     $scope.$on('device.pin', promptPin);
     $scope.$on('device.button', promptButton);
     $scope.$on('device.passphrase', promptPassphrase);
+    $scope.$on('device.disconnect', handleDisconnect);
 
+    /**
+     * Forget current device
+     *
+     * If the device is connected, ask the user to disconnect it before.
+     *
+     * While the user is being asked, property `$scope.forgetting` is set to
+     * true.
+     */
     $scope.forgetDevice = function () {
       if (!$scope.device.isConnected()) {
         _forgetDevice($scope.device);
+        return;
       }
 
+      $scope.forgetting = true;
       promptForget()
         .then(function () {
           _forgetDevice($scope.device);
+          $scope.forgetting = false;
+        }, function () {
+          $scope.forgetting = false;
         });
     };
 
+    /**
+     * Forget device identified by passed Device object
+     *
+     * Unlike `$scope.forgetDevice()`, the user is not asked anything.
+     *
+     * @param {Device} device  Device to forget
+     */
     function _forgetDevice(device) {
       trezorService.forget(device);
       $location.path('/');
@@ -55,22 +78,28 @@ angular.module('webwalletApp')
         );
     };
 
+    /**
+     * Prompt forget
+     *
+     * Ask the user to disconnect the device using a modal dialog.  If the user
+     * then disconnects the device, the Promise -- which this function returns
+     * -- is resolved, if the user closes the modal dialog or hits Cancel, the
+     * Promise is failed.
+     *
+     * @return {Promise}
+     */
     function promptForget() {
-      var scope, modal;
-
-      modal = $modal.open({
+      var modal = $modal.open({
         templateUrl: 'views/modal/forget.html',
         size: 'sm',
-        windowClass: '',
         backdrop: 'static',
-        keyboard: false,
-        scope: $scope,
+        keyboard: false
       });
       modal.opened.then(function () { $scope.$emit('modal.forget.show'); });
       modal.result.finally(function () { $scope.$emit('modal.forget.hide'); });
 
-      $scope.$on('device.disconnect', function (event, dev) {
-        if ($scope.device.id === dev.id) {
+      $scope.$on('device.disconnect', function (event, devId) {
+        if ($scope.device.id === devId) {
           modal.close();
         }
       });
@@ -125,6 +154,67 @@ angular.module('webwalletApp')
         function (res) { callback(null, res); },
         function (err) { callback(err); }
       );
+    }
+
+    /**
+     * Handle device disconnect event unless the Forget device modal dialog
+     * is shown already.
+     *
+     * Read from the localStorage the setting which says whether the user wants
+     * to forget devices whenever they are disconnected.
+     * - If the setting says yes, then forget the device.
+     * - If the setting says no, then don't do anything.
+     * - If the setting isn't set at all, ask the user how would he/she like
+     * the app to behave using a modal dialog.  User's answer is stored to
+     * localStorage for all devices.
+     *
+     * @param {Object} event  Event object
+     * @param {TrezorDevice} devId  ID of the device that was disconnected
+     */
+    function handleDisconnect(event, devId) {
+      if ($scope.forgetting) {
+        return;
+      }
+      var forgetOnDisconnect = storage[STORAGE_FORGET_ON_DISCONNECT];
+      if (forgetOnDisconnect === undefined) {
+        promptDisconnect()
+          .then(function () {
+            storage[STORAGE_FORGET_ON_DISCONNECT] = 'true';
+            _forgetDevice(trezorService.get(devId));
+          }, function () {
+            storage[STORAGE_FORGET_ON_DISCONNECT] = 'false';
+          });
+      } else if (forgetOnDisconnect === 'true') {
+        _forgetDevice(trezorService.get(devId));
+      }
+    }
+
+    /**
+     * Prompt disconnect
+     *
+     * Ask the user if he/she wants to forget or remember devices whenever they
+     * are disconnected.  User's answer is stored to localStorage for all
+     * devices.  The user is never asked again.
+     *
+     * Returns a Promise that is resolved if the user wants to forget the
+     * device, and failed if the user wants to remember the device.
+     *
+     * @return {Promise}
+     */
+    function promptDisconnect() {
+      var modal = $modal.open({
+        templateUrl: 'views/modal/disconnect.html',
+        backdrop: 'static',
+        keyboard: false
+      });
+      modal.opened.then(function () {
+        $scope.$emit('modal.disconnect.show');
+      });
+      modal.result.finally(function () {
+        $scope.$emit('modal.disconnect.hide');
+      });
+
+      return modal.result;
     }
 
     function promptPassphrase(event, dev, callback) {
