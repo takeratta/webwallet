@@ -1,7 +1,5 @@
 /*global angular*/
 
-'use strict';
-
 angular.module('webwalletApp')
   .controller('AccountSendCtrl', function (
     flash, storage, utils, config,
@@ -231,7 +229,7 @@ angular.module('webwalletApp')
       $scope.outputIndex = 0;
 
       $scope.account.sendTx(tx, $scope.device).then(
-        function (tx) {
+        function (res) {
           var off;
 
           cancelTxValues();
@@ -241,37 +239,49 @@ angular.module('webwalletApp')
             '/account/' + $scope.account.id);
 
           off = $rootScope.$on('$locationChangeSuccess', function () {
-            var hash = utils.bytesToHex(tx.hash);
+            res.hashRev = res.hash.slice();
+            res.hashRev.reverse();
+            var hashHex = utils.bytesToHex(res.hashRev);
             flash.success(
               {
-                template: 'Transaction <a href="{{url}}" target="_blank" title="Transaction info at {{title}}">{{hash}}</a> was successfully sent.',
-                hash: hash,
-                url: config.blockExplorers[config.coin].urlTx + hash,
+                template: [
+                  'Transaction <a href="{{url}}" target="_blank" ',
+                  'title="Transaction info at {{title}}">{{hashHex}}</a> ',
+                  'was successfully sent.'
+                ].join(''),
+                hashHex: hashHex,
+                url: config.blockExplorers[config.coin].urlTx + hashHex,
                 title: config.blockExplorers[config.coin].name
               }
             );
             off();
           });
         },
-        function (tx) {
+        function (err) {
           $scope.sending = false;
 
-          var bytes = utils.bytesToHex(tx.bytes);
-          flash.error(
-            {
+          if (err.value && err.value.bytes) {
+            flash.error({
               template: [
-                'Failed to send transaction. {{message}}<br><br>',
+                'Failed to send transaction: {{message}}.<br><br>',
                 'Raw transaction in hex format:<br>',
                 '<span class="text-monospace">{{bytes}}</span><br>',
                 'You can try to resend this transaction using',
                 '<a href="https://blockchain.info/pushtx" target="_blank">',
                 'Blockchain.info\'s Broadcast Transaction tool</a>.'
               ].join('\n'),
-              bytes: bytes,
-              message: tx.message,
+              bytes: utils.bytesToHex(err.value.bytes),
+              message: err.message,
               show_raw_tx: false
-            }
-          );
+            });
+            return;
+          }
+
+          flash.error([
+            'Failed to send transaction: ',
+            err.message,
+            '.'
+          ].join(''));
         }
       );
     };

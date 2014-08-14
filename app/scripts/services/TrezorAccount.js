@@ -1,8 +1,9 @@
-'use strict';
+/*global angular*/
 
 angular.module('webwalletApp')
   .factory('TrezorAccount', function (config, utils, trezor, TrezorBackend,
       _, BigInteger, Bitcoin, $log, $q) {
+    'use strict';
 
     function TrezorAccount(id, coin, node) {
       this.id = ''+id;
@@ -40,11 +41,11 @@ angular.module('webwalletApp')
     };
 
     TrezorAccount.prototype.isInconsistent = function () {
-      return !this.isEmpty() // is not empty
-        && this.transactions // has txs loaded
-        && this.balance // has balance loaded
+      return !this.isEmpty() && // is not empty
+        this.transactions && // has txs loaded
+        this.balance && // has balance loaded
         // balance of newest tx does not equal balance from server
-        && (!this.transactions[0].balance ||
+        (!this.transactions[0].balance ||
             !this.transactions[0].balance.equals(this.balance));
     };
 
@@ -185,18 +186,23 @@ angular.module('webwalletApp')
             throw new Error('Failed to parse signed transaction');
 
           if (!self._verifyTx(tx, parsedTx))
-              throw new Error('Failed to verify signed transaction');
+            throw new Error('Failed to verify signed transaction');
 
           txBytes = utils.hexToBytes(serializedTx);
           txHash = utils.sha256x2(txBytes, { asBytes: true });
-          parsedTx.bytes = txBytes;
-          parsedTx.hash = txHash;
 
-          return self._backend.send(txBytes, txHash).then(function (res) {
-            return parsedTx;
-          }, function (res) {
-            parsedTx.message = res.message;
-            return parsedTx;
+          return self._backend.send(txBytes, txHash).then(function () {
+            return {
+              bytes: txBytes,
+              hash: txHash
+            };
+          }, function (err) {
+            throw new TrezorAccountException({
+              message: err.message ||
+                'Failed to send transaction to the backend. Server returned: `' +
+                JSON.stringify(err) + '`.',
+              bytes: txBytes
+            });
           });
         });
       });
@@ -360,8 +366,7 @@ angular.module('webwalletApp')
     };
 
     TrezorAccount.prototype._constructTx = function (outputs, fee)  {
-      var tx = {},
-          chindex = (this._changeNode.offset || 0),
+      var chindex = (this._changeNode.offset || 0),
           chpath = this._changeNode.path.concat([chindex]),
           utxos,
           change,
@@ -563,9 +568,9 @@ angular.module('webwalletApp')
           script: out.script,
           value: out.value.toString(),
           index: out.ix,
-          path: out.keyPathForAddress
-            ? basePath.concat(out.keyPathForAddress)
-            : null
+          path: out.keyPathForAddress ?
+            basePath.concat(out.keyPathForAddress) :
+            null
         });
       }
     };
@@ -694,6 +699,14 @@ angular.module('webwalletApp')
       val.path = this.path;
       return val;
     };
+
+    function TrezorAccountException(value) {
+       this.value = value;
+       this.message = value.message;
+       this.toString = function () {
+          return this.message + JSON.stringify(this.value);
+       };
+    }
 
     return TrezorAccount;
 
