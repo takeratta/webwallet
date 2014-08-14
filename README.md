@@ -1,19 +1,8 @@
-Bitcoin web wallet with Trezor support
-======================================
+# Bitcoin web wallet with Trezor support
 
 Bitcoin web wallet using Bitcoin Trezor as a private key storage.
 
-Usage
------
-
-Application expects a signed Trezor configuration file at
-`/data/plugin/config_signed.bin`. You can change the url at `app/scripts/app.js`.
-
-Also copy `app/scripts/config.sample.js` to `app/scripts/config.js`
-and adjust to your needs (i.e. point backend URIs to your own server).
-
-Installation
-------------
+## Installation
 
 	sudo npm install -g grunt-cli bower
 	git clone git@github.com:trezor/webwallet.git
@@ -22,10 +11,20 @@ Installation
 	bower install
 	npm install
 
-	# for production use
+## Configuration
+
+Application expects a signed Trezor configuration file at
+`/data/plugin/config_signed.bin`. You can change the URL at
+`app/scripts/app.js`.
+
+Copy `app/scripts/config.sample.js` to `app/scripts/config.js` and adjust to
+your needs (i.e. point backend URIs to your own server).
+
+## Build production package
+
 	grunt build
 	cp -r app/data dist/data
 
-	# for development use
-	cd app
-	python -m SimpleHTTPServer
+## Run development server
+
+	grunt server
