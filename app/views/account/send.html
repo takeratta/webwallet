@@ -24,43 +24,55 @@
               class="overlay-container">
             <div class="row tx-output"
                 ng-repeat="output in tx.values.outputs">
-              <div class="col-md-6">
-                <label for="address">Address</label>
-                <div class="input-with-icon">
-                  <input id="address" class="form-control" type="text"
-                      ng-model="output.address"
-                      typeahead="
-                      address.address as address.label
-                      for address in suggestAddresses() | filter:$viewValue"
-                      size=33
-                      required>
-                  <a href=""
-                     class="glyphicon glyphicon-qrcode input-icon text-muted"
-                     tooltip="Scan QR code"
-                     ng-click="scanQr($index)"
-                     ng-show="!output.address && !qr.scanning && qr.enabled"></a>
+              <div class="col-md-8" ng-class="{ 'has-error': output.error.address }">
+                <div class="form-group">
+                  <div class="tx-output-label">
+                    <label for="address">Address</label>
+                  </div>
+                  <div class="tx-output-controls input-with-icon">
+                    <input id="address" class="form-control" type="text"
+                        ng-model="output.address"
+                        typeahead="
+                        address.address as address.label
+                        for address in suggestAddresses() | filter:$viewValue"
+                        required>
+                    <a href=""
+                       class="glyphicon glyphicon-qrcode input-icon text-muted"
+                       tooltip="Scan QR code"
+                       tooltip-append-to-body="true"
+                       ng-click="scanQr($index)"
+                       ng-show="!output.address && !qr.scanning && qr.enabled"></a>
+                  </div>
+                </div>
+                <div class="tx-output-help">
+                  <span class="help-block">{{output.error.address}}</span>
                 </div>
               </div>
-              <div class="col-md-5">
-                <label for="amount">Send {{account.coin.coin_shortcut}}</label>
-                <input id="amount" class="form-control" type="text"
-                    ng-model="output.amount"
-                    required
-                    size=5>
-                <!-- <a href=""
-                class="glyphicon glyphicon-upload input-icon text-muted"
-                tooltip="Send all {{ account.coin.coin_shortcut }} from {{ account.label() }}"
-                ng-click="output.amount = suggestAmount()"
-                ng-show="!output.amount"></a> -->
-                <span class="text-danger form-control-static">
-                  {{output.error}}
-                </span>
+              <div ng-class="{ 'col-md-3' : tx.values.outputs.length > 1, 'col-md-4': tx.values.outputs.length === 1, 'has-error': output.error.amount }">
+                <div class="form-group">
+                  <div class="tx-output-label">
+                    <label for="amount">Send {{account.coin.coin_shortcut}}</label>
+                  </div>
+                  <div class="tx-output-controls input-with-icon">
+                    <input id="amount" class="form-control" type="text"
+                        ng-model="output.amount"
+                        required>
+                    <!-- <a href=""
+                    class="glyphicon glyphicon-upload input-icon text-muted"
+                    tooltip="Send all {{ account.coin.coin_shortcut }} from {{ account.label() }}"
+                    ng-click="output.amount = suggestAmount()"
+                    ng-show="!output.amount"></a> -->
+                  </div>
+                </div>
+                <div class="tx-output-help">
+                  <span class="help-block">{{output.error.amount}}</span>
+                </div>
               </div>
-              <div class="col-md-1">
+              <div class="col-md-1"
+                ng-show="tx.values.outputs.length > 1">
                 <button type="button" class="btn btn-sm btn-link pull-right"
                     ng-click="removeOutput($index)"
                     ng-disabled="qr.scanning"
-                    ng-show="tx.values.outputs.length > 1"
                     tooltip="Remove recipient">
                   <span class="glyphicon glyphicon-remove"></span>
                   <span class="sr-only">Remove</span>
@@ -135,12 +147,10 @@
               Cancel
             </a>
           </div>
-          <div class="col-sm-3">
-            <p class="form-control-static text-danger" ng-show="tx.error">
+          <div class="col-sm-6 text-right">
+            <span class="form-control-static text-danger" ng-show="tx.error">
               {{tx.error}}
-            </p>
-          </div>
-          <div class="col-sm-3 text-right">
+            </span>
             <button type="submit" class="btn btn-primary"
                 ng-disabled="!tx.prepared">
               Send

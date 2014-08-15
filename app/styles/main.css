@@ -569,14 +569,27 @@ body {
 .tx-send .tx-output-add {
   padding-bottom: 1.25em;
 }
-.tx-output label {
-  padding-right: 1em;
-}
-.tx-output .text-danger {
-  padding-left: 1em;
-}
 .tx-output .btn-sm {
   margin-right: -13px;
+}
+.tx-output .form-group {
+  display: table;
+  width: 100%;
+}
+.tx-output-label {
+  display: table-cell;
+  width: 6.5em;
+}
+.tx-output-controls {
+  display: table;
+  width: 100%;
+}
+.tx-output .tx-output-controls input {
+  width: 100%;
+}
+.tx-output-help .help-block {
+  display: block;
+  margin-left: 6.5em;
 }
 
 .tx-submit {
@@ -586,8 +599,9 @@ body {
   padding: 1em 0;
   background: #f5f5f5;
 }
-.tx-submit .text-danger {
+.tx-submit .form-control-static {
   padding-top: 0.5em;
+  padding-right: 1em;
 }
 
 .tx-preview {

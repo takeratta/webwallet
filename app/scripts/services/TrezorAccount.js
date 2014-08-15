@@ -305,6 +305,18 @@ angular.module('webwalletApp')
 
     var MIN_OUTPUT_AMOUNT = 5340;
 
+    var TxOutputException = function (message, field) {
+      this.message = message;
+      this.field = field;
+      this.toString = function () {
+        return this.field + ': ' + this.message;
+      };
+    };
+
+    TrezorAccount.prototype.FIELD_AMOUNT = 'amount';
+
+    TrezorAccount.prototype.FIELD_ADDRESS = 'address';
+
     TrezorAccount.prototype.buildTxOutput = function (address, amount) {
       var addrType = this.coin.address_type,
           scriptTypes = config.scriptTypes[this.coin.coin_name],
@@ -312,18 +324,19 @@ angular.module('webwalletApp')
           addrVals;
 
       if (amount < MIN_OUTPUT_AMOUNT)
-        throw new Error('Amount is too low');
+        throw new TxOutputException('Amount is too low', this.FIELD_AMOUNT);
 
       addrVals = utils.decodeAddress(address);
       if (!addrVals)
-        throw new Error('Invalid address');
+        throw new TxOutputException('Invalid address', this.FIELD_ADDRESS);
 
       if (addrVals.version === +addrType)
         scriptType = 'PAYTOADDRESS';
       if (!scriptType && scriptTypes && scriptTypes[addrVals.version])
         scriptType = scriptTypes[addrVals.version];
       if (!scriptType)
-        throw new Error('Invalid address version');
+        throw new TxOutputException('Invalid address version',
+          this.FIELD_ADDRESS);
 
       return {
         script_type: scriptType,

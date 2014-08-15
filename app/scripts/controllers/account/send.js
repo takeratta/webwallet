@@ -104,7 +104,15 @@ angular.module('webwalletApp')
         try {
           pout = $scope.account.buildTxOutput(address, amount);
         } catch (e) {
-          out.error = e.message;
+          if (e.field === $scope.account.FIELD_ADDRESS) {
+            out.error = out.error || {};
+            out.error.address = e.message;
+          } else if (e.field === $scope.account.FIELD_AMOUNT) {
+            out.error = out.error || {};
+            out.error.amount = e.message;
+          } else {
+            out.error = e.message;
+          }
         }
 
         if (pout) {
