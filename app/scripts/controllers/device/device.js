@@ -67,6 +67,7 @@ angular.module('webwalletApp')
     $scope.changeLabel = function () {
       promptLabel()
         .then(function (label) {
+          label = label.trim() || $scope.device.getDefaultLabel();
           return $scope.device.changeLabel(label);
         })
         .then(
@@ -111,7 +112,7 @@ angular.module('webwalletApp')
       var scope, modal;
 
       scope = angular.extend($scope.$new(), {
-        label: $scope.device.features.label
+        label: $scope.device.features.label || ''
       });
 
       modal = $modal.open({

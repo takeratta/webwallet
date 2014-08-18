@@ -12,8 +12,11 @@ angular.module('webwalletApp')
       var set = $scope.settings,
           dev = $scope.device;
 
-      if (set.label)
-        set.label = set.label.trim();
+      if (set.label) {
+        set.label = set.label.trim() || dev.getDefaultLabel();
+      } else {
+        set.label = dev.getDefaultLabel();
+      }
 
       dev.reset(set).then(
         function () { $location.path('/device/' + dev.id); },

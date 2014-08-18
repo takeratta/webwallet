@@ -8,7 +8,7 @@
         ng-submit="$close(label)">
     <div class="form-group">
       <input type="text" class="form-control input-lg" size="10" autofocus
-             placeholder="My TREZOR"
+             placeholder="{{device.getDefaultLabel()}}"
              ng-model="label">
     </div>
     <div class="form-group">

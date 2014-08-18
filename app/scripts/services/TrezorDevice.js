@@ -16,6 +16,8 @@ angular.module('webwalletApp')
       this._desc = null;
       this._statusLabel = null;
       this._loadingLevel = 0;
+
+      this._DEFAULT_LABEL = 'My TREZOR';
     }
 
     TrezorDevice.deserialize = function (data) {
@@ -78,8 +80,12 @@ angular.module('webwalletApp')
       if (this.features && this.features.label)
         return this.features.label;
       else
-        return 'My TREZOR';
+        return this.getDefaultLabel();
     };
+
+    TrezorDevice.prototype.getDefaultLabel = function () {
+      return this._DEFAULT_LABEL;
+    }
 
     TrezorDevice.prototype.statusLabel = function () {
       return this._statusLabel;
