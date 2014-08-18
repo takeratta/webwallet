@@ -2,7 +2,7 @@
 
 angular.module('webwalletApp')
   .controller('AccountSendCtrl', function (
-    flash, storage, utils, config,
+    flash, storage, utils, config, trezorService,
     $filter, $scope, $rootScope, $location, $routeParams) {
     'use strict';
 
@@ -309,14 +309,30 @@ angular.module('webwalletApp')
     // Address suggestion
 
     $scope.suggestAddresses = function () {
-      var current = $scope.account,
-          accounts = $scope.device.accounts.filter(function (acc) {
-            return acc.id !== current.id;
-          });
+      var currentDevice = $scope.device,
+          currentAccount = $scope.account,
+          suggestedAccounts = [],
+          multipleDevices = trezorService.devices.length > 1;
+      trezorService.devices.forEach(function (dev) {
+          dev.accounts.forEach(function (acc) {
+            if (dev.id === currentDevice.id &&
+                acc.id === currentAccount.id) {
+              return;
+            }
+            suggestedAccounts.push([dev, acc]);
+        });
+      });
 
-      return accounts.map(function (acc) {
-        var address = acc.address(0).address,
-            label = acc.label();
+      return suggestedAccounts.map(function (item) {
+        var dev = item[0],
+            acc = item[1],
+            address = acc.address(0).address,
+            label;
+        if (multipleDevices) {
+          label = dev.label() + ' / ' + acc.label();
+        } else {
+          label = acc.label();
+        }
 
         return {
           label: label + ': ' + address,
