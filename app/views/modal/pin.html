@@ -80,7 +80,7 @@
         </button>
       </div>
       <input type="hidden" autocomplete="off" ng-model="pin">
-      <div class="text-center"
+      <div class="pinmodal-rating"
            ng-if="pin && type !== 'PinMatrixRequestType_Current'"
            ng-controller="DeviceCtrl"
            ng-switch="ratePin(pin)">

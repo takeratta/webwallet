@@ -501,6 +501,9 @@ body {
   right: 0;
   top: 0;
 }
+.pinmodal-rating {
+  padding-bottom: 0.5em;
+}
 
 .btn-back {
   position: relative;
