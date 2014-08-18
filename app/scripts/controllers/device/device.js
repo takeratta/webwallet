@@ -3,7 +3,7 @@
 angular.module('webwalletApp')
   .controller('DeviceCtrl', function (
       trezorService, flash, storage,
-      $modal, $scope, $location, $routeParams) {
+      $modal, $scope, $location, $routeParams, $document) {
 
     'use strict';
 
@@ -139,6 +139,18 @@ angular.module('webwalletApp')
         type: type
       });
 
+      scope.addPin = function (num) {
+        scope.pin = scope.pin + num.toString();
+      };
+
+      scope.delPin = function () {
+        scope.pin = scope.pin.slice(0, -1);
+      };
+
+      scope.isPinSet = function () {
+        return scope.pin.length > 0;
+      };
+
       modal = $modal.open({
         templateUrl: 'views/modal/pin.html',
         size: 'sm',
@@ -150,10 +162,29 @@ angular.module('webwalletApp')
       modal.opened.then(function () { scope.$emit('modal.pin.show', type); });
       modal.result.finally(function () { scope.$emit('modal.pin.hide'); });
 
+      $document.on('keypress', _pinKeypressHandler);
+
       modal.result.then(
-        function (res) { callback(null, res); },
-        function (err) { callback(err); }
+        function (res) {
+          $document.off('keypress', _pinKeypressHandler);
+          callback(null, res);
+        },
+        function (err) {
+          $document.off('keypress', _pinKeypressHandler);
+          callback(err);
+        }
       );
+
+      function _pinKeypressHandler(e) {
+        if (e.which === 8) { // Backspace
+          scope.delPin();
+          scope.$digest();
+          return false;
+        } else if (e.which >= 48 && e.which <= 57) {
+          scope.addPin(e.key);
+          scope.$digest();
+        }
+      }
     }
 
     /**

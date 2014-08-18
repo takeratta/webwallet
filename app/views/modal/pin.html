@@ -22,54 +22,64 @@
     </h4>
   </div>
   <div class="modal-body">
-
-    <div class="form-group">
-      <span class="col-sm-4">
-        <button type="button" class="btn btn-block btn-lg"
-                ng-click="pin = pin + '7'">?</button>
-      </span>
-      <span class="col-sm-4">
-        <button type="button" class="btn btn-block btn-lg"
-                ng-click="pin = pin + '8'">?</button>
-      </span>
-      <span class="col-sm-4">
-        <button type="button" class="btn btn-block btn-lg"
-                ng-click="pin = pin + '9'">?</button>
-      </span>
+    <div class="pinmodal-dial">
+      <div class="form-group">
+        <span class="col-sm-4">
+          <button type="button" class="btn btn-block btn-lg"
+                  ng-click="addPin(7)">?</button>
+        </span>
+        <span class="col-sm-4">
+          <button type="button" class="btn btn-block btn-lg"
+                  ng-click="addPin(8)">?</button>
+        </span>
+        <span class="col-sm-4">
+          <button type="button" class="btn btn-block btn-lg"
+                  ng-click="addPin(9)">?</button>
+        </span>
+      </div>
+      <div class="form-group">
+        <span class="col-sm-4">
+          <button type="button" class="btn btn-block btn-lg"
+                  ng-click="addPin(4)">?</button>
+        </span>
+        <span class="col-sm-4">
+          <button type="button" class="btn btn-block btn-lg"
+                  ng-click="addPin(5)">?</button>
+        </span>
+        <span class="col-sm-4">
+          <button type="button" class="btn btn-block btn-lg"
+                  ng-click="addPin(6)">?</button>
+        </span>
+      </div>
+      <div class="form-group">
+        <span class="col-sm-4">
+          <button type="button" class="btn btn-block btn-lg"
+                  ng-click="addPin(1)">?</button>
+        </span>
+        <span class="col-sm-4">
+          <button type="button" class="btn btn-block btn-lg"
+                  ng-click="addPin(2)">?</button>
+        </span>
+        <span class="col-sm-4">
+          <button type="button" class="btn btn-block btn-lg"
+                  ng-click="addPin(3)">?</button>
+        </span>
+      </div>
     </div>
     <div class="form-group">
-      <span class="col-sm-4">
-        <button type="button" class="btn btn-block btn-lg"
-                ng-click="pin = pin + '4'">?</button>
-      </span>
-      <span class="col-sm-4">
-        <button type="button" class="btn btn-block btn-lg"
-                ng-click="pin = pin + '5'">?</button>
-      </span>
-      <span class="col-sm-4">
-        <button type="button" class="btn btn-block btn-lg"
-                ng-click="pin = pin + '6'">?</button>
-      </span>
-    </div>
-    <div class="form-group">
-      <span class="col-sm-4">
-        <button type="button" class="btn btn-block btn-lg"
-                ng-click="pin = pin + '1'">?</button>
-      </span>
-      <span class="col-sm-4">
-        <button type="button" class="btn btn-block btn-lg"
-                ng-click="pin = pin + '2'">?</button>
-      </span>
-      <span class="col-sm-4">
-        <button type="button" class="btn btn-block btn-lg"
-                ng-click="pin = pin + '3'">?</button>
-      </span>
-    </div>
-
-    <div class="form-group">
-      <input type="password" class="form-control h4 input-lg text-center pinmodal-pin"
-             autocomplete="off"
-             ng-model="pin">
+      <div class="pinmodal-pin">
+        <div class="pinmodal-pin-value">
+          {{pin|password}}
+        </div>
+        <button type="button" class="btn btn-link btn-back"
+            ng-click="delPin()"
+            ng-show="isPinSet()">
+          <span class="arrow"></span>
+          <span class="glyphicon glyphicon-remove"></span>
+          <span class="sr-only">del</span>
+        </button>
+      </div>
+      <input type="hidden" autocomplete="off" ng-model="pin">
       <div class="text-center"
            ng-if="pin && type !== 'PinMatrixRequestType_Current'"
            ng-controller="DeviceCtrl"
