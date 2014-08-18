@@ -18,6 +18,9 @@ angular.module('webwalletApp')
     self.devices = deserialize(restore()); // the list of available devices
     self.devices.forEach(function (dev) { dev.subscribe(); });
 
+    self._forgetInProgress = false;
+    self._forgetModal = false;
+
     storeWhenChanged();
     watchDevices(1000);
 
@@ -44,6 +47,22 @@ angular.module('webwalletApp')
       dev.disconnect();
       dev.unsubscribe();
       _.remove(self.devices, { id: dev.id });
+    };
+
+    self.isForgetInProgress = function () {
+      return self._forgetInProgress === true;
+    };
+
+    self.setForgetInProgress = function (forgetInProgress) {
+      self._forgetInProgress = forgetInProgress;
+    };
+
+    self.getForgetModal = function () {
+      return self._forgetModal;
+    };
+
+    self.setForgetModal = function (forgetModal) {
+      self._forgetModal = forgetModal;
     };
 
     //

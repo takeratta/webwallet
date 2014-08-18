@@ -21,12 +21,51 @@ angular.module('webwalletApp')
     $scope.$on('device.disconnect', handleDisconnect);
 
     /**
+     * Handle device disconnect
+     *
+     * (1) Ask the user if he/she wants to forget the device.
+     *
+     * Read from the localStorage the setting which says whether the user wants
+     * to forget devices whenever they are disconnected.
+     * - If the setting says yes, then forget the device.
+     * - If the setting says no, then don't do anything.
+     * - If the setting isn't set at all, ask the user how would he/she like
+     * the app to behave using a modal dialog.  User's answer is stored to
+     * localStorage for all devices.
+     *
+     * (2) If the Forget modal is already shown, close it.
+     *
+     * @param {Object} event  Event object
+     * @param {TrezorDevice} devId  ID of the device that was disconnected
+     */
+    function handleDisconnect(event, devId) {
+      if (trezorService.isForgetInProgress()) {
+        if ($scope.device.id === devId &&
+            trezorService.getForgetModal()) {
+          trezorService.getForgetModal().close();
+          _forgetDevice($scope.device);
+          trezorService.setForgetInProgress(false);
+        }
+        return;
+      }
+      var forgetOnDisconnect = storage[STORAGE_FORGET_ON_DISCONNECT];
+      if (forgetOnDisconnect === undefined) {
+        promptDisconnect()
+          .then(function () {
+            storage[STORAGE_FORGET_ON_DISCONNECT] = 'true';
+            _forgetDevice(trezorService.get(devId));
+          }, function () {
+            storage[STORAGE_FORGET_ON_DISCONNECT] = 'false';
+          });
+      } else if (forgetOnDisconnect === 'true') {
+        _forgetDevice(trezorService.get(devId));
+      }
+    }
+
+    /**
      * Forget current device
      *
      * If the device is connected, ask the user to disconnect it before.
-     *
-     * While the user is being asked, property `$scope.forgetting` is set to
-     * true.
      */
     $scope.forgetDevice = function () {
       if (!$scope.device.isConnected()) {
@@ -34,13 +73,13 @@ angular.module('webwalletApp')
         return;
       }
 
-      $scope.forgetting = true;
+      trezorService.setForgetInProgress(true);
       promptForget()
         .then(function () {
           _forgetDevice($scope.device);
-          $scope.forgetting = false;
+          trezorService.setForgetInProgress(false);
         }, function () {
-          $scope.forgetting = false;
+          trezorService.setForgetInProgress(false);
         });
     };
 
@@ -49,7 +88,7 @@ angular.module('webwalletApp')
      *
      * Unlike `$scope.forgetDevice()`, the user is not asked anything.
      *
-     * @param {Device} device  Device to forget
+     * @param {TrezorDevice} device  Device to forget
      */
     function _forgetDevice(device) {
       trezorService.forget(device);
@@ -57,13 +96,29 @@ angular.module('webwalletApp')
       return;
     }
 
+    /**
+     * Change device PIN
+     *
+     * Ask the user to set the PIN and then save the value.
+     */
     $scope.changePin = function () {
       $scope.device.changePin().then(
-        function () { flash.success('PIN was successfully changed'); },
-        function (err) { flash.error(err.message || 'PIN change failed'); }
+        function () {
+          flash.success('PIN was successfully changed');
+        },
+        function (err) {
+          flash.error(err.message || 'PIN change failed');
+        }
       );
     };
 
+    /**
+     * Change device label
+     *
+     * Ask the user to set the label.  If he/she fills in an empty value, the
+     * default label is used.  The default label is read from
+     * `TrezorDevice#getDefaultLabel()`.
+     */
     $scope.changeLabel = function () {
       promptLabel()
         .then(function (label) {
@@ -71,10 +126,14 @@ angular.module('webwalletApp')
           return $scope.device.changeLabel(label);
         })
         .then(
-          function () { flash.success('Label was successfully changed'); },
+          function () {
+            flash.success('Label was successfully changed');
+          },
           function (err) {
-            if (err) // closing the label modal triggers rejection without error
+            // Closing the label modal triggers rejection without error.
+            if (err) {
               flash.error(err.message || 'Failed to change the device label');
+            }
           }
         );
     };
@@ -96,18 +155,25 @@ angular.module('webwalletApp')
         backdrop: 'static',
         keyboard: false
       });
-      modal.opened.then(function () { $scope.$emit('modal.forget.show'); });
-      modal.result.finally(function () { $scope.$emit('modal.forget.hide'); });
 
-      $scope.$on('device.disconnect', function (event, devId) {
-        if ($scope.device.id === devId) {
-          modal.close();
-        }
+      trezorService.setForgetModal(modal);
+
+      modal.opened.then(function () {
+        $scope.$emit('modal.forget.show');
+      });
+      modal.result.finally(function () {
+        trezorService.setForgetModal(null);
+        $scope.$emit('modal.forget.hide');
       });
 
       return modal.result;
     }
 
+    /**
+     * Prompt label
+     *
+     * Ask the user to set the device label using a modal dialog.
+     */
     function promptLabel() {
       var scope, modal;
 
@@ -129,6 +195,21 @@ angular.module('webwalletApp')
       return modal.result;
     }
 
+    /**
+     * Prompt PIN
+     *
+     * Ask the user to set the device PIN using a modal dialog.  Bind keypress
+     * events that allow the user to control the number buttons (dial) using
+     * a keyboard.
+     *
+     * @param {Event} event        Event object
+     * @param {TrezorDevice} dev   Device
+     * @param {String} type        Action type.  Possible values:
+     *                                 - 'PinMatrixRequestType_Current'
+     *                                 - 'PinMatrixRequestType_NewFirst'
+     *                                 - 'PinMatrixRequestType_NewSecond'
+     * @param {Function} callback  Called as `callback(err, res)`
+     */
     function promptPin(event, dev, type, callback) {
       var scope, modal;
 
@@ -185,39 +266,6 @@ angular.module('webwalletApp')
           scope.addPin(e.key);
           scope.$digest();
         }
-      }
-    }
-
-    /**
-     * Handle device disconnect event unless the Forget device modal dialog
-     * is shown already.
-     *
-     * Read from the localStorage the setting which says whether the user wants
-     * to forget devices whenever they are disconnected.
-     * - If the setting says yes, then forget the device.
-     * - If the setting says no, then don't do anything.
-     * - If the setting isn't set at all, ask the user how would he/she like
-     * the app to behave using a modal dialog.  User's answer is stored to
-     * localStorage for all devices.
-     *
-     * @param {Object} event  Event object
-     * @param {TrezorDevice} devId  ID of the device that was disconnected
-     */
-    function handleDisconnect(event, devId) {
-      if ($scope.forgetting) {
-        return;
-      }
-      var forgetOnDisconnect = storage[STORAGE_FORGET_ON_DISCONNECT];
-      if (forgetOnDisconnect === undefined) {
-        promptDisconnect()
-          .then(function () {
-            storage[STORAGE_FORGET_ON_DISCONNECT] = 'true';
-            _forgetDevice(trezorService.get(devId));
-          }, function () {
-            storage[STORAGE_FORGET_ON_DISCONNECT] = 'false';
-          });
-      } else if (forgetOnDisconnect === 'true') {
-        _forgetDevice(trezorService.get(devId));
       }
     }
 

@@ -85,7 +85,7 @@ angular.module('webwalletApp')
 
     TrezorDevice.prototype.getDefaultLabel = function () {
       return this._DEFAULT_LABEL;
-    }
+    };
 
     TrezorDevice.prototype.statusLabel = function () {
       return this._statusLabel;
