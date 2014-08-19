@@ -3,7 +3,7 @@
 angular.module('webwalletApp')
   .controller('AccountSendCtrl', function (
     flash, storage, utils, config, trezorService,
-    $filter, $scope, $rootScope, $location, $routeParams) {
+    $filter, $scope, $rootScope, $routeParams) {
     'use strict';
 
     var STORAGE_TXVALUES = 'trezorSendValues',
@@ -230,15 +230,12 @@ angular.module('webwalletApp')
 
       $scope.account.sendTx(tx, $scope.device).then(
         function (res) {
-          var off;
 
           cancelTxValues();
           $scope.sending = false;
-          $location.path(
-            '/device/' + $scope.device.id +
-            '/account/' + $scope.account.id);
 
-          off = $rootScope.$on('$locationChangeSuccess', function () {
+          utils.redirect('/device/' + $scope.device.id +
+              '/account/' + $scope.account.id).then(function () {
             res.hashRev = res.hash.slice();
             res.hashRev.reverse();
             var hashHex = utils.bytesToHex(res.hashRev);
@@ -254,7 +251,6 @@ angular.module('webwalletApp')
                 title: config.blockExplorers[config.coin].name
               }
             );
-            off();
           });
         },
         function (err) {

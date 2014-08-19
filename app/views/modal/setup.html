@@ -1,0 +1,36 @@
+<div class="modal-header">
+  <h4 class="modal-title">Recovery seed setup</h4>
+</div>
+<div class="modal-body"
+    ng-switch="stage">
+
+  <div ng-switch-when="writeFirst">
+    <div class="alert alert-block alert-info">
+      <p>We will now show you {{RECOVERY_WORDS}} words that will allow you to
+      recover your accounts if you lose your device.</p>
+      <p>Please write down all these words carefully.</p>
+    </div>
+    <h4>Please write down word no. {{recoveryCurrentWord}}/{{RECOVERY_WORDS}}
+    of your recovery seed from your device.</h4>
+  </div>
+
+  <div ng-switch-when="write">
+    <h4>Please write down word no. {{recoveryCurrentWord}}/{{RECOVERY_WORDS}}
+    of your recovery seed from your device.</h4>
+  </div>
+
+  <div ng-switch-when="checkFirst">
+    <div class="alert alert-block alert-info">
+      <p>We will now show you the {{RECOVERY_WORDS}} words that you just
+      wrote down again.
+      <p>Please check carefully that you wrote them down correctly.</p>
+    </div>
+    <h4>Please check word no. {{recoveryCurrentWord}}/{{RECOVERY_WORDS}}
+    of your recovery seed on your device.</h4>
+  </div>
+
+  <div ng-switch-when="check">
+    <h4>Please check word no. {{recoveryCurrentWord}}/{{RECOVERY_WORDS}}
+    of your recovery seed on your device.</h4>
+  </div>
+</div>

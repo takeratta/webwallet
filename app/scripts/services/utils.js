@@ -41,7 +41,8 @@ angular.module('webwalletApp')
 
 angular.module('webwalletApp')
   .service('utils', function Utils(
-      Crypto, Bitcoin, _, $q, $http, $interval, $timeout) {
+      Crypto, Bitcoin, _,
+      $q, $http, $interval, $timeout, $location, $rootScope) {
 
     //
     // codecs
@@ -266,5 +267,29 @@ angular.module('webwalletApp')
 
     this.tick = tick;
     this.endure = endure;
+
+    /**
+     * Redirect to passed path.
+     *
+     * @param {String} path  Path to redirect to
+     * @return {Promise}     Promise that is resolved after the redirection is
+     *                       complete.
+     */
+    function redirect(path) {
+      var deferred = $q.defer(),
+          off;
+      if ($location.path() !== path) {
+        $location.path(path);
+        off = $rootScope.$on('$locationChangeSuccess', function () {
+          deferred.resolve();
+          off();
+        });
+      } else {
+        deferred.resolve();
+      }
+      return deferred.promise;
+    }
+
+    this.redirect = redirect;
 
   });

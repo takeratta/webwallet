@@ -16,7 +16,7 @@ angular.module('webwalletApp')
     }
 
     $scope.$on('device.pin', promptPin);
-    $scope.$on('device.button', promptButton);
+    $scope.$on('device.button', handleButton);
     $scope.$on('device.passphrase', promptPassphrase);
     $scope.$on('device.disconnect', handleDisconnect);
 
@@ -350,11 +350,27 @@ angular.module('webwalletApp')
       }
     }
 
-    function promptButton(event, dev, code) {
-      var scope, modal;
-
-      if (dev.id !== $scope.device.id)
+    function handleButton(event, dev, code) {
+      if (dev.id !== $scope.device.id) {
         return;
+      }
+
+      if (code === 'ButtonRequest_FeeOverThreshold') {
+        promptButton(code);
+      } else if (code === 'ButtonRequest_ConfirmOutput') {
+        promptButton(code);
+      } else if (code === 'ButtonRequest_SignTx') {
+        promptButton(code);
+      } else if (code === 'ButtonRequest_WipeDevice') {
+        promptButton(code);
+      } else if (code !== 'ButtonRequest_ConfirmWord') {
+        promptButton(code);
+      }
+    }
+
+    function promptButton(code) {
+      var scope,
+          modal;
 
       scope = angular.extend($scope.$new(), {
         code: code
@@ -367,11 +383,18 @@ angular.module('webwalletApp')
         keyboard: false,
         scope: scope
       });
-      modal.opened.then(function () { scope.$emit('modal.button.show', code); });
-      modal.result.finally(function () { scope.$emit('modal.button.hide'); });
+      modal.opened.then(function () {
+        scope.$emit('modal.button.show', code);
+      });
+      modal.result.finally(function () {
+        scope.$emit('modal.button.hide');
+      });
 
-      $scope.device.once('receive', function () { modal.close(); });
-      $scope.device.once('error', function () { modal.close(); });
+      $scope.device.once('receive', function () {
+        modal.close();
+      });
+      $scope.device.once('error', function () {
+        modal.close();
+      });
     }
-
   });
