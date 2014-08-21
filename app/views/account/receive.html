@@ -49,27 +49,33 @@
           </div>
 
           <div class="list-group address-list">
-            <a class="list-group-item"
-               ng-repeat="address in addresses"
-               ng-class="{ active: activeAddress.address === address.address }"
-               ng-click="activate(address)">
-              <span class="address-list-address">{{address.address}}</span>
-            </a>
+            <div ng-repeat="address in addresses">
+              <a class="list-group-item"
+                  ng-class="{ active: activeAddress.address === address.address }"
+                  ng-click="activate(address)">
+                <span class="address-list-address">{{address.address}}</span>
+              </a>
+              <div class="line-divider"
+                  ng-show="$first">
+                <hr>
+                <div class="line-divider-content text-center">
+                  <button class="btn btn-xs btn-default"
+                      ng-disabled="addresses.length >= lookAhead"
+                      ng-click="more()">
+                    More please
+                    <span class="glyphicon glyphicon-plus"></span>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div ng-show="addresses.length == lookAhead">
-            <hr>
             <p class="text-danger">
               To access subsequent addresses, please use some of the
               listed addresses in a transaction.
             </p>
           </div>
-
-          <button class="btn btn-default"
-                  ng-show="addresses.length < lookAhead"
-                  ng-click="more()">
-            <span class="glyphicon glyphicon-plus"></span> More please
-          </button>
         </div>
 
         <div class="col-md-4">
