@@ -344,8 +344,9 @@ angular.module('webwalletApp')
       }
 
       function submitModal() {
-        var ppScope = scope.$$childHead.$$childHead.$$nextSibling; // sad panda :(
-        modal.close(ppScope.passphrase);
+        var passphrase = document.getElementById('passphrase-form')
+          .getAttribute('data-passphrase');
+        modal.close(passphrase);
         return false;
       }
     }
