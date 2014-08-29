@@ -31,6 +31,24 @@ angular.module('webwalletApp')
       if (val) return utils.amount2str(val);
     };
   })
+  .filter('ordinal', function () {
+    return function (val) {
+      var i = 'th';
+
+      switch (+val % 10) {
+      case 1: i = 'st'; break;
+      case 2: i = 'nd'; break;
+      case 3: i = 'rd'; break;
+      }
+      switch (+val % 100) {
+      case 11:
+      case 12:
+      case 13: i = 'th'; break;
+      }
+
+      return '' + val + i;
+    };
+  })
   .filter('bip32Path', function () {
     return function (val) {
       return 'm/' + val.map(function(x) {

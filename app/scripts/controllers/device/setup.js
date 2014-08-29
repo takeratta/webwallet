@@ -12,8 +12,10 @@ angular.module('webwalletApp')
       pin_protection: true
     };
 
+    // `recoveryWords` count depends on users choice and gets
+    // initialized in `setupDevice`
     $scope.recoveryStarted = false;
-    $scope.RECOVERY_WORDS = 24;
+    $scope.recoveryWords = null;
     $scope.recoveryWordsDone = 0;
     $scope.recoveryCurrentWord = 1;
 
@@ -24,15 +26,29 @@ angular.module('webwalletApp')
       }
     });
 
+    /**
+     * Returns a word count of a BIP39 seed mnemonic, for `bits` of entropy.
+     * @see https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki
+     * @summary Number -> Number
+     */
+    function getWordCountFromSeedStrength(bits) {
+      return (bits + (bits / 32)) / 11;
+    }
+
     $scope.setupDevice = function () {
       var set = $scope.settings,
           dev = $scope.device;
 
+      set.strength = +set.strength;
       if (set.label) {
         set.label = set.label.trim() || dev.getDefaultLabel();
       } else {
         set.label = dev.getDefaultLabel();
       }
+
+      // Set the total word count so the modal window initialized in
+      // `setupRecoveryNext` can pick it up
+      $scope.recoveryWords = getWordCountFromSeedStrength(set.strength);
 
       dev.reset(set).then(
         function () {
@@ -60,16 +76,16 @@ angular.module('webwalletApp')
       $scope.recoveryCurrentWord = $scope.recoveryCurrentWord + 1;
 
       // Write
-      if ($scope.recoveryWordsDone < $scope.RECOVERY_WORDS) {
+      if ($scope.recoveryWordsDone < $scope.recoveryWords) {
         $scope.stage = 'write';
 
       // First check
-      } else if ($scope.recoveryWordsDone === $scope.RECOVERY_WORDS) {
+      } else if ($scope.recoveryWordsDone === $scope.recoveryWords) {
         $scope.recoveryCurrentWord = 1;
         $scope.stage = 'checkFirst';
 
       // Check
-      } else if ($scope.recoveryWordsDone < 2 * $scope.RECOVERY_WORDS - 1) {
+      } else if ($scope.recoveryWordsDone < 2 * $scope.recoveryWords - 1) {
         $scope.stage = 'check';
 
       // Last check
