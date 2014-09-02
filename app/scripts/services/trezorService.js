@@ -28,7 +28,7 @@ angular.module('webwalletApp')
     self._forgetModal = false;
 
     storeWhenChanged();
-    watchDevices(5000);
+    watchDevices(1000);
 
     if (trezor instanceof trezorApi.PluginTransport) {
       $rootScope.deprecatePlugin = config.deprecatePlugin;
