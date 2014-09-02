@@ -377,13 +377,7 @@ body {
 /* Device send/receive nav */
 
 .tab-content {
-  border: 1px solid #ddd;
-  border-top: 0;
-  padding: 20px;
-  padding-bottom: 5px;
-}
-.tab-content .row {
-  padding-bottom: 20px;
+  padding-top: 30px;
 }
 
 /* Receive */
@@ -410,12 +404,10 @@ body {
 }
 
 .address-qr-link {
-  display: block;
-  float: left;
+  display: inline-block;
   margin-top: -4px;
   margin-left: -4px;
   border: 4px solid transparent;
-  margin-bottom: 1em;
 }
 .address-qr-link:hover,
 .address-qr-link:focus,

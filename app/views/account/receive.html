@@ -79,13 +79,15 @@
         </div>
 
         <div class="col-md-4">
-          <h5>QR Code</h5>
+          <div>
+            <h5>QR Code</h5>
 
-          <a class="address-qr-link"
-              href="{{blockExplorer.urlAddress}}{{activeAddress.address}}"
-              target="_blank" title="Address info at {{blockExplorer.name}}">
-            <qr size="210" text="'bitcoin:' + activeAddress.address"></qr>
-          </a>
+            <a class="address-qr-link"
+               href="{{blockExplorer.urlAddress}}{{activeAddress.address}}"
+               target="_blank" title="Address info at {{blockExplorer.name}}">
+              <qr size="210" text="'bitcoin:' + activeAddress.address"></qr>
+            </a>
+          </div>
 
           <div ng-if="activeAddress">
             <h5>Details</h5>
