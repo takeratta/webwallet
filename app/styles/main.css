@@ -41,6 +41,7 @@ a .icon-loading,
 .input-lg,
 .btn,
 .alert,
+.container .jumbotron,
 .breadcrumb,
 .dropdown-menu,
 .modal-content,
@@ -113,6 +114,12 @@ a .icon-loading,
 
 .lead {
   font-size: 16px;
+}
+
+.jumbotron,
+.container .jumbotron {
+    padding: 32px;
+    margin-top: 32px;
 }
 
 .tooltip.tooltip-danger.right .tooltip-arrow {
