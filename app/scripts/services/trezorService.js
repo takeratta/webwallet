@@ -31,6 +31,7 @@ angular.module('webwalletApp')
     watchDevices(5000);
 
     if (trezor instanceof trezorApi.PluginTransport) {
+      $rootScope.deprecatePlugin = config.deprecatePlugin;
       $rootScope.usingPluginTransport = true;
       $rootScope.installers = trezorApi.installers();
       $rootScope.installers.forEach(function (inst) {

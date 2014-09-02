@@ -52,9 +52,9 @@
       </div>
 
       <div ng-if="!error">
-        <!-- Bar shown when using the plugin transport -->
+        <!-- Bar shown if the plugin is used and is deprecated  -->
         <div class="alert alert-warning alertbar"
-          ng-if="usingPluginTransport">
+          ng-if="usingPluginTransport && deprecatePlugin">
           <div class="container">
             <div class="form-inline">
               <strong>Plugin is deprecated.</strong>
