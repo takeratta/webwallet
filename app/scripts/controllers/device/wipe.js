@@ -10,9 +10,9 @@ angular.module('webwalletApp')
      * Wipe the device and then ask the user if he/she wants to forget it using
      * the same modal that is show when the user clicks the Forget device link.
      *
-     * When a device is wiped the device ID changes, therefore
-     * the `device.connect` and then the `device.disconnect` events are
-     * fired.  That means we have to take care of two problems:
+     * When a device is wiped on Windows or Linux systems, the device ID changes,
+     * therefore the `device.connect` and then the `device.disconnect` events are
+     * fired.  That means we have to take care of three problems:
      *
      * (1) We need to make sure that these events don't trigger the opening of
      * the Disconnect modal (see `DeviceCtrl.handleDisconnect()`).  To
@@ -25,6 +25,9 @@ angular.module('webwalletApp')
      * fired.  To achieve such a behaviour, we check that the device ID changed
      * and if not, then we wait for the events to fire.
      *
+     * (3) On OS X, the event's wont fire at all, and we need to make
+     * sure user disconnects the device.
+     *
      * @see  DeviceCtrl.handleDisconnect()
      */
     $scope.wipeDevice = function () {
@@ -34,9 +37,13 @@ angular.module('webwalletApp')
 
       $scope.device.wipe().then(
         function () {
-          if (!trezorService.get(oldDevId).isConnected()) {
+          if (window.navigator.userAgent.match(/Mac/)) {
+            $scope.forgetDevice(true); // User needs to disconnect the device
+          }
+          else if (!trezorService.get(oldDevId).isConnected()) {
             $scope.forgetDevice();
-          } else {
+          }
+          else {
             var off = $scope.$on('device.disconnect', function (event, devId) {
               if (devId === oldDevId) {
                 $scope.forgetDevice();

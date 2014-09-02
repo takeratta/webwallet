@@ -66,15 +66,18 @@ angular.module('webwalletApp')
      * Forget current device
      *
      * If the device is connected, ask the user to disconnect it before.
+     *
+     * @param {Boolean} requireDisconnect  Can user cancel the modal, or
+     * does he have to disconnect the device?
      */
-    $scope.forgetDevice = function () {
+    $scope.forgetDevice = function (requireDisconnect) {
       if (!$scope.device.isConnected()) {
         _forgetDevice($scope.device);
         return;
       }
 
       trezorService.setForgetInProgress(true);
-      promptForget()
+      promptForget(requireDisconnect)
         .then(function () {
           _forgetDevice($scope.device);
           trezorService.setForgetInProgress(false);
@@ -144,16 +147,25 @@ angular.module('webwalletApp')
      * Ask the user to disconnect the device using a modal dialog.  If the user
      * then disconnects the device, the Promise -- which this function returns
      * -- is resolved, if the user closes the modal dialog or hits Cancel, the
-     * Promise is failed.
+     * Promise is rejected.
+     *
+     * @param {Boolean} disableCancel Forbid closing/cancelling the modal
      *
      * @return {Promise}
      */
-    function promptForget() {
-      var modal = $modal.open({
+    function promptForget(disableCancel) {
+      var scope, modal;
+
+      scope = angular.extend($scope.$new(), {
+        disableCancel: disableCancel
+      });
+
+      modal = $modal.open({
         templateUrl: 'views/modal/forget.html',
         size: 'sm',
         backdrop: 'static',
-        keyboard: false
+        keyboard: false,
+        scope: scope
       });
 
       trezorService.setForgetModal(modal);
@@ -187,7 +199,7 @@ angular.module('webwalletApp')
         windowClass: 'labelmodal',
         backdrop: 'static',
         keyboard: false,
-        scope: scope,
+        scope: scope
       });
       modal.opened.then(function () { scope.$emit('modal.label.show'); });
       modal.result.finally(function () { scope.$emit('modal.label.hide'); });
