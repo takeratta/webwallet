@@ -187,24 +187,8 @@ module.exports = function (grunt) {
     ngtemplates: {
       webwalletApp: {
         cwd: '<%= yeoman.app %>',
-        src: ['views/**/*.html', '!views/error.*'],
-        dest: '.tmp/scripts/templates.webwallet.js',
-        options: {
-          htmlmin: {
-            collapseBooleanAttributes:      true,
-            collapseWhitespace:             true,
-            removeAttributeQuotes:          true,
-            removeComments:                 true,
-            removeRedundantAttributes:      true,
-            removeScriptTypeAttributes:     true,
-            removeStyleLinkTypeAttributes:  true
-          }
-        }
-      },
-      errorApp: {
-        cwd: '<%= yeoman.app %>',
-        src: ['views/error.*'],
-        dest: '.tmp/scripts/templates.error.js',
+        src: ['views/**/*.html'],
+        dest: '.tmp/scripts/templates.js',
         options: {
           htmlmin: {
             collapseBooleanAttributes:      true,
