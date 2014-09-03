@@ -63,6 +63,7 @@ angular.module('webwalletApp')
 
 angular.module('webwalletApp')
   .service('utils', function Utils(
+    trezor, trezorApi,
     BigInteger, Crypto, Bitcoin, jsSHA, ecurve, Buffer,
       _, $q, $http, $interval, $timeout, $location, $rootScope) {
 
@@ -251,6 +252,29 @@ angular.module('webwalletApp')
     }
 
     function deriveChildNode(node, index) {
+      var child = _deriveChildNode(node, index),
+          child2;
+
+      // patch the computed child to format the plugin returns
+      child.public_key = child.public_key.toUpperCase();
+      child.chain_code = child.chain_code.toUpperCase();
+      child.fingerprint = ''+child.fingerprint;
+      child.child_num = ''+child.child_num;
+      child.depth = ''+child.depth;
+
+      // check the CKD function by generating the child in the plugin
+      // and comparing
+      if (trezor instanceof trezorApi.PluginTransport) {
+        child2 = trezor.deriveChildNode(node, index);
+        if (!(_.isEqual(child, child2))) {
+          throw new Error('Child node derivation failed');
+        }
+      }
+
+      return child;
+    }
+
+    function _deriveChildNode(node, index) {
       var indexBytes = [
         (index >> 24) & 0xFF,
         (index >> 16) & 0xFF,
