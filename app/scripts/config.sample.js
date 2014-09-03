@@ -15,6 +15,9 @@ angular.module('webwalletApp').constant('config', {
     pluginMinVersion: '1.0.5'
   },
 
+  // suggest to replace plugin with bridge
+  deprecatePlugin: false,
+
   // version of storage this wallet is compatible with
   storageVersion: '1.1.0',
 
