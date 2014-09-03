@@ -36,19 +36,26 @@ angular.element(document).ready(function () {
   registerUriHandler();
 
   function acquireTransport() {
-    return trezor.HttpTransport.connect(bridgeUrl)
-      .then(
-        function (info) {
-          console.log('[app] Loading http transport successful', info);
-          return new trezor.HttpTransport(bridgeUrl);
-        },
-        function (err) {
-          console.error('[app] Loading http transport failed', err);
-          return trezor.plugin.load().then(function (plugin) {
-            return new trezor.PluginTransport(plugin);
+    return loadHttp().catch(loadPlugin);
+
+    function loadHttp() {
+      return trezor.HttpTransport.connect(bridgeUrl)
+        .then(
+          function (info) {
+            console.log('[app] Loading http transport successful', info);
+            return new trezor.HttpTransport(bridgeUrl);
+          },
+          function (err) {
+            console.error('[app] Loading http transport failed', err);
+            throw err;
           });
-        }
-      );
+    }
+
+    function loadPlugin() {
+      return trezor.PluginTransport.loadPlugin().then(function (plugin) {
+        return new trezor.PluginTransport(plugin);
+      });
+    }
   }
 
   function webwalletApp(err, transport) {
