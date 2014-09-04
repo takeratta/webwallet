@@ -66,13 +66,18 @@ angular.module('webwalletApp')
      * @returns {Dict}  Parsed URI
      */
     function parseUri(uri) {
-      var parser = document.createElement('a'),
-          params = {},
+      var params = {},
+          uri_parsed = uri.match(/bitcoin:(\w+)\??(.*)/),
+          raw_address,
           raw_params_str,
           raw_params_list;
-      parser.href = 'http://' + uri.replace(/^bitcoin\:(\S+)$/, '$1');
-      if (parser.search && parser.search[0] === '?') {
-        raw_params_str = parser.search.slice(1);
+
+      if (!uri_parsed) {
+        throw new Error('Invalid bitcoin URI');
+      }
+      raw_address = uri_parsed[1];
+      raw_params_str = uri_parsed[2];
+      if (raw_params_str) {
         if (raw_params_str.indexOf('&')) {
           raw_params_list = raw_params_str.split('&');
         } else {
@@ -88,7 +93,7 @@ angular.module('webwalletApp')
         });
       }
       return {
-        address: parser.host,
+        address: raw_address,
         amount: parseFloat(params.amount) || null,
         label: params.label || null,
         message: params.message || null,
