@@ -1,7 +1,6 @@
-'use strict';
-
 angular.module('webwalletApp')
   .controller('AccountReceiveCtrl', function ($document, $scope, $timeout) {
+    'use strict';
 
     $scope.activeAddress = null;
     $scope.usedAddresses = [];
