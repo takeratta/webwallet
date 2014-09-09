@@ -256,26 +256,26 @@ angular.module('webwalletApp')
       modal.opened.then(function () { scope.$emit('modal.pin.show', type); });
       modal.result.finally(function () { scope.$emit('modal.pin.hide'); });
 
-      $document.on('keypress', _pinKeypressHandler);
+      $document.on('keydown', _pinKeydownHandler);
 
       modal.result.then(
         function (res) {
-          $document.off('keypress', _pinKeypressHandler);
+          $document.off('keydown', _pinKeydownHandler);
           callback(null, res);
         },
         function (err) {
-          $document.off('keypress', _pinKeypressHandler);
+          $document.off('keydown', _pinKeydownHandler);
           callback(err);
         }
       );
 
-      function _pinKeypressHandler(e) {
+      function _pinKeydownHandler(e) {
         if (e.which === 8) { // Backspace
           scope.delPin();
           scope.$digest();
           return false;
-        } else if (e.which >= 48 && e.which <= 57) {
-          scope.addPin(e.key);
+        } else if (e.which >= 48 && e.which <= 57) { // Numeric keys
+          scope.addPin(String.fromCharCode(e.which));
           scope.$digest();
         }
       }
