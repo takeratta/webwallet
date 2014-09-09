@@ -112,7 +112,7 @@ angular.element(document).ready(function () {
           .when('/device/:deviceId/account/:accountId/receive', {
             templateUrl: 'views/account/receive.html'
           })
-          .when('/send/:uri', {
+          .when('/send/:uri*', {
             resolve: {
               uriRedirect: 'uriRedirect'
             }

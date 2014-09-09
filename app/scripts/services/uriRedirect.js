@@ -6,7 +6,7 @@
  * Parse a Bitcoin URI that was passed as an HTTP GET param and then
  * redirect to the Account Send Controller.
  *
- * Bitcoin URI simple format:
+ * Bitcoin URI simple format (unknown fields are ignored):
  *
  * `bitcoin:<address>[?amount=<amount>][?label=<label>][?message=<message>]`
  *
@@ -59,8 +59,6 @@ angular.module('webwalletApp')
      *         message: "Donation for project xyz",
      *     }
      * }
-     *
-     * @see http://www.joezimjs.com/javascript/the-lazy-mans-url-parsing/
      *
      * @param {String} uri  Bitcoin URI
      * @returns {Dict}  Parsed URI
