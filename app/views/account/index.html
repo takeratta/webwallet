@@ -44,6 +44,11 @@
             <td class="txlist-address"
                 ng-if="!tx.comment"
                 ng-switch="tx.analysis.type">
+              <a href="{{blockExplorer.urlTx}}{{tx.hash}}"
+                 class="txlist-hash"
+                 target="_blank"
+                 title="Transaction info at {{blockExplorer.name}}"
+                 ><span class="glyphicon glyphicon-info-sign"></span></a>
               <span class="text-success" ng-switch-when="recv">
                 <span class="glyphicon glyphicon-circle-arrow-right" title="Received"></span> {{tx.analysis.addr.toString()}}
               </span>
@@ -56,10 +61,6 @@
               <span class="text-muted" ng-switch-default>
                 <span class="glyphicon glyphicon-question-sign"></span> Unknown
               </span>
-              <a href="{{blockExplorer.urlTx}}{{tx.hash}}"
-                 class="txlist-hash text-muted glyphicon glyphicon-info-sign"
-                 target="_blank"
-                 title="Transaction info at {{blockExplorer.name}}"></a>
             </td>
             <td class="txlist-amount"
                 ng-class="{ 'text-success': tx.analysis.impact.sign > 0,

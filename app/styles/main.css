@@ -364,14 +364,16 @@ body {
   font-family: monospace;
 }
 
-.txlist-hash {
+.txlist-hash .glyphicon {
   display: none;
-  padding-left: 0.5em;
-  top: 2px;
 }
 
-.txlist-tx:hover .txlist-hash {
-  display: inline;
+.txlist-tx:hover .txlist-hash .glyphicon {
+  display: inline-block;
+}
+
+.txlist-tx:hover .glyphicon {
+    display: none;
 }
 
 /* Device send/receive nav */
