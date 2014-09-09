@@ -11,15 +11,17 @@ angular.module('webwalletApp')
         $rootScope.debug.visible = false;
         return;
       }
-      var logs = [];
-      window.console.logs.forEach(function (log) {
-        logs.push(JSON.stringify(log));
-      });
-      $rootScope.debug.logs = logs.join('\r\n');
+      $rootScope.debug.logs = debugLogsString();
       $rootScope.debug.visible = true;
     };
 
     $rootScope.debug.focus = function (e) {
       $(e.currentTarget).select();
     };
+
+    function debugLogsString() {
+      return (window.console.logs || [])
+        .map(JSON.stringify)
+        .join('\n');
+    }
   });
