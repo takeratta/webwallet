@@ -1,0 +1,88 @@
+<div ng-controller="DeviceCtrl">
+    <div ng-controller="AccountCtrl">
+
+        <ol class="breadcrumb">
+            <li><a ng-href="#/device/{{device.id}}">{{device.label()}}</a></li>
+            <li><a ng-href="#/device/{{device.id}}/account/{{account.id}}"
+                    >{{account.label()}}</a></li>
+            <li class="active">Receive</li>
+            <ng-include src="'views/device/forget.link.html'"></ng-include>
+        </ol>
+
+        <ng-include src="'views/account/nav.html'"></ng-include>
+
+        <div class="tab-content">
+            <div ng-controller="AccountSignCtrl"
+                 class="row">
+
+                <div class="col-md-8">
+
+                    <button class="address-list-toggleused btn btn-sm btn-link pull-right"
+                            ng-show="!usedAddresses.length && account.transactions.length"
+                            ng-click="usedAddresses = account.usedAddresses()">
+                        <span class="glyphicon glyphicon-chevron-up"></span> Show used
+                    </button>
+
+                    <button class="address-list-toggleused btn btn-sm btn-link pull-right"
+                            ng-show="usedAddresses.length && account.transactions.length"
+                            ng-click="usedAddresses = []">
+                        <span class="glyphicon glyphicon-chevron-down"></span> Hide used
+                    </button>
+
+                    <h5>Address</h5>
+
+                    <div class="list-group address-list address-list-used"
+                         ng-show="usedAddresses.length">
+                        <a class="list-group-item"
+                           ng-repeat="address in usedAddresses"
+                           ng-class="{ active: activeAddress.address === address.address }"
+                           ng-click="signWith(address)">
+                            <span class="address-list-address">{{address.address}}</span>
+                            <small class="address-list-balance text-success pull-right"
+                                    >({{address.balance | amount}} {{account.coin.coin_shortcut}})</small>
+                        </a>
+                        <hr>
+                    </div>
+
+                    <div class="list-group address-list">
+                        <div ng-repeat="address in addresses">
+                            <a class="list-group-item"
+                               ng-class="{ active: activeAddress.address === address.address }"
+                               ng-click="signWith(address)">
+                                <span class="address-list-address">{{address.address}}</span>
+                            </a>
+                            <div class="line-divider"
+                                 ng-show="$first">
+                                <hr>
+                                <div class="line-divider-content text-center">
+                                    <button class="btn btn-xs btn-default"
+                                            ng-disabled="addresses.length >= lookAhead"
+                                            ng-click="more()">
+                                        More please
+                                        <span class="glyphicon glyphicon-plus"></span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div ng-show="addresses.length == lookAhead">
+                        <p class="text-danger">
+                            To access subsequent addresses, please use some of the
+                            listed addresses in a transaction.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <h5>Message</h5>
+                    <textarea name="message" id="message" class="form-control">Your message here</textarea>
+                    <h5>Signature</h5>
+                    <textarea name="signature" id="signature" class="form-control" rows="4" readonly="readonly">{{signature}}</textarea>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>

@@ -10,9 +10,31 @@
       <span class="glyphicon glyphicon-circle-arrow-right"></span> Receive
     </a>
   </li>
-  <li ng-class="{ active: isActive('/device/{{device.id}}/account/{{account.id}}/send$') }">
-    <a class="btn" href="#/device/{{device.id}}/account/{{account.id}}/send">
-      <span class="glyphicon glyphicon-circle-arrow-left"></span> Send
-    </a>
-  </li>
+    <li ng-class="{ active: isActive('/device/{{device.id}}/account/{{account.id}}/send$') }"
+        tooltip="Please connect your device to send coins."
+        tooltip-trigger="{{ device.isConnected() ? 'manual' : 'mouseenter'}}"
+        tooltip-placement="bottom">
+        <a class="btn" href="#/device/{{device.id}}/account/{{account.id}}/send"
+           ng-disabled="!device.isConnected()">
+            <span class="glyphicon glyphicon-circle-arrow-left"></span> Send
+        </a>
+    </li>
+    <li ng-class="{ active: isActive('/device/{{device.id}}/account/{{account.id}}/sign$') }"
+        tooltip="Please connect your device to sign a message."
+        tooltip-trigger="{{ device.isConnected() ? 'manual' : 'mouseenter'}}"
+        tooltip-placement="bottom">
+        <a class="btn" href="#/device/{{device.id}}/account/{{account.id}}/sign"
+           ng-disabled="!device.isConnected()">
+            <span class="glyphicon glyphicon-lock"></span> Sign a message
+        </a>
+    </li>
+    <li ng-class="{ active: isActive('/device/{{device.id}}/account/{{account.id}}/verify$') }"
+        tooltip="Please connect your device to verify a message."
+        tooltip-trigger="{{ device.isConnected() ? 'manual' : 'mouseenter'}}"
+        tooltip-placement="bottom">
+        <a class="btn" href="#/device/{{device.id}}/account/{{account.id}}/verify"
+           ng-disabled="!device.isConnected()">
+            <span class="glyphicon glyphicon-check"></span> Verify a message
+        </a>
+    </li>
 </ul>

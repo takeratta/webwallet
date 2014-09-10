@@ -1,0 +1,42 @@
+<div ng-controller="DeviceCtrl">
+    <div ng-controller="AccountCtrl">
+
+        <ol class="breadcrumb">
+            <li><a ng-href="#/device/{{device.id}}">{{device.label()}}</a></li>
+            <li><a ng-href="#/device/{{device.id}}/account/{{account.id}}"
+                    >{{account.label()}}</a></li>
+            <li class="active">Receive</li>
+            <ng-include src="'views/device/forget.link.html'"></ng-include>
+        </ol>
+
+        <ng-include src="'views/account/nav.html'"></ng-include>
+
+        <div class="tab-content">
+            <div ng-controller="AccountVerifyCtrl"
+                 class="row">
+
+                <div class="col-md-12">
+                    <form name="form"
+                          class="form-horizontal"
+                          ng-submit="verifyMsg()">
+
+                        <h5>Message</h5>
+                        <textarea name="message" id="message" class="form-control" required></textarea>
+
+                        <h5>Address</h5>
+                        <input id="address" class="form-control" type="text"required>
+
+                        <h5>Signature</h5>
+                        <textarea name="signature" id="signature" class="form-control" required></textarea>
+
+                        <button type="submit" class="btn btn-sm btn-link">
+                            <span class="glyphicon glyphicon-check"></span> Verify message
+                        </button>
+
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

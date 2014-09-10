@@ -117,6 +117,12 @@ angular.element(document).ready(function () {
               uriRedirect: 'uriRedirect'
             }
           })
+          .when('/device/:deviceId/account/:accountId/sign', {
+            templateUrl: 'views/account/sign.html'
+          })
+          .when('/device/:deviceId/account/:accountId/verify', {
+            templateUrl: 'views/account/verify.html'
+          })
           .otherwise({
             redirectTo: '/'
           });
