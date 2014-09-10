@@ -270,14 +270,25 @@ angular.module('webwalletApp')
       );
 
       function _pinKeydownHandler(e) {
-        if (e.which === 8) { // Backspace
+        var k = e.which;
+        if (k === 8) { // Backspace
           scope.delPin();
           scope.$digest();
           return false;
-        } else if (e.which >= 48 && e.which <= 57) { // Numeric keys
-          scope.addPin(String.fromCharCode(e.which));
+        }
+        else if (_isNumericKey(k)) {
+          var num = _getNumberFromKey(k);
+          scope.addPin(String.fromCharCode(num));
           scope.$digest();
         }
+      }
+
+      function _isNumericKey(k) {
+        return (k >= 49 && k <= 57) || (k >= 97 && k <= 105);
+      }
+
+      function _getNumberFromKey(k) {
+        return (k >= 97) ? (k - (97 - 49)) : k;
       }
     }
 
