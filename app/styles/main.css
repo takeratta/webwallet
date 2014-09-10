@@ -299,6 +299,12 @@ body {
   margin-left: 20px;
 }
 
+/* Application logs */
+
+.alert-logs textarea {
+  font-size: 80%;
+}
+
 /* Alert bar */
 
 .alertbar {
