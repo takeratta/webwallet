@@ -2,7 +2,7 @@
 
 angular.module('webwalletApp')
   .service('trezorService', function TrezorService(
-    utils, config, storage,
+    utils, config, storage, flash,
     trezor, trezorApi, trezorError, firmwareService, TrezorDevice,
     _, $modal, $q, $location, $rootScope) {
 
@@ -196,10 +196,14 @@ angular.module('webwalletApp')
                 ? bootloaderWorkflow(dev)
                 : normalWorkflow(dev);
             },
-            function () {
+            function (err) {
               dev.disconnect();
+              throw err;
             }
-          );
+          )
+          .catch(function (err) {
+            flash.error(err.message || 'Loading device failed');
+          });
       });
     }
 
