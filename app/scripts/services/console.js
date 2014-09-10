@@ -25,8 +25,9 @@
 
     function createMethod(method, level) {
         return function () {
-            var args = Array.prototype.slice.call(arguments);
-            window.console.logs.push([level].concat(args));
+            var args = Array.prototype.slice.call(arguments),
+                time = new Date().toUTCString();
+            window.console.logs.push([level, time].concat(args));
             method.apply(window.console, args);
         };
     }
