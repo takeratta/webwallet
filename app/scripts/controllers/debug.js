@@ -16,7 +16,7 @@ angular.module('webwalletApp')
     };
 
     $rootScope.debug.focus = function (e) {
-      $(e.currentTarget).select();
+      $(e.target).select();
     };
 
     function debugLogsString() {
