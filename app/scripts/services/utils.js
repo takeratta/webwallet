@@ -267,6 +267,11 @@ angular.module('webwalletApp')
       if (trezor instanceof trezorApi.PluginTransport) {
         child2 = trezor.deriveChildNode(node, index);
         if (!(_.isEqual(child, child2))) {
+          console.error('CKD check failed', {
+            parent: node,
+            jsChild: child,
+            pluginChild: child
+          })
           throw new Error('Child node derivation failed');
         }
       }
