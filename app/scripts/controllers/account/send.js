@@ -61,6 +61,16 @@ angular.module('webwalletApp')
 
     // Tx preparing
 
+    $scope.$watch(
+      function () {
+        return $scope.account.balance !== null;
+      },
+      function (hasBalance) {
+        if (hasBalance)
+          prepareTx($scope.tx.values);
+      }
+    );
+
     $scope.$watch('tx.values', maybePrepareTx, true);
 
     function maybePrepareTx(nval, oval) {
