@@ -456,6 +456,13 @@ body {
   border-color: hsla(208, 56%, 53%, 0.5);
 }
 
+.address-list .list-group-item.invalid,
+.address-list .list-group-item.invalid:hover {
+  color: #A94442;
+  background-color: #F2DEDE;
+  border-color: #EBCCD1;
+}
+
 .address-list-toggleused {
   padding-top: 8px;
   padding-right: 1px;
@@ -481,6 +488,11 @@ body {
 }
 .address-qr-link canvas {
   display: block;
+}
+
+.btn-verifyaddress {
+  padding: 0;
+  opacity: 0.6;
 }
 
 /* Send */

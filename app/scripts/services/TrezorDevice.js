@@ -3,6 +3,7 @@
 angular.module('webwalletApp').factory('TrezorDevice', function (
     _,
     $q,
+    $log,
     config,
     utils,
     TrezorAccount,
@@ -531,6 +532,24 @@ angular.module('webwalletApp').factory('TrezorDevice', function (
             for (i = 2; i <= n; i++) nf *= i;
             return nf;
         }
+    };
+
+    TrezorDevice.prototype.verifyAddress = function (path, address) {
+        var coin = this.defaultCoin(); // TODO: use coin of proper account
+
+        return this._session.getAddress(path, coin, true).then(function (res) {
+            var verified = res.message.address === address;
+
+            if (!verified) {
+                $log.error('[device] Address verification failed', {
+                    path: path,
+                    jsAddress: address,
+                    trezorAddress: res.message.address
+                });
+            }
+
+            return verified;
+        });
     };
 
     return TrezorDevice;
