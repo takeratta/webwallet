@@ -65,7 +65,7 @@ angular.module('webwalletApp')
   .service('utils', function Utils(
     trezor, trezorApi,
     BigInteger, Crypto, Bitcoin, jsSHA, ecurve, Buffer,
-      _, $q, $http, $interval, $timeout, $location, $rootScope) {
+      _, $q, $log, $http, $interval, $timeout, $location, $rootScope) {
 
     var curve = ecurve.getCurveByName('secp256k1');
 
@@ -267,10 +267,10 @@ angular.module('webwalletApp')
       if (trezor instanceof trezorApi.PluginTransport) {
         child2 = trezor.deriveChildNode(node, index);
         if (!(_.isEqual(child, child2))) {
-          console.error('CKD check failed', {
+          $log.error('CKD check failed', {
             parent: node,
             jsChild: child,
-            pluginChild: child
+            pluginChild: child2
           })
           throw new Error('Child node derivation failed');
         }
@@ -300,9 +300,9 @@ angular.module('webwalletApp')
 
       var pIL = new BigInteger(bytesToHex(IL), 16);
 
-      // In case parse256(IL) >= n, proceed with the next value for i
+      // In case parse256(IL) >= n, abort
       if (pIL.compareTo(curve.n) >= 0) {
-        return deriveChildNode(node, index + 1);
+        throw new Error('Invalid CKD: pIL >= n');
       }
 
       // Ki = point(parse256(IL)) + Kpar
@@ -311,9 +311,9 @@ angular.module('webwalletApp')
       var Q = ecurve.Point.decodeFrom(curve, keyBuffer);
       var Ki = curve.G.multiply(pIL).add(Q);
 
-      // In case Ki is the point at infinity, proceed with the next value for i
+      // In case Ki is the point at infinity, abort
       if (curve.isInfinity(Ki)) {
-        return deriveChildNode(node, index + 1);
+        throw new Error('Invalid CKD: Ki == Infinity');
       }
 
       var hash = Bitcoin.Util.sha256ripe160(hexToBytes(node.public_key));
