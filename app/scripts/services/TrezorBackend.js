@@ -94,6 +94,12 @@ angular.module('webwalletApp')
 
     TrezorBackend.prototype._processMessage = function (msg) {
       var xpub = msg.publicMaster;
+
+      if (!this._handlers[xpub]) {
+        console.warn('[backend] Received a message for unknown xpub', xpub);
+        return;
+      }
+
       this._handlers[xpub].forEach(function (handler) {
         handler(msg);
       });
