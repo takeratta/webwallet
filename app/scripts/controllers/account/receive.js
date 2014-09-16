@@ -28,11 +28,19 @@ angular.module('webwalletApp').controller('AccountReceiveCtrl', function (
     $scope.verify = function () {
         var address = $scope.activeAddress;
 
-        $scope.device.verifyAddress(address.path, address.address).then(function (verified) {
-            if (!verified) {
-                flash.error('Address verification failed! Please contact TREZOR support.');
+        address.verification = true;
+        $scope.device.verifyAddress(address.path, address.address).then(
+            function (verified) {
+                address.verification = false;
+                if (!verified) {
+                    flash.error('Address verification failed! Please contact TREZOR support.');
+                }
+            },
+            function (error) {
+                address.verification = false;
+                flash.error(error);
             }
-        });
+        );
     };
 
     $scope.more = function () {

@@ -66,9 +66,13 @@
                 <!-- Address verification -->
                 <span class="pull-right"
                       ng-if="enabledFeatures.addressVerification">
+                  <span class="icon-loading"
+                        title="Verifying address with TREZOR"
+                        ng-if="address.verification"></span>
                   <button class="btn btn-lg btn-link btn-verifyaddress"
                           title="Verify with TREZOR"
                           ng-if="
+                          !address.verification &&
                           device.isConnected() &&
                           activeAddress.address === address.address"
                           ng-click="verify()">
