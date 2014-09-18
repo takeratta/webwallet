@@ -252,20 +252,13 @@ angular.module('webwalletApp')
     }
 
     function deriveChildNode(node, index) {
-      var child = _deriveChildNode(node, index),
-          child2;
+      var child = _deriveChildNode(node, index);
+      _normalizeNode(child);
 
-      // patch the computed child to format the plugin returns
-      child.public_key = child.public_key.toUpperCase();
-      child.chain_code = child.chain_code.toUpperCase();
-      child.fingerprint = ''+child.fingerprint;
-      child.child_num = ''+child.child_num;
-      child.depth = ''+child.depth;
-
-      // check the CKD function by generating the child in the plugin
-      // and comparing
       if (trezor instanceof trezorApi.PluginTransport) {
-        child2 = trezor.deriveChildNode(node, index);
+        var child2 = trezor.deriveChildNode(node, index);
+        _normalizeNode(child2);
+
         if (!(_.isEqual(child, child2))) {
           $log.error('CKD check failed', {
             parent: node,
@@ -277,6 +270,14 @@ angular.module('webwalletApp')
       }
 
       return child;
+    }
+
+    function _normalizeNode(node) {
+      node.public_key = node.public_key.toUpperCase();
+      node.chain_code = node.chain_code.toUpperCase();
+      node.fingerprint = node.fingerprint.toString();
+      node.child_num = node.child_num.toString();
+      node.depth = node.depth.toString();
     }
 
     function _deriveChildNode(node, index) {
