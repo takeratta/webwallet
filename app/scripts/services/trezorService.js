@@ -331,17 +331,21 @@ angular.module('webwalletApp')
       function myConnect(desc) {
         var dev = new TrezorDevice(desc.path);
 
-        dev.connect(desc);
-        setupCallbacks(dev);
-        dev.initializeDevice().then(
-          function (features) {
-            scope.state = features.bootloader_mode ?
-              'device-bootloader' :
-              'device-normal';
-            scope.device = dev;
-          },
-          function () { dev.disconnect(); }
-        );
+        trezor.acquire(desc).then(function (res) {
+          var sessionId = res.session,
+              session = new trezorApi.Session(trezor, sessionId);
+          dev.connect(session);
+          setupCallbacks(dev);
+          dev.initializeDevice().then(
+            function (features) {
+              scope.state = features.bootloader_mode ?
+                'device-bootloader' :
+                'device-normal';
+              scope.device = dev;
+            },
+            function () { dev.disconnect(); }
+          );
+        });
       }
 
       function myDisconnect(desc) {
