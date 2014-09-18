@@ -166,14 +166,12 @@ angular.module('webwalletApp')
     // marks the device of the given descriptor as connected and starting the
     // correct workflow
     function connect(desc) {
-      var dev,
-          id;
+      var dev;
 
-      id = desc.id || desc.serialNumber;
-      if (id) {
-        dev = _.find(self.devices, { id: id });
+      if (desc.id) {
+        dev = _.find(self.devices, { id: desc.id });
         if (!dev) {
-          dev = new TrezorDevice(id);
+          dev = new TrezorDevice(desc.id);
           self.devices.push(dev);
         }
       } else
@@ -209,12 +207,10 @@ angular.module('webwalletApp')
 
     // marks a device of the given descriptor as disconnected
     function disconnect(desc) {
-      var dev,
-          id;
+      var dev;
 
-      id = desc.serialNumber || desc.id;
-      if (id) {
-        dev = _.find(self.devices, { id: id });
+      if (desc.id) {
+        dev = _.find(self.devices, { id: desc.id });
         if (dev)
           dev.disconnect();
         resetOutdatedFirmwareBar(desc);
@@ -453,7 +449,14 @@ angular.module('webwalletApp')
 
         inProgress = true;
         trezor.enumerate()
-          .then(function (devices) { res.notify(devices); })
+          .then(function (devices) {
+            res.notify(devices.map(function (dev) {
+              if (!dev.id && dev.serialNumber) {
+                dev.id = dev.serialNumber;
+              }
+              return dev;
+            }));
+          })
           .then(
             function () { inProgress = false; },
             function () { inProgress = false; }
