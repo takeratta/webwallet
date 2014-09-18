@@ -38,7 +38,7 @@ angular.module('webwalletApp').controller('AccountReceiveCtrl', function (
             },
             function (error) {
                 address.verification = false;
-                flash.error(error);
+                flash.error(error.message);
             }
         );
     };
