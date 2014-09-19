@@ -2,35 +2,14 @@
 
 angular.module('webwalletApp')
   .controller('AccountSendCtrl', function (
-    flash, storage, utils, config, trezorService,
+    flash, temporaryStorage, utils, config, trezorService,
     $filter, $scope, $rootScope, $routeParams) {
     'use strict';
 
-    var STORAGE_TXVALUES = 'trezorSendValues',
-        values,
-        output;
-
-    /*
-     * If a transaction output was specified in an HTTP GET param, use that
-     * value first.  Otherwise load previously filled output values from
-     * localStorage.
-     */
-    if ($routeParams.output) {
-      output = {
-        address: $routeParams.output
-      };
-      if ($routeParams.amount) {
-        output.amount = $routeParams.amount;
-      }
-      values = {
-        outputs: [output]
-      };
-    } else {
-      values = restoreTxValues();
-    }
+    var STORAGE_TXVALUES = 'trezorSendValues';
 
     $scope.tx = {
-      values: values,
+      values: initialTxValues(),
       prepared: null,
       error: null,
       fee: null
@@ -38,22 +17,45 @@ angular.module('webwalletApp')
     $scope.sending = false;
     $scope.outputIndex = null;
 
-    // TODO: make this work
-    // prepareTx($scope.tx.values); // we may have restored some values
+    /*
+     * If a transaction output was specified in an HTTP GET param, use that
+     * value first.  Otherwise load previously filled output values from
+     * localStorage.
+     */
+    function initialTxValues() {
+      var values,
+          output;
+
+      if ($routeParams.output) {
+        output = {
+          address: $routeParams.output
+        };
+        if ($routeParams.amount) {
+          output.amount = $routeParams.amount;
+        }
+        values = {
+          outputs: [output]
+        };
+      } else {
+        values = restoreTxValues();
+      }
+
+      return values;
+    }
 
     // Tx values save/restore
 
     function saveTxValues() {
-      storage[STORAGE_TXVALUES] = JSON.stringify($scope.tx.values);
+      temporaryStorage[STORAGE_TXVALUES] = JSON.stringify($scope.tx.values);
     }
 
     function cancelTxValues() {
-      delete storage[STORAGE_TXVALUES];
+      delete temporaryStorage[STORAGE_TXVALUES];
     }
 
     function restoreTxValues() {
-      if (storage[STORAGE_TXVALUES])
-        return JSON.parse(storage[STORAGE_TXVALUES]);
+      if (temporaryStorage[STORAGE_TXVALUES])
+        return JSON.parse(temporaryStorage[STORAGE_TXVALUES]);
       return { outputs: [{}] };
     }
 
@@ -71,18 +73,24 @@ angular.module('webwalletApp')
       }
     );
 
-    $scope.$watch('tx.values', maybePrepareTx, true);
-
-    function maybePrepareTx(nval, oval) {
-      if (nval !== oval)
+    $scope.$watch('tx.values', function (nval, oval) {
+      if (nval !== oval) {
+        saveTxValues();
         prepareTx(nval);
-    }
+      }
+    }, true);
 
     function prepareTx(vals) {
       var preparedOuts = [],
           outsOk = true;
 
-      vals.outputs.forEach(function (out) {
+      vals.outputs.forEach(prepareOutput);
+      if (outsOk && preparedOuts.length)
+        $scope.account.buildTx(preparedOuts, $scope.device).then(success, cancel);
+      else
+        cancel();
+
+      function prepareOutput(out) {
         var address = out.address,
             amount = out.amount,
             pout;
@@ -105,22 +113,15 @@ angular.module('webwalletApp')
         }
         else
           outsOk = false;
-      });
-
-      if (outsOk && preparedOuts.length)
-        $scope.account.buildTx(preparedOuts, $scope.device).then(success, cancel);
-      else
-        cancel();
+      }
 
       function success(tx) {
-        saveTxValues();
         $scope.tx.fee = utils.amount2str(tx.fee);
         $scope.tx.prepared = tx;
         $scope.tx.error = null;
       }
 
       function cancel(err) {
-        cancelTxValues();
         $scope.tx.fee = null;
         $scope.tx.prepared = null;
         if (err)
