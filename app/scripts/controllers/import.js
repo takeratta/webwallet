@@ -2,7 +2,7 @@
 
 angular.module('webwalletApp')
   .controller('ImportCtrl', function (
-    trezorService, TrezorDevice, TrezorAccount, config, utils, $scope) {
+    deviceList, TrezorDevice, TrezorAccount, config, utils, $scope) {
 
     $scope.coins = {
       Bitcoin: {
@@ -34,7 +34,7 @@ angular.module('webwalletApp')
           keys;
 
       console.log('[import] Importing device', id);
-      trezorService.devices.push(dev);
+      deviceList.add(dev);
 
       keys = pl.match(/[^\r\n]+/g);
       if (!keys)

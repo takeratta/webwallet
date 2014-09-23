@@ -45,12 +45,11 @@
 
       <!-- Error -->
       <div ng-controller="ErrorCtrl"
-        ng-if="error"
         ng-cloak>
-        <div class="page-container container">
+        <div class="page-container container"
+          ng-if="error">
           <ng-include src="'views/error.html'"></ng-include>
         </div>
-      </div>
 
       <div ng-if="!error">
         <!-- Bar shown if the plugin is used and is deprecated  -->
@@ -79,6 +78,7 @@
         </div>
 
         <!-- Outdated firmware bar -->
+          <div ng-controller="FirmwareCtrl">
         <div class="alert alert-warning alertbar"
           ng-if="optionalFirmware">
           <div class="container">
@@ -88,6 +88,7 @@
                     ng-click="optionalFirmware.update()">Show details</button>
           </div>
         </div>
+          </div>
 
         <div class="page-container container">
           <div class="row">
@@ -122,6 +123,7 @@
             </div>
           </div>
         </div>
+      </div>
       </div>
 
       <div class="page-footer container">
@@ -193,8 +195,12 @@
     <script src="scripts/services/utils.js"></script>
     <script src="scripts/services/slider.js"></script>
     <script src="scripts/services/storage.js"></script>
+    <script src="scripts/services/deviceService.js"></script>
     <script src="scripts/services/firmwareService.js"></script>
-    <script src="scripts/services/trezorService.js"></script>
+    <script src="scripts/services/DeviceList.js"></script>
+    <script src="scripts/services/DeviceStorage.js"></script>
+    <script src="scripts/services/MockDevice.js"></script>
+    <script src="scripts/services/Transport.js"></script>
     <script src="scripts/services/TrezorDevice.js"></script>
     <script src="scripts/services/TrezorBackend.js"></script>
     <script src="scripts/services/TrezorAccount.js"></script>
@@ -211,6 +217,7 @@
     <script src="scripts/controllers/import.js"></script>
     <script src="scripts/controllers/device/device.js"></script>
     <script src="scripts/controllers/device/info.js"></script>
+    <script src="scripts/controllers/device/firmware.js"></script>
     <script src="scripts/controllers/device/load.js"></script>
     <script src="scripts/controllers/device/recovery.js"></script>
     <script src="scripts/controllers/device/setup.js"></script>

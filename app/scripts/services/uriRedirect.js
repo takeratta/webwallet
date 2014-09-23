@@ -20,7 +20,7 @@
  * @see app.js#registerUriHandler()
  */
 angular.module('webwalletApp')
-  .factory('uriRedirect', function (trezorService, $route, $location) {
+  .factory('uriRedirect', function (deviceList, $route, $location) {
 
     'use strict';
 
@@ -100,7 +100,7 @@ angular.module('webwalletApp')
     }
 
     // Get default device and default account.
-    device = trezorService.getDefaultDevice();
+    device = deviceList.getDefault();
     if (!device) {
       console.warn('[uri] Failed to find default device.  No redirect to Send will be made.');
       $location.path('/');

@@ -1,64 +1,73 @@
 /*global angular*/
 
+/**
+ * Device Controller
+ */
 angular.module('webwalletApp')
   .controller('DeviceCtrl', function (
-      trezorService, flash, storage,
-      $modal, $scope, $location, $routeParams, $document) {
+            $modal, $scope, $location, $routeParams, $document,
+            flash, storage,
+            TrezorDevice, deviceList,
+            deviceService) {
 
     'use strict';
 
     var STORAGE_FORGET_ON_DISCONNECT = 'trezorForgetOnDisconnect';
 
-    $scope.device = trezorService.get($routeParams.deviceId);
+        // Get current device or go to homepage.
+        $scope.device = deviceList.get($routeParams.deviceId);
     if (!$scope.device) {
       $location.path('/');
       return;
     }
 
-    $scope.$on('device.pin', promptPin);
-    $scope.$on('device.button', handleButton);
-    $scope.$on('device.passphrase', promptPassphrase);
-    $scope.$on('device.disconnect', handleDisconnect);
+        // Handle device events -- buttons and disconnect.
+        $scope.$on(TrezorDevice.EVENT_PREFIX + TrezorDevice.EVENT_PIN,
+            promptPin);
+        $scope.$on(TrezorDevice.EVENT_PREFIX + TrezorDevice.EVENT_BUTTON,
+            handleButton);
+        $scope.$on(TrezorDevice.EVENT_PREFIX + TrezorDevice.EVENT_PASSPHRASE,
+            promptPassphrase);
+        $scope.$on(deviceService.EVENT_DISCONNECT, forgetOnDisconnect);
 
     /**
-     * Handle device disconnect
+         * When a device is disconnected, ask the user if he/she wants to
+         * forget it.
      *
-     * (1) Ask the user if he/she wants to forget the device.
-     *
-     * Read from the localStorage the setting which says whether the user wants
-     * to forget devices whenever they are disconnected.
+         * Read from the localStorage the setting which says whether the user
+         * wants to forget devices whenever they are disconnected.
      * - If the setting says yes, then forget the device.
      * - If the setting says no, then don't do anything.
-     * - If the setting isn't set at all, ask the user how would he/she like
-     * the app to behave using a modal dialog.  User's answer is stored to
-     * localStorage for all devices.
+         * - If the setting isn't set at all, ask the user how would he/she
+         * like the app to behave using a modal dialog.  User's answer is
+         * stored to localStorage for all devices.
      *
-     * (2) If the Forget modal is already shown, close it.
+         * If the Forget modal is already shown, close it and forget the device
+         * immediately.
      *
-     * @param {Object} event  Event object
-     * @param {TrezorDevice} devId  ID of the device that was disconnected
+         * @param {Object} e             Event object
+         * @param {TrezorDevice} device  Device that was disconnected
      */
-    function handleDisconnect(event, devId) {
-      if (trezorService.isForgetInProgress()) {
-        if ($scope.device.id === devId &&
-            trezorService.getForgetModal()) {
-          trezorService.getForgetModal().close();
+        function forgetOnDisconnect(e, device) {
+            if (deviceService.isForgetInProgress()) {
+                if ($scope.device.id === device.id &&
+                        deviceService.getForgetModal()) {
+                    deviceService.getForgetModal().close();
           _forgetDevice($scope.device);
-          trezorService.setForgetInProgress(false);
+                    deviceService.setForgetInProgress(false);
         }
         return;
       }
-      var forgetOnDisconnect = storage[STORAGE_FORGET_ON_DISCONNECT];
-      if (forgetOnDisconnect === undefined) {
+            if (storage[STORAGE_FORGET_ON_DISCONNECT] === undefined) {
         promptDisconnect()
           .then(function () {
             storage[STORAGE_FORGET_ON_DISCONNECT] = 'true';
-            _forgetDevice(trezorService.get(devId));
+                        _forgetDevice(device);
           }, function () {
             storage[STORAGE_FORGET_ON_DISCONNECT] = 'false';
           });
-      } else if (forgetOnDisconnect === 'true') {
-        _forgetDevice(trezorService.get(devId));
+            } else if (storage[STORAGE_FORGET_ON_DISCONNECT] === 'true') {
+                _forgetDevice(device);
       }
     }
 
@@ -68,7 +77,8 @@ angular.module('webwalletApp')
      * If the device is connected, ask the user to disconnect it before.
      *
      * @param {Boolean} requireDisconnect  Can user cancel the modal, or
-     * does he have to disconnect the device?
+         *                                     does he/she have to disconnect
+         *                                     the device?
      */
     $scope.forgetDevice = function (requireDisconnect) {
       if (!$scope.device.isConnected()) {
@@ -76,13 +86,13 @@ angular.module('webwalletApp')
         return;
       }
 
-      trezorService.setForgetInProgress(true);
+            deviceService.setForgetInProgress(true);
       promptForget(requireDisconnect)
         .then(function () {
           _forgetDevice($scope.device);
-          trezorService.setForgetInProgress(false);
+                    deviceService.setForgetInProgress(false);
         }, function () {
-          trezorService.setForgetInProgress(false);
+                    deviceService.setForgetInProgress(false);
         });
     };
 
@@ -94,7 +104,7 @@ angular.module('webwalletApp')
      * @param {TrezorDevice} device  Device to forget
      */
     function _forgetDevice(device) {
-      trezorService.forget(device);
+            deviceList.forget(device);
       $location.path('/');
       return;
     }
@@ -133,9 +143,14 @@ angular.module('webwalletApp')
             flash.success('Label was successfully changed');
           },
           function (err) {
-            // Closing the label modal triggers rejection without error.
+                        /*
+                         * Show error message only if there actually was an
+                         * error.  Closing the label modal triggers rejection
+                         * as well, but without an error.
+                         */
             if (err) {
-              flash.error(err.message || 'Failed to change the device label');
+                            flash.error(err.message ||
+                                'Failed to change the device label');
             }
           }
         );
@@ -144,17 +159,18 @@ angular.module('webwalletApp')
     /**
      * Prompt forget
      *
-     * Ask the user to disconnect the device using a modal dialog.  If the user
-     * then disconnects the device, the Promise -- which this function returns
-     * -- is resolved, if the user closes the modal dialog or hits Cancel, the
-     * Promise is rejected.
+         * Ask the user to disconnect the device using a modal dialog.  If the
+         * user then disconnects the device, the Promise -- which this function
+         * returns -- is resolved, if the user closes the modal dialog or hits
+         * Cancel, the Promise is failed.
      *
      * @param {Boolean} disableCancel Forbid closing/cancelling the modal
      *
      * @return {Promise}
      */
     function promptForget(disableCancel) {
-      var scope, modal;
+            var scope,
+                modal;
 
       scope = angular.extend($scope.$new(), {
         disableCancel: disableCancel
@@ -168,13 +184,13 @@ angular.module('webwalletApp')
         scope: scope
       });
 
-      trezorService.setForgetModal(modal);
+            deviceService.setForgetModal(modal);
 
       modal.opened.then(function () {
         $scope.$emit('modal.forget.show');
       });
       modal.result.finally(function () {
-        trezorService.setForgetModal(null);
+                deviceService.setForgetModal(null);
         $scope.$emit('modal.forget.hide');
       });
 
@@ -187,7 +203,8 @@ angular.module('webwalletApp')
      * Ask the user to set the device label using a modal dialog.
      */
     function promptLabel() {
-      var scope, modal;
+            var scope,
+                modal;
 
       scope = angular.extend($scope.$new(), {
         label: $scope.device.features.label || ''
@@ -199,10 +216,14 @@ angular.module('webwalletApp')
         windowClass: 'labelmodal',
         backdrop: 'static',
         keyboard: false,
-        scope: scope
+                scope: scope,
+            });
+            modal.opened.then(function () {
+                scope.$emit('modal.label.show');
+            });
+            modal.result.finally(function () {
+                scope.$emit('modal.label.hide');
       });
-      modal.opened.then(function () { scope.$emit('modal.label.show'); });
-      modal.result.finally(function () { scope.$emit('modal.label.hide'); });
 
       return modal.result;
     }
@@ -222,7 +243,7 @@ angular.module('webwalletApp')
      *                                 - 'PinMatrixRequestType_NewSecond'
      * @param {Function} callback  Called as `callback(err, res)`
      */
-    function promptPin(event, dev, type, callback) {
+        function promptPin(e, dev, type, callback) {
       var scope, modal;
 
       if (dev.id !== $scope.device.id)
@@ -260,8 +281,12 @@ angular.module('webwalletApp')
         keyboard: false,
         scope: scope
       });
-      modal.opened.then(function () { scope.$emit('modal.pin.show', type); });
-      modal.result.finally(function () { scope.$emit('modal.pin.hide'); });
+            modal.opened.then(function () {
+                scope.$emit('modal.pin.show', type);
+            });
+            modal.result.finally(function () {
+                scope.$emit('modal.pin.hide');
+            });
 
       $document.on('keydown', _pinKeydownHandler);
       $document.focus();
@@ -278,7 +303,8 @@ angular.module('webwalletApp')
       );
 
       function _pinKeydownHandler(e) {
-        var k = e.which;
+                var k = e.which,
+                    num;
         if (k === 8) { // Backspace
           scope.delPin();
           scope.$digest();
@@ -287,7 +313,7 @@ angular.module('webwalletApp')
           modal.close(scope.pin);
           return false;
         } else if (_isNumericKey(k)) {
-          var num = _getNumberFromKey(k);
+          num = _getNumberFromKey(k);
           scope.addPin(String.fromCharCode(num));
           scope.$digest();
         }
@@ -305,9 +331,9 @@ angular.module('webwalletApp')
     /**
      * Prompt disconnect
      *
-     * Ask the user if he/she wants to forget or remember devices whenever they
-     * are disconnected.  User's answer is stored to localStorage for all
-     * devices.  The user is never asked again.
+         * Ask the user if he/she wants to forget or remember devices whenever
+         * they are disconnected.  User's answer is stored to localStorage for
+         * all devices.  The user is never asked again.
      *
      * Returns a Promise that is resolved if the user wants to forget the
      * device, and failed if the user wants to remember the device.
@@ -330,11 +356,13 @@ angular.module('webwalletApp')
       return modal.result;
     }
 
-    function promptPassphrase(event, dev, callback) {
-      var scope, modal;
+        function promptPassphrase(e, dev, callback) {
+            var scope,
+                modal;
 
-      if (dev.id !== $scope.device.id)
+            if (dev.id !== $scope.device.id) {
         return;
+            }
 
       scope = angular.extend($scope.$new(), {
         check: !$scope.device.hasSavedPassphrase(),
@@ -354,17 +382,24 @@ angular.module('webwalletApp')
         keyboard: false,
         scope: scope
       });
-      modal.opened.then(function () { scope.$emit('modal.passphrase.show'); });
-      modal.result.finally(function () { scope.$emit('modal.passphrase.hide'); });
+            modal.opened.then(function () {
+                scope.$emit('modal.passphrase.show');
+            });
+            modal.result.finally(function () {
+                scope.$emit('modal.passphrase.hide');
+            });
 
       modal.result.then(
         function (res) {
-          if (!$scope.device.checkPassphraseAndSave(res))
+                    if (!$scope.device.checkPassphraseAndSave(res)) {
             callback(new Error('Invalid passphrase'));
-          else
+                    } else {
             callback(null, res);
+                    }
         },
-        function (err) { callback(err); }
+                function (err) {
+                    callback(err);
+                }
       );
 
       scope.$watch('values.passphrase', checkPassphrase);
@@ -389,18 +424,19 @@ angular.module('webwalletApp')
         submit.addEventListener('click', submitModal, false);
         form.addEventListener('submit', submitModal, false);
         form.addEventListener('keypress', function (e) {
-          if (e.keyCode === 13 && scope.checkCorrect)
-            submitModal();
+            if (e.keyCode === 13 && scope.checkCorrect) {
+                submitModal();
+            }
         }, true);
-      }
 
-      function submitModal() {
-        modal.close(scope.values.passphrase);
-        return false;
+        function submitModal () {
+            modal.close(scope.values.passphrase);
+            return false;
+        }
       }
     }
 
-    function handleButton(event, dev, code) {
+    function handleButton(e, dev, code) {
       if (dev.id !== $scope.device.id) {
         return;
       }
@@ -440,10 +476,10 @@ angular.module('webwalletApp')
         scope.$emit('modal.button.hide');
       });
 
-      $scope.device.once('receive', function () {
+            $scope.device.once(TrezorDevice.EVENT_RECEIVE, function () {
         modal.close();
       });
-      $scope.device.once('error', function () {
+            $scope.device.once(TrezorDevice.EVENT_ERROR, function () {
         modal.close();
       });
     }

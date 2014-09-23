@@ -1,9 +1,11 @@
-'use strict';
+/*global angular*/
 
 angular.module('webwalletApp')
-  .controller('NavCtrl', function (trezorService, flash, $scope, $location) {
+    .controller('NavCtrl', function (deviceList, flash, $scope, $location) {
 
-    $scope.devices = trezorService.devices;
+        'use strict';
+
+        $scope.devices = deviceList.all();
 
     $scope.addingInProgress = false;
 

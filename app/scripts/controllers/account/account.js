@@ -2,7 +2,7 @@
 
 angular.module('webwalletApp')
   .controller('AccountCtrl', function (
-      trezorService, $scope, $location, $routeParams, config) {
+      $scope, $location, $routeParams, config) {
 
     $scope.account = $scope.device.account($routeParams.accountId);
     if (!$scope.account) {
