@@ -293,6 +293,10 @@ body {
   margin-bottom: 10px;
 }
 
+.nav-devices-accounts li:hover {
+  color: #000;
+}
+
 /* Error on inconsistent acc info */
 
 .alert-inconsistent .btn {

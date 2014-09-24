@@ -25,7 +25,8 @@
   </fieldset>
 
   <div class="row"
-       ng-if="device.accounts.length">
+       ng-if="device.accounts.length"
+       ng-controller="DeviceInfoCtrl">
 
     <div class="col-xs-12">
       <div class="line-divider"
@@ -46,13 +47,20 @@
           <div class="col-md-8">
             <h5>Account public keys</h5>
             <ul class="nav nav-devices-accounts text-break">
-              <li ng-repeat="account in device.accounts" class="text-muted">
+              <li ng-repeat="account in device.accounts"
+                  ng-mouseenter="highlightXpub(account.publicKey())"
+                  ng-mouseleave="highlightXpub(null)"
+                  class="text-muted">
                 <small>
-                  <strong>{{account.label()}}:</strong>
-                  {{account.publicKey()}}
+                  <strong>{{account.label()}}:</strong> {{account.publicKey()}}
                 </small>
               </li>
             </ul>
+          </div>
+          <div class="col-md-4">
+            <div ng-if="highlightedXpub">
+              <qr size="150" text="highlightedXpub"></qr>
+            </div>
           </div>
         </div>
         <hr>
