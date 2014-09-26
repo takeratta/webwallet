@@ -2,6 +2,24 @@
 
 /**
  * Device Service
+ *
+ * Perform various actions when a device is connected / disconnected.
+ *
+ * Device-related actions that should be performed as a result of a direct
+ * user interaction are (and always should be) handled the Device Controller.
+ *
+ * The only way how this Device Service communicates with the Device Controller
+ * is by broadcasting events to Angular's scope.
+ *
+ * On device connect:
+ *
+ * - Navigate to the Device URL (if we are on homepage).
+ * - Initialize accounts.
+ * - Pause device list watching while we communicate with the device.
+ *
+ * On device disconnect:
+ *
+ * - Do nothing.
  */
 angular.module('webwalletApp')
     .service('deviceService', function (
@@ -16,11 +34,11 @@ angular.module('webwalletApp')
         this.EVENT_DISCONNECT = 'device.disconnect';
 
         // Broadcast connect and disconnect events for the Controller.
-        deviceList.registerAfterInitHook(function sendConnectEvent(obj) {
-            $rootScope.$broadcast(this.EVENT_CONNECT, obj.device);
+        deviceList.registerAfterInitHook(function sendConnectEvent(dev) {
+            $rootScope.$broadcast(this.EVENT_CONNECT, dev);
         }.bind(this));
-        deviceList.registerDisconnectHook(function sendDisconnectEvent(obj) {
-            $rootScope.$broadcast(this.EVENT_DISCONNECT, obj.device);
+        deviceList.registerDisconnectHook(function sendDisconnectEvent(dev) {
+            $rootScope.$broadcast(this.EVENT_DISCONNECT, dev);
         }.bind(this));
 
         // Before initialize hooks
@@ -32,45 +50,42 @@ angular.module('webwalletApp')
         deviceList.registerAfterInitHook(initAccounts, 30);
 
         /**
-         * Pause refreshing of the passed device list.  While the watching is
-         * passed, webwallet will not register newly connected devices or
-         * unregister the disconnected ones.
+         * Pause refreshing of the passed device while a communicate with the
+         * device is in progress.  While the watching is passed, webwallet will
+         * not add / remove the device from the device when
+         * it's connected / disconnected, nor will it execute any hooks.
          *
-         * TODO Explain why we need to pause watching dev. when sending events.
-         *
-         * @see DeviceList#_watch()
+         * @see DeviceList#_connnect()
+         * @see DeviceList#_disconnect()
          * @see DeviceList#_progressWithConnected()
-         * @see DeviceList#pauseWatch()
-         * @see DeviceList#resumeWatch()
          *
-         * @param {Object} obj  Device object:
-         *                      {device: TrezorDevice, features: Object}
+         * @param {TrezorDevice} dev  Device object
          */
-        function setupWatchPausing(obj) {
-            obj.device.on(TrezorDevice.EVENT_SEND,
+        function setupWatchPausing(dev) {
+            dev.on(TrezorDevice.EVENT_SEND,
                 deviceList.pauseWatch.bind(deviceList));
-            obj.device.on(TrezorDevice.EVENT_ERROR,
+            dev.on(TrezorDevice.EVENT_ERROR,
                 deviceList.resumeWatch.bind(deviceList));
-            obj.device.on(TrezorDevice.EVENT_RECEIVE,
+            dev.on(TrezorDevice.EVENT_RECEIVE,
                 deviceList.resumeWatch.bind(deviceList));
         }
 
         /**
          * Broadcast all events on passed device to the Angular scope.
          *
-         * @see broadcastEvent()
+         * @see  _broadcastEvent()
          *
-         * @param {Object} obj  Device object:
-         *                      {device: TrezorDevice, features: Object}
+         * @param {TrezorDevice} dev  Device
          */
-        function setupEventBroadcast(obj) {
+        function setupEventBroadcast(dev) {
             TrezorDevice.EVENT_TYPES.forEach(function (type) {
-                _broadcastEvent($rootScope, obj.device, type);
+                _broadcastEvent($rootScope, dev, type);
             });
         }
 
         /**
-         * Broadcast an event on passed device to the Angular scope.
+         * Broadcast an event of passed type on passed device to
+         * the Angular scope.
          *
          * The event type is prefixed with `TrezorDevice#EVENT_PREFIX`.
          *
@@ -92,25 +107,23 @@ angular.module('webwalletApp')
          *
          * Throws Error if the initialization fails, thus aborting the flow.
          *
-         * @param {Object} obj  Device object:
-         *                      {device: TrezorDevice, features: Object}
-         * @return {Promise}    Return value of
-         *                      `TrezorDevice#initializeAccounts()`
+         * @param {TrezorDevice} dev  Device object
+         * @return {Promise}          Return value of
+         *                            `TrezorDevice#initializeAccounts()`
          */
-        function initAccounts(obj) {
-            return obj.device.initializeAccounts();
+        function initAccounts(dev) {
+            return dev.initializeAccounts();
         }
 
         /**
          * Navigate to a URL of passed device if the current URL is not
-         * a device URL.
+         * a device URL (that means we are on the homepage).
          *
-         * @param {Object} obj  Device object:
-         *                      {device: TrezorDevice, features: Object}
+         * @param {TrezorDevice} dev  Device object
          */
-        function navigateToDeviceFromHomepage(obj) {
+        function navigateToDeviceFromHomepage(dev) {
             if ($location.path().indexOf('/device/') !== 0) {
-                deviceList.navigateTo(obj.device);
+                deviceList.navigateTo(dev);
             }
         }
 
@@ -146,9 +159,9 @@ angular.module('webwalletApp')
         };
 
         /**
-         * Is the Forget process is in progress.?
+         * Is the Forget process is in progress?
          *
-         * @return {Boolean}  True if the process is in progress
+         * @return {Boolean}  True if the forget process is in progress
          */
         this.setForgetInProgress = function (forgetInProgress) {
             _forgetInProgress = forgetInProgress;

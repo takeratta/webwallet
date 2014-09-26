@@ -1,54 +1,92 @@
-/*global angular*/
+/*jslint browser: true, devel: true, indent: 4, maxlen: 79 */
 
-'use strict';
+/**
+ * Main
+ *
+ * - Load Transport.
+ * - Bootstrap Angular app.
+ * - Register Bitcoin URI handler.
+ */
+(function (angular) {
+    'use strict';
 
-angular.module('webwalletApp', [
+    angular.module('webwalletApp', [
     'ngRoute',
     'ngSanitize',
     'ui.bootstrap',
     'ja.qr'
   ]);
 
-// load trezor plugin and bootstrap application
-angular.element(document).ready(function () {
-  var injector = angular.injector(['webwalletApp']),
-      config = injector.get('config');
+    // Load the Transport and bootstrap the Angular app.
+    angular.element(document).ready(function () {
+        init(
+            loadConfig()
+        );
+        registerUriHandler();
+    });
 
-  var trezor = window.trezor,
-      bridgeUrl = config.bridge.url,
+    /**
+     * Try to load the Transport and then bootstrap the Angular app.
+     *
+     * @param {Object} config  Configuration
+     *
+     * @see  acquireTransport()
+     * @see  createApp()
+     */
+    function init(config) {
+        var bridgeUrl = config.bridge.url,
       bridgeConfigUrl = config.bridge.configUrl,
-      bridgeConfigPromise = trezor.http(bridgeConfigUrl);
+            bridgeConfigPromise = window.trezor.http(bridgeConfigUrl);
 
-  acquireTransport()
+        acquireTransport(bridgeUrl)
     .then(function (transport) {
       return bridgeConfigPromise
         .then(function (config) {
           return transport.configure(config);
         })
         .then(function () {
-          return webwalletApp(null, transport);
+                        return createApp(null, transport);
         });
     })
     .catch(function (err) {
-      return webwalletApp(err);
+                return createApp(err);
     });
+    }
 
-  registerUriHandler();
+    /**
+     * Inject and return the config service.
+     *
+     * @return {Object}  Config service
+     */
+    function loadConfig() {
+        var injector = angular.injector(['webwalletApp']);
+        return injector.get('config');
+    }
 
-  function acquireTransport() {
-    return loadHttp().catch(loadPlugin);
+    /**
+     * Acquire Transport
+     *
+     * @param {String} bridgeUrl  Trezor Bridge URL read from the config
+     * @return {Promise}          If the Transport was loaded, the Promise is
+     *                            resolved with an instance of `HttpTransport`
+     *                            or `PluginTransport`.  If loading failed
+     *                            the Promise is failed.
+     */
+    function acquireTransport(bridgeUrl) {
+        var trezor = window.trezor;
 
     function loadHttp() {
-      return trezor.HttpTransport.connect(bridgeUrl)
-        .then(
+            return trezor.HttpTransport.connect(bridgeUrl).then(
           function (info) {
-            console.log('[app] Loading http transport successful', info);
+                    console.log('[app] Loading http transport successful',
+                        info);
             return new trezor.HttpTransport(bridgeUrl);
           },
           function (err) {
             console.error('[app] Loading http transport failed', err);
             throw err;
-          });
+                }
+            );
     }
 
     function loadPlugin() {
@@ -56,28 +94,47 @@ angular.element(document).ready(function () {
         return new trezor.PluginTransport(plugin);
       });
     }
+
+        return loadHttp().catch(loadPlugin);
   }
 
-  function webwalletApp(err, transport) {
-    var app,
-        container = document.getElementById('webwalletApp-container');
+    /**
+     * Bootstrap (create and initialize) the Angular app.
+     *
+     * Pass to the app the reference to the Transport object.
+     *
+     * @param {Error|null} err    Error from the Transport loading process
+     * @param {Object} transport  Transport object
+     */
+    function createApp(err, transport) {
+        // Create module.
+        var app = angular.module('webwalletApp');
 
+        // Attach routes.
     if (!err) {
-      app = initApp();
-    } else {
-      app = initAppError();
+            app.config(attachRoutes);
     }
+
+        // Pass Transport reference.
     app
       .value('trezorError', err)
       .value('trezorApi', window.trezor)
       .value('trezor', transport);
 
-    angular.bootstrap(container, ['webwalletApp']);
+        // Initialize Angular.js.
+        angular.bootstrap(
+            document.getElementById('webwalletApp-container'),
+            ['webwalletApp']
+        );
   }
 
-  function initApp() {
-    return angular.module('webwalletApp')
-      .config(function ($routeProvider) {
+    /**
+     * Attach routes to passed $routeProvider.
+     *
+     * @param {Object} $routeProvider  Angular $routeProvider as returned
+     *                                 by `app.config()`.
+     */
+    function attachRoutes($routeProvider) {
         $routeProvider
           .when('/', {
             templateUrl: 'views/main.html'
@@ -123,15 +180,14 @@ angular.element(document).ready(function () {
           .otherwise({
             redirectTo: '/'
           });
-      });
-  }
-
-  function initAppError() {
-    return angular.module('webwalletApp');
   }
 
   /**
    * Register Bitcoin URI handler
+     *
+     * Requests to this URI are then handled by the `uriRedirect` service.
+     *
+     * @see  services/uriRedirect.js
    */
   function registerUriHandler() {
     var URI_PROTOCOL = 'bitcoin',
@@ -150,4 +206,5 @@ angular.element(document).ready(function () {
       );
     }
   }
-});
+
+}(this.angular));

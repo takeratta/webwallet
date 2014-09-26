@@ -2,6 +2,8 @@
 
 /**
  * Firmware Service
+ *
+ * TODO Document Firmware Service
  */
 angular.module('webwalletApp')
     .value('FIRMWARE_LIST_URL', '/data/firmware/releases.json')
@@ -24,18 +26,18 @@ angular.module('webwalletApp')
         this.EVENT_OUTDATED = 'firmware.outdated';
 
         // Connect and disconnect events for the Controller
-        deviceList.registerBeforeInitHook(function (obj) {
-            $rootScope.$broadcast(this.EVENT_CONNECT, obj.device);
+        deviceList.registerBeforeInitHook(function (dev) {
+            $rootScope.$broadcast(this.EVENT_CONNECT, dev);
         }.bind(this));
-        deviceList.registerDisconnectHook(function (obj) {
-            $rootScope.$broadcast(this.EVENT_DISCONNECT, obj.device);
+        deviceList.registerDisconnectHook(function (dev) {
+            $rootScope.$broadcast(this.EVENT_DISCONNECT, dev);
         }.bind(this));
 
 
         /**
          * After initialize hooks
          */
-        deviceList.registerAfterInitHook(function (obj) {
+        deviceList.registerAfterInitHook(function (dev) {
             /*
              * Abort the whole after init process, if the firmware update modal
              * is open.
@@ -47,22 +49,22 @@ angular.module('webwalletApp')
             }
 
             // Bootloader mode
-            if (obj.features.bootloader_mode) {
-                $rootScope.$broadcast(this.EVENT_BOOTLOADER, obj.device.id);
+            if (dev.features.bootloader_mode) {
+                $rootScope.$broadcast(this.EVENT_BOOTLOADER, dev.id);
                 latest()
                     .then(function (firmware) {
                         $rootScope.$broadcast(
                             this.EVENT_CANDIDATE,
                             {
-                                dev: obj.device,
+                                dev: dev,
                                 firmware: firmware,
                             }
                         );
                     }.bind(this));
             // Normal mode
             } else {
-                $rootScope.$broadcast(this.EVENT_NORMAL, obj.device.id);
-                check(obj.features)
+                $rootScope.$broadcast(this.EVENT_NORMAL, dev.id);
+                check(dev.features)
                     .then(function (firmware) {
                         if (!firmware) {
                             return;
@@ -70,9 +72,9 @@ angular.module('webwalletApp')
                         $rootScope.$broadcast(
                             this.EVENT_OUTDATED,
                             {
-                                dev: obj.device,
+                                dev: dev,
                                 firmware: firmware,
-                                version: _getVersion(obj.device.features)
+                                version: _getVersion(dev.features)
                             }
                         );
                     }.bind(this));

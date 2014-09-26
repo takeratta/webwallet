@@ -1,15 +1,35 @@
 /*global angular*/
 
+/**
+ * Device list service
+ *
+ * Provides an instance of `DeviceList` as an Angular service `deviceList`.
+ */
 angular.module('webwalletApp')
 .factory('deviceList', function (
         _, $q, config, utils, flash,
-        transport,
-        TrezorDevice, DeviceStorage, $location) {
+        trezor, trezorApi,
+        TrezorDevice, ItemStorage, $location) {
 
     'use strict';
 
     /**
      * Device list
+     *
+     * Manage connecting and disconnecting of devices.
+     *
+     * Example use cases:
+     *
+     * Use `DeviceList#all()` to retrieve a list of all known devices
+     * (conected and disconnected).
+     *
+     * Use `DeviceList#get()` to retrieve the `TrezorDevice` object for
+     * a device specified by a its ID.
+     *
+     * Use `DeviceList#registerAfterInitHook()` to execute your code
+     * every time a device is connected.
+     *
+     * @constructor
      */
     function DeviceList() {
         // Load devices from localStorage
@@ -34,9 +54,12 @@ angular.module('webwalletApp')
     DeviceList.prototype._afterInitHooks = [];
     DeviceList.prototype._disconnectHooks = [];
 
+    /**
+     * Load known devices from localStorage and initialize them.
+     */
     DeviceList.prototype._restore = function () {
         // Initialize the device storage
-        this._storage = new DeviceStorage({
+        this._storage = new ItemStorage({
             type: TrezorDevice,
             version: config.storageVersion,
             keyItems: this.STORAGE_DEVICES,
@@ -53,7 +76,7 @@ angular.module('webwalletApp')
     };
 
     /**
-     * Find a device by passed device ID or device descriptor
+     * Find a device by passed device ID or device descriptor.
      *
      * @param {String|Object} id         Device ID or descriptor in format
      *                                   {id: String, path: String}
@@ -79,7 +102,7 @@ angular.module('webwalletApp')
     };
 
     /**
-     * Add a new device to the device list
+     * Add a new device to the device list.
      *
      * @param {TrezorDevice} dev  Device to add
      */
@@ -88,7 +111,7 @@ angular.module('webwalletApp')
     };
 
     /**
-     * Get the default device
+     * Get the default device.
      *
      * That is currently the first device.
      *
@@ -99,7 +122,7 @@ angular.module('webwalletApp')
     };
 
     /**
-     * Get all devices
+     * Get all devices.
      *
      * @return {Array of TrezorDevice}  All devices
      */
@@ -108,7 +131,7 @@ angular.module('webwalletApp')
     };
 
     /**
-     * Get the total number devices
+     * Get the total number devices.
      *
      * @return {Number}  Number of devices
      */
@@ -117,7 +140,8 @@ angular.module('webwalletApp')
     };
 
     /**
-     * Remove a device from the device list (and subsequently from the storage)
+     * Remove a device from the device list (and subsequently from
+     * the storage).
      *
      * @param {TrezorDevice} dev  Device to remove
      */
@@ -129,20 +153,24 @@ angular.module('webwalletApp')
     /**
      * Alias to `DeviceList#remove()`
      *
-     * @see DeviceList#remove()
+     * @see  DeviceList#remove()
      */
     DeviceList.prototype.forget = DeviceList.prototype.remove;
 
     /**
-     * Start auto-updating the device list -- watch for newly connected
-     * and disconnected devices.
+     * Watch for newly connected / disconnected devices.
      *
-     * Broadcast event `device.connect(devId)` or `device.disconnect(devId)`
-     * everytime a device is connected / disconnected.  We pass only ID of the
-     * Device and not the whole Device object as a param to these events on
-     * purpose, because if we pass the Device object it gets spoiled by
-     * Angular.js and it needs to be retreived from `TrezorService#get()`
-     * anyway.
+     * - Update the device list -- add newly connected devices, remove
+     * disconnected devices.
+     * - Initiliaze newly connected devices.
+     * - Execute all registered hooks for newly connected / disconnected devices.
+     *
+     * This whole routine can be paused using `DeviceList#pauseWatch()`.
+     *
+     * @see  DeviceList#_connect()
+     * @see  DeviceList#_disconnect()
+     * @see  DeviceList#pauseWatch()
+     * @see  DeviceList#resumeWatch()
      *
      * @param {Number} n  Polling period in miliseconds
      * @return {Promise}  Ticking Promise
@@ -164,28 +192,46 @@ angular.module('webwalletApp')
         return tick;
     };
 
+    /**
+     * Pause device watching.
+     *
+     * No new devices will be added to the list while watching is paused.
+     * The same goes for disconnected devices.  No registered hooks will be
+     * executed.
+     *
+     * @see  DeviceList#resumeWatch()
+     * @see  DeviceList#_progressWithConnected()
+     */
     DeviceList.prototype.pauseWatch = function () {
         this._watchPaused = true;
     };
 
+    /**
+     * Resume device watching after it was previously paused by
+     * `DeviceList#pauseWatch()`.
+     *
+     * @see  DeviceList#pauseWatch()
+     * @see  DeviceList#_progressWithConnected()
+     */
     DeviceList.prototype.resumeWatch = function () {
         this._watchPaused = false;
     };
 
     /**
-     * Maps a promise notifications with connected device descriptors.
+     * Maps a promise notification with connected device descriptors.
      *
      * Expects a Promise as an argument and returns a new Promise.  Each time
-     * passed Promise is fulfilled, the returned Promise is fulfilled aswell
-     * with a list of devices as a result.
+     * passed Promise is fulfilled, the returned Promise is fulfilled as well
+     * with a list of devices as the result.
      *
-     * Passed Promise is expected to tick -- get periodically fulfilled over
-     * and over again.
+     * Passed Promise is expected to tick (get periodically fulfilled over
+     * and over again).
      *
-     * @see DeviceList#_progressWithDescriptorDelta()
+     * @see  DeviceList#_progressWithDescriptorDelta()
      *
      * @param {Promise} pr  Promise expected to tick
-     * @return {Promise}  Promise fulfilled with a list of devices as a result
+     * @return {Promise}    Promise fulfilled with a list of devices as
+     *                      the result
      */
     DeviceList.prototype._progressWithConnected = function (pr) {
         var res = $q.defer(),
@@ -197,7 +243,7 @@ angular.module('webwalletApp')
             }
 
             inProgress = true;
-            transport.enumerate()
+            trezor.enumerate()
                 .then(function (devices) {
                     res.notify(devices.map(function (dev) {
                         if (!dev.id && dev.serialNumber) {
@@ -220,23 +266,23 @@ angular.module('webwalletApp')
     };
 
     /**
-     * Maps a promise notifications with a delta between the current and
-     * previous device descriptors.
+     * Maps a promise notification with a delta between the current list and
+     * previous list of device descriptors.
      *
      * Expects a Promise as an argument and returns a new Promise.  Passed
-     * Promise is expected to return a current list of device as its result.
+     * Promise is expected to return the current list of devices as the result.
      * Each time passed Promise is fulfilled, the returned Promise is fulfilled
-     * aswell with an Object describing the difference between the current list
-     * of devices and the list of devices that was passed to this method when
-     * it was previously called.
+     * as well with an Object describing the difference between the current
+     * list of devices and the list of devices that was passed to this method
+     * when it was previously called.
      *
-     * @see DeviceList#_progressWithConnected()
-     * @see DeviceList#_computeDescriptorDelta()
+     * @see  DeviceList#_progressWithConnected()
+     * @see  DeviceList#_computeDescriptorDelta()
      *
      * @param {Promise} pr  Promise expected to have a list of device
-     *                      descriptors as a result
+     *                      descriptors as the result
      * @return {Promise}    Promise fulfilled with an Object describing the
-     *                      added and removed devices as a result
+     *                      added and removed devices as the result
      */
     DeviceList.prototype._progressWithDescriptorDelta = function (pr) {
         var prev = [],
@@ -253,7 +299,8 @@ angular.module('webwalletApp')
     };
 
     /**
-     * Computes which devices were added and which were removed in current tick
+     * Compute which devices were added and which were removed by comparing
+     * two passed lists of device descriptors.
      *
      * Returns an Object with two properties:
      * `added`: Array of added device descriptors
@@ -275,7 +322,7 @@ angular.module('webwalletApp')
     };
 
     /**
-     * Marks the device of the passed descriptor as connected and calls the
+     * Intialize the device of the passed descriptor and call the
      * before initialize and after initialize hooks.
      *
      * @param {Object} desc  Device descriptor in format
@@ -291,31 +338,29 @@ angular.module('webwalletApp')
         }
 
         dev.withLoading(function () {
-            return transport.acquire(desc)
-                // Get session object from the transport service.
-                .then(function (res) {
-                    return transport.getSession(res.session);
-                })
-
+            return trezor.acquire(desc)
                 // Run low-level connect routine.
-                .then(function (session) {
-                    dev.connect(session);
-                    return {device: dev, feature: null};
+                .then(function (res) {
+                    // TODO Too complicated, move to trezor.js
+                    dev.connect(
+                        new trezorApi.Session(trezor, res.session)
+                    );
+                    return dev;
                 })
 
                 // Execute before initialize hooks.
                 .then(this._execHooks(this._beforeInitHooks))
 
                 // Run low-level initialize routine.
-                .then(function (obj) {
-                    return obj.device.initializeDevice();
+                .then(function (dev) {
+                    return dev.initializeDevice();
                 })
 
                 // Was low-level initialization succesfull?
                 .then(
                     // If it was, then set params for the following hooks.
-                    function (features) {
-                        return {device: dev, features: features};
+                    function () {
+                        return dev;
                     },
                     // If it wasn't, then disconnect the device.
                     function (e) {
@@ -336,6 +381,13 @@ angular.module('webwalletApp')
 
     /**
      * Register hook
+     *
+     * This is a low level method, see specific registering methods for more
+     * information on how hooks work.
+     *
+     * @see  `DeviceList#registerBeforeInitHook()`
+     * @see  `DeviceList#registerAfterInitHook()`
+     * @see  `DeviceList#registerDisconnectHook()`
      *
      * @param {Array} list         List of hooks to which the new hook will be
      *                             added
@@ -393,6 +445,20 @@ angular.module('webwalletApp')
     /**
      * Register before initialize hook
      *
+     * Passed function will be called every time a new device is connected,
+     * right before it is initialized.
+     *
+     * The function will be passed a single argument:
+     * - {TrezorDevice}  Device instance
+     *
+     * You can pass an optional Number argument `priority`.  Hooks with lower
+     * priority will be executed first.  See `DeviceList#DEFAULT_HOOK_PRIORITY`
+     * for the default priority value.
+     *
+     * You can pass an optional String argument `name`.  The name of the hook
+     * will appear in some logs and might be used in the future to find
+     * this hook in the list of hooks.
+     *
      * @param {Function} fn        Function
      * @param {Number} [priority]  Hooks with lower priority are executed first
      * @param {Name} [name]        Hook name
@@ -404,6 +470,20 @@ angular.module('webwalletApp')
 
     /**
      * Register after initialize hook
+     *
+     * Passed function will be called every time a new device is connected,
+     * right after it was initialized.
+     *
+     * The function will be passed a single argument:
+     * - {TrezorDevice}  Device instance
+     *
+     * You can pass an optional Number argument `priority`.  Hooks with lower
+     * priority will be executed first.  See `DeviceList#DEFAULT_HOOK_PRIORITY`
+     * for the default priority value.
+     *
+     * You can pass an optional String argument `name`.  The name of the hook
+     * will appear in some logs and might be used in the future to find
+     * this hook in the list of hooks.
      *
      * @param {Function} fn        Function
      * @param {Number} [priority]  Hooks with lower priority are executed first
@@ -417,6 +497,19 @@ angular.module('webwalletApp')
     /**
      * Register disconnect hook
      *
+     * Passed function will be called every time a device is disconnected.
+     *
+     * The function will be passed a single argument:
+     * - {TrezorDevice}  Device instance
+     *
+     * You can pass an optional Number argument `priority`.  Hooks with lower
+     * priority will be executed first.  See `DeviceList#DEFAULT_HOOK_PRIORITY`
+     * for the default priority value.
+     *
+     * You can pass an optional String argument `name`.  The name of the hook
+     * will appear in some logs and might be used in the future to find
+     * this hook in the list of hooks.
+     *
      * @param {Function} fn        Function
      * @param {Number} [priority]  Hooks with lower priority are executed first
      * @param {Name} [name]        Hook name
@@ -427,11 +520,11 @@ angular.module('webwalletApp')
         };
 
     /**
-     * Create new device from passed descriptor.
+     * Create new device (instantiate `TrezorDevice`) from passed descriptor.
      *
      * @param {Object} desc    Device descriptor in format
      *                         {id: String, path: String}
-     * @return {TrezorDevice}  Created device
+     * @return {TrezorDevice}  Created device instance
      */
     DeviceList.prototype._create = function (desc) {
         return new TrezorDevice(desc.id || desc.path);
@@ -450,7 +543,7 @@ angular.module('webwalletApp')
             return;
         }
         dev.disconnect();
-        return $q.when({device: dev, features: dev.features})
+        return $q.when(dev)
             .then(this._execHooks(this._disconnectHooks));
     };
 
@@ -470,11 +563,11 @@ angular.module('webwalletApp')
     };
 
     /**
-     * Sort passed hooks by priority in ascending order -- lowest priority
-     * first.
+     * Sort passed hooks by priority in ascending order -- hooks with the
+     * lowest priority will be first.
      *
      * @param {Array} hooks  Hooks
-     * @return {Array}       Hooks sorted by priority
+     * @return {Array}       Hooks sorted by priority in ascending order
      */
     DeviceList.prototype._sortHooks = function (hooks) {
         return _.sortBy(hooks, function (hook) {

@@ -1,5 +1,12 @@
 /*global angular*/
 
+/**
+ * Navigation Controller
+ *
+ * Manage device and account navigation and account adding.
+ *
+ * @see  nav.html
+ */
 angular.module('webwalletApp')
     .controller('NavCtrl', function (deviceList, flash, $scope, $location) {
 
