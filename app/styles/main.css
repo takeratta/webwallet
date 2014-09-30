@@ -72,16 +72,15 @@ a .icon-loading,
 
 .alert-withicon {
   position: relative;
-  padding-left: 100px;
+  padding-left: 54px;
 }
 
 .alert-icon {
   position: absolute;
   top: 50%;
   left: 15px;
-  padding: 0 10px;
-  margin-top: -26px;
-  font-size: 52px;
+  margin-top: -12px;
+  font-size: 24px;
   opacity: 0.3;
 }
 
@@ -616,4 +615,28 @@ body {
 .tx-preview ul,
 .tx-preview ol {
   margin: 4px 0;
+
+/* Firmware */
+
+.firmware-info {
+  display: block;
+  padding: 0.5em 1em;
+  margin: 0px 0px 10px;
+  color: #333;
+  background-color: #F5F5F5;
+  border: 1px solid #CCC;
+  border-radius: 4px;
+}
+.firmware-info h5 {
+  font-weight: bold;
+}
+.firmware-info dt {
+  font-weight: normal;
+  float: left;
+  clear: both;
+}
+.firmware-changelog {
+  white-space: pre;
+  word-break: break-all;
+  word-wrap: break-word;
 }

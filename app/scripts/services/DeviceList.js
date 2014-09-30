@@ -53,6 +53,7 @@ angular.module('webwalletApp')
     DeviceList.prototype._beforeInitHooks = [];
     DeviceList.prototype._afterInitHooks = [];
     DeviceList.prototype._disconnectHooks = [];
+    DeviceList.prototype._forgetHooks = [];
 
     /**
      * Load known devices from localStorage and initialize them.
@@ -143,6 +144,9 @@ angular.module('webwalletApp')
      * Remove a device from the device list (and subsequently from
      * the storage).
      *
+     * This is a low level method.  If you want to forget the device, call
+     * `DeviceList#forget()`, which executes all forget hooks properly.
+     *
      * @param {TrezorDevice} dev  Device to remove
      */
     DeviceList.prototype.remove = function (dev) {
@@ -151,11 +155,20 @@ angular.module('webwalletApp')
     };
 
     /**
-     * Alias to `DeviceList#remove()`
+     * Forget the device
      *
-     * @see  DeviceList#remove()
+     * Run the forget hooks before.  If none of the hooks throws Error, then
+     * the device is forgotten.
+     *
+     * @return {Promise}  Fulfilled when the device is forgotten
      */
-    DeviceList.prototype.forget = DeviceList.prototype.remove;
+    DeviceList.prototype.forget = function (dev, requireDisconnect) {
+        return $q.when({dev: dev, requireDisconnect: requireDisconnect})
+            .then(this._execHooks(this._forgetHooks))
+            .then(function (param) {
+                this.remove(param.dev);
+            }.bind(this));
+    };
 
     /**
      * Watch for newly connected / disconnected devices.
@@ -517,6 +530,34 @@ angular.module('webwalletApp')
     DeviceList.prototype.registerDisconnectHook =
         function (fn, priority, name) {
             this._registerHook(this._disconnectHooks, fn, priority, name);
+        };
+
+    /**
+     * Register forget hook
+     *
+     * Passed function will be called every time `DeviceList#forget()`
+     * is called.
+     *
+     * The function will be passed an object argument with these properties:
+     * - {TrezorDevice} `dev`: Device instance
+     * - {Boolean} `requireDisconnect`: Can the user allowed to cancel the
+     *      modal, or does he/she have to disconnect the device?
+     *
+     * You can pass an optional Number argument `priority`.  Hooks with lower
+     * priority will be executed first.  See `DeviceList#DEFAULT_HOOK_PRIORITY`
+     * for the default priority value.
+     *
+     * You can pass an optional String argument `name`.  The name of the hook
+     * will appear in some logs and might be used in the future to find
+     * this hook in the list of hooks.
+     *
+     * @param {Function} fn        Function
+     * @param {Number} [priority]  Hooks with lower priority are executed first
+     * @param {Name} [name]        Hook name
+     */
+    DeviceList.prototype.registerForgetHook =
+        function (fn, priority, name) {
+            this._registerHook(this._forgetHooks, fn, priority, name);
         };
 
     /**

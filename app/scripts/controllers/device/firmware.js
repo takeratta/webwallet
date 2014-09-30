@@ -3,14 +3,17 @@
 angular.module('webwalletApp')
     .controller('FirmwareCtrl', function (
             $modal, $scope, $rootScope,
+            deviceList,
             firmwareService,
             TrezorDevice) {
 
         'use strict';
 
         var _modal = null,
+            _modalScope = null,
             _state = null,
             STATE_INITIAL = 'initial',
+            STATE_INITIAL_DISCONNECTED = 'initial-disconnected',
             STATE_NORMAL = 'device-normal',
             STATE_BOOTLOADER = 'device-bootloader',
             STATE_UPDATE_DOWNLOADING = 'update-downloading',
@@ -24,10 +27,24 @@ angular.module('webwalletApp')
 
         // On device disconnect
         $scope.$on(firmwareService.EVENT_DISCONNECT, resetOutdatedFirmwareBar);
-        $scope.$on(firmwareService.EVENT_DISCONNECT, closeFirmwareModal);
+        /**
+         * closeFirmwareModal() has high priority, because this hook must
+         * execute even if the Firmware modal is opened.
+         *
+         * @see  firmwareService.firmwareMain()
+         */
+        $scope.$on(firmwareService.EVENT_DISCONNECT, closeFirmwareModal, 10);
 
         // States
-        $scope.$on(firmwareService.EVENT_BOOTLOADER, function () {
+        $scope.$on(firmwareService.EVENT_BOOTLOADER, function (e, dev) {
+            /*
+             * We need to change the reference to the device in modal's scope,
+             * because the device changes when switching to the bootloader
+             * mode.
+             */
+            if (_modalScope) {
+                _modalScope.device = dev;
+            }
             setState(STATE_BOOTLOADER);
         });
         $scope.$on(firmwareService.EVENT_NORMAL, function () {
@@ -86,39 +103,38 @@ angular.module('webwalletApp')
         }
 
         function _showFirmwareModal(dev, firmware, version, state) {
-            var scope = angular.extend($rootScope.$new(), {
-                    firmware: firmware,
-                    version: version,
-                    device: dev,
-                    update: function () {
-                        updateFirmware(scope, firmware);
-                    }
-                });
-
-            setState(state, scope);
+            _modalScope = angular.extend($rootScope.$new(), {
+                firmware: firmware,
+                version: version,
+                device: dev,
+                update: function () {
+                    updateFirmware(firmware);
+                }
+            });
+            setState(state);
 
             _modal = $modal.open({
                 templateUrl: 'views/modal/firmware.html',
                 backdrop: 'static',
                 keyboard: false,
-                scope: scope
+                scope: _modalScope
             });
 
-            _modal.opened.then(function () {
-                firmwareService.setModalOpen(true);
-            });
-            _modal.result.finally(function () {
+            _modal.result.then(function () {
                 firmwareService.setModalOpen(false);
+            }, function () {
+                firmwareService.setModalOpen(false);
+                deviceList.forget(dev, true);
             });
 
             return _modal.result;
         }
 
-        function updateFirmware(scope, firmware) {
+        function updateFirmware(firmware) {
             var deregister;
 
-            scope.firmware = firmware;
-            setState(STATE_UPDATE_DOWNLOADING, scope);
+            _modalScope.firmware = firmware;
+            setState(STATE_UPDATE_DOWNLOADING);
 
             firmwareService.download(firmware)
                 .then(function (data) {
@@ -126,46 +142,51 @@ angular.module('webwalletApp')
                         TrezorDevice.EVENT_PREFIX + TrezorDevice.EVENT_BUTTON,
                         promptButton
                     );
-                    setState(STATE_UPDATE_FLASHING, scope);
-                    return scope.device.flash(data);
+                    setState(STATE_UPDATE_FLASHING);
+                    return _modalScope.device.flash(data);
                 })
                 .then(
                     function () {
-                        setState(STATE_UPDATE_SUCCESS, scope);
+                        setState(STATE_UPDATE_SUCCESS);
                         deregister();
                     },
                     function (err) {
-                        setState(STATE_UPDATE_ERROR, scope);
-                        scope.error = err.message;
+                        setState(STATE_UPDATE_ERROR);
+                        _modalScope.error = err.message;
                         deregister();
                     }
                 );
 
             function promptButton(e, dev, code) {
                 if (code === TrezorDevice.REQ_BUTTON_FIRMWARE) {
-                    setState(STATE_UPDATE_CHECK, scope);
+                    setState(STATE_UPDATE_CHECK);
                 }
             }
         }
 
         /**
          * Close the firmware modal if the update is already finished or
-         * if it hasn't started at all.
+         * if it failed.
          */
         function closeFirmwareModal() {
             if (_state === STATE_UPDATE_SUCCESS ||
-                    _state === STATE_UPDATE_ERROR ||
-                    _state === STATE_INITIAL) {
+                    _state === STATE_UPDATE_ERROR) {
                 _modal.close();
+                return;
+            }
+            if (_state === STATE_INITIAL ||
+                    _state === STATE_NORMAL ||
+                    _state === STATE_BOOTLOADER) {
+                setState(STATE_INITIAL_DISCONNECTED);
                 return;
             }
             setState(STATE_INITIAL);
         }
 
-        function setState(state, scope) {
-            _state = $scope.state = state;
-            if (scope) {
-                scope.state = state;
+        function setState(state) {
+            _state = state;
+            if (_modalScope) {
+                _modalScope.state = state;
             }
         }
   });

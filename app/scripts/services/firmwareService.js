@@ -25,34 +25,38 @@ angular.module('webwalletApp')
         this.EVENT_CANDIDATE = 'firmware.candidate';
         this.EVENT_OUTDATED = 'firmware.outdated';
 
-        // Connect and disconnect events for the Controller
-        deviceList.registerBeforeInitHook(function (dev) {
+        /*
+         * Connect and disconnect events for the Controller -- sent even
+         * if the Firmware modal is open.
+         */
+        deviceList.registerBeforeInitHook(function sendConnectEvent(dev) {
             $rootScope.$broadcast(this.EVENT_CONNECT, dev);
-        }.bind(this));
-        deviceList.registerDisconnectHook(function (dev) {
+        }.bind(this), 5);
+        deviceList.registerDisconnectHook(function sendDisconnectEvent(dev) {
             $rootScope.$broadcast(this.EVENT_DISCONNECT, dev);
-        }.bind(this));
-
+        }.bind(this), 5);
 
         /**
-         * After initialize hooks
+         * After initialize hook
          */
-        deviceList.registerAfterInitHook(function (dev) {
-            /*
-             * Abort the whole after init process, if the firmware update modal
-             * is open.
-             *
-             * That means no other after init hooks will be executed.
-             */
-            if (_modalOpen) {
-                throw new Error();
-            }
+        deviceList.registerAfterInitHook(function firmwareMain(dev) {
 
             // Bootloader mode
             if (dev.features.bootloader_mode) {
-                $rootScope.$broadcast(this.EVENT_BOOTLOADER, dev.id);
-                latest()
+                $rootScope.$broadcast(this.EVENT_BOOTLOADER, dev);
+
+                /*
+                 * Abort the whole after init process, if the firmware update
+                 * modal is opened -- that means no other after init hooks will
+                 * be executed.
+                 */
+                if (_modalOpen) {
+                    throw new Error();
+                }
+
+                return latest()
                     .then(function (firmware) {
+                        _modalOpen = true;
                         $rootScope.$broadcast(
                             this.EVENT_CANDIDATE,
                             {
@@ -60,15 +64,28 @@ angular.module('webwalletApp')
                                 firmware: firmware,
                             }
                         );
+                        throw new Error();
                     }.bind(this));
+
             // Normal mode
             } else {
-                $rootScope.$broadcast(this.EVENT_NORMAL, dev.id);
-                check(dev.features)
+                $rootScope.$broadcast(this.EVENT_NORMAL, dev);
+
+                /*
+                 * Abort the whole after init process, if the firmware update
+                 * modal is opened -- that means no other after init hooks will
+                 * be executed.
+                 */
+                if (_modalOpen) {
+                    throw new Error();
+                }
+
+                return check(dev.features)
                     .then(function (firmware) {
                         if (!firmware) {
                             return;
                         }
+                        _modalOpen = true;
                         $rootScope.$broadcast(
                             this.EVENT_OUTDATED,
                             {
@@ -77,9 +94,24 @@ angular.module('webwalletApp')
                                 version: _getVersion(dev.features)
                             }
                         );
+                        throw new Error();
                     }.bind(this));
             }
         }.bind(this), 10);
+
+        /**
+         * Disconnect hook
+         */
+        deviceList.registerDisconnectHook(function (dev) {
+            /*
+             * Abort the whole disconnect process, if the firmware update
+             * modal is opened -- that means no other disconnect hooks will
+             * be executed.
+             */
+            if (_modalOpen) {
+                throw new Error();
+            }
+        }, 10);
 
         function _getVersion(features) {
             return [

@@ -5,7 +5,7 @@
  */
 angular.module('webwalletApp')
   .controller('DeviceCtrl', function (
-            $modal, $scope, $location, $routeParams, $document,
+            $modal, $scope, $location, $routeParams, $document, $q,
             flash,
             TrezorDevice, deviceList,
             deviceService) {
@@ -27,6 +27,7 @@ angular.module('webwalletApp')
         $scope.$on(TrezorDevice.EVENT_PREFIX + TrezorDevice.EVENT_PASSPHRASE,
             promptPassphrase);
         $scope.$on(deviceService.EVENT_DISCONNECT, forgetOnDisconnect);
+        $scope.$on(deviceService.EVENT_FORGET_MODAL, askToDisconnectOnForget);
 
     /**
          * When a device is disconnected, ask the user if he/she wants to
@@ -51,7 +52,7 @@ angular.module('webwalletApp')
                 if ($scope.device.id === device.id &&
                         deviceService.getForgetModal()) {
                     deviceService.getForgetModal().close();
-          _forgetDevice($scope.device);
+                    deviceList.forget($scope.device);
                     deviceService.setForgetInProgress(false);
         }
         return;
@@ -61,52 +62,45 @@ angular.module('webwalletApp')
         promptDisconnect()
           .then(function () {
                         device.forgetOnDisconnect = true;
-                        _forgetDevice(device);
+                        deviceList.forget(device);
           }, function () {
                         device.forgetOnDisconnect = false;
           });
             } else if (device.forgetOnDisconnect) {
-                _forgetDevice(device);
+                deviceList.forget(device);
       }
     }
 
     /**
-     * Forget current device
+         * Ask the user to disconnect the device before it can be forgotten.
+         *
+         * Communicate with deviceService using the `forgetInProgress` flag.
      *
-     * If the device is connected, ask the user to disconnect it before.
+         * Passed `param` object has these mandatory properties:
+         * - {TrezorDevice} `dev`: Device instance
+         * - {Boolean} `requireDisconnect`: Can the user allowed to cancel the
+         *      modal, or does he/she have to disconnect the device?
      *
-     * @param {Boolean} requireDisconnect  Can user cancel the modal, or
-         *                                     does he/she have to disconnect
-         *                                     the device?
+         * @see  deviceService.forget()
+         *
+         * @param {Object} param  Parameters in format:
+         *                        {dev: TrezorDevice,
+         *                        requireDisconnect: Boolean}
      */
-    $scope.forgetDevice = function (requireDisconnect) {
-      if (!$scope.device.isConnected()) {
-        _forgetDevice($scope.device);
-        return;
-      }
-
-            deviceService.setForgetInProgress(true);
-      promptForget(requireDisconnect)
+        function askToDisconnectOnForget(e, param) {
+            promptForget(param.requireDisconnect)
         .then(function () {
-          _forgetDevice($scope.device);
+                    /*
+                     * TODO Explain this
+                     */
+                    if (deviceService.isForgetInProgress()) {
                     deviceService.setForgetInProgress(false);
+                        deviceList.forget();
+                    }
         }, function () {
                     deviceService.setForgetInProgress(false);
         });
     };
-
-    /**
-     * Forget device identified by passed Device object
-     *
-     * Unlike `$scope.forgetDevice()`, the user is not asked anything.
-     *
-     * @param {TrezorDevice} device  Device to forget
-     */
-    function _forgetDevice(device) {
-            deviceList.forget(device);
-      $location.path('/');
-      return;
-    }
 
     /**
      * Change device PIN
@@ -156,6 +150,13 @@ angular.module('webwalletApp')
     };
 
     /**
+         * Forget the device
+         */
+        $scope.forget = function () {
+            deviceList.forget($scope.device);
+        };
+
+        /**
      * Prompt forget
      *
          * Ask the user to disconnect the device using a modal dialog.  If the

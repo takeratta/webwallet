@@ -2,36 +2,44 @@
 
   <div ng-switch-when="initial">
     <div class="modal-header">
-      <h3 class="modal-title">Your device firmware is outdated!</h3>
+      <button type="button" class="close" title="Cancel"
+          ng-click="$dismiss()">&times;</button>
+      <h4 class="modal-title">Your device firmware is outdated</h4>
     </div>
     <div class="modal-body">
       <p>Our team is constantly working on adding new features to TREZOR.
       To enjoy full functionality and security of your device, we
-      <strong>strongly recommend you to update</strong>.<p>
+      strongly recommend you to update.<p>
 
-      <strong class="h5">Current firmware:</strong>
-      {{version[0]}}.{{version[1]}}.{{version[2]}}
-      <br>
-
-      <strong class="h5">Available firmware:</strong>
-      {{firmware.version[0]}}.{{firmware.version[1]}}.{{firmware.version[2]}}
-      <br>
-
-      <h5 ng-if="firmware.changelog">Changelog:</h5>
-      <pre ng-if="firmware.changelog">{{firmware.changelog}}</pre>
-      <p ng-if="firmware.notes">
-        <a ng-href="{{firmware.notes}}" target="_blank">Read the full release notes</a>
-      </p>
+      <p><strong>To update the firmware, please disconnect your device and then plug it
+      in while holding both device buttons pressed</strong>.</p>
 
       <p class="alert alert-info alert-withicon">
         <span class="glyphicon glyphicon-info-sign alert-icon"></span>
-        To update the firmware, please plug your device in firmware update mode.
-        Keep <strong>both device buttons pressed</strong> while connecting the device to enter this mode.<br>
-        <strong>For more information,
-          <a href="http://doc.satoshilabs.com/trezor-user/updatingfirmware.html"
-             target="_blank"
-             >visit the user manual.</a></strong>
+        For more information
+        <a href="http://doc.satoshilabs.com/trezor-user/updatingfirmware.html"
+            target="_blank">see the user manual</a>.
       </p>
+
+      <div class="firmware-info">
+        <h5>Firmware info</h5>
+        <dl>
+          <dt>Current firmware:</dt>
+          <dd>{{version[0]}}.{{version[1]}}.{{version[2]}}</dd>
+          <dt>Available firmware:</dt>
+          <dd>{{firmware.version[0]}}.{{firmware.version[1]}}.{{firmware.version[2]}}</dd>
+        </dl>
+
+        <div ng-if="firmware.changelog">
+          <h5>Changelog</h5>
+          <p class="firmware-changelog">{{firmware.changelog}}</p>
+        </div>
+
+        <p ng-if="firmware.notes">
+          <a ng-href="{{firmware.notes}}"
+            target="_blank">Read the full release notes</a>
+        </p>
+      </div>
 
       <a class="btn btn-link"
          href="mailto:support@bitcointrezor.com">Support needed?</a>
@@ -43,36 +51,30 @@
     </div>
   </div>
 
-  <div ng-switch-when="device-bootloader">
+  <div ng-switch-when="initial-disconnected">
     <div class="modal-header">
-      <h3 class="modal-title">Do you want to update the device firmware?</h3>
+      <button type="button" class="close" title="Cancel"
+          ng-click="$dismiss()">&times;</button>
+      <h4 class="modal-title">Your device firmware is outdated</h4>
     </div>
     <div class="modal-body">
+      <p>Now plug your device in with <strong>both device buttons pressed</strong>.</p>
+      <p class="alert alert-info alert-withicon">
+        <span class="glyphicon glyphicon-info-sign alert-icon"></span>
+        For more information
+        <a href="http://doc.satoshilabs.com/trezor-user/updatingfirmware.html"
+            target="_blank">see the user manual.</a>
+      </p>
+    </div>
+  </div>
 
-      <div ng-if="version">
-        <p>
-          <strong class="h5">Current firmware:</strong>
-          {{version[0]}}.{{version[1]}}.{{version[2]}}
-        </p>
-      </div>
-
-      <div ng-if="firmware">
-        <p>
-          <strong class="h5">Available firmware:</strong>
-          {{firmware.version[0]}}.{{firmware.version[1]}}.{{firmware.version[2]}}
-        </p>
-      </div>
-
-      <div ng-if="firmware.changelog">
-        <p>
-          <h5>Changelog:</h5>
-          <pre>{{firmware.changelog}}</pre>
-        </p>
-        <p ng-if="firmware.notes">
-          <a ng-href="{{firmware.notes}}" target="_blank">Read the full release notes</a>
-        </p>
-      </div>
-
+  <div ng-switch-when="device-bootloader">
+    <div class="modal-header">
+      <button type="button" class="close" title="Cancel"
+          ng-click="$dismiss()">&times;</button>
+      <h4 class="modal-title">Do you want to update the device firmware?</h4>
+    </div>
+    <div class="modal-body">
       <div class="alert alert-warning alert-withicon">
         <span class="glyphicon glyphicon-warning-sign alert-icon"></span>
         <h4>Caution!</h4>
@@ -83,6 +85,26 @@
           <a href="http://doc.satoshilabs.com/trezor-user/updatingfirmware.html"
              target="_blank"
              >visit the user manual.</a></strong></p>
+      </div>
+
+      <div class="firmware-info">
+        <h5>Firmware info</h5>
+        <dl>
+          <dt ng-if="version">Current firmware:</dt>
+          <dd ng-if="version">{{version[0]}}.{{version[1]}}.{{version[2]}}</dd>
+          <dt ng-if="firmware">Available firmware:</dt>
+          <dd ng-if="firmware">{{firmware.version[0]}}.{{firmware.version[1]}}.{{firmware.version[2]}}</dd>
+        </dl>
+
+        <div ng-if="firmware.changelog">
+          <h5>Changelog</h5>
+          <p class="firmware-changelog">{{firmware.changelog}}</p>
+        </div>
+
+        <p ng-if="firmware.notes">
+          <a ng-href="{{firmware.notes}}"
+            target="_blank">Read the full release notes</a>
+        </p>
       </div>
 
     </div>
@@ -98,8 +120,14 @@
   </div>
 
   <div ng-switch-when="device-normal">
+    <div class="modal-header">
+      <button type="button" class="close" title="Cancel"
+          ng-click="$dismiss()">&times;</button>
+      <h4 class="modal-title">Your device firmware is outdated</h4>
+    </div>
     <div class="modal-body">
-      <div class="alert alert-warning text-center">
+      <div class="alert alert-warning alert-withicon">
+        <span class="glyphicon glyphicon-warning-sign alert-icon"></span>
         <h4>Your TREZOR is not in the firmware update mode.</h4>
         <p>Please reconnect it <strong>while pressing both buttons simultaneously.</strong></p>
       </div>

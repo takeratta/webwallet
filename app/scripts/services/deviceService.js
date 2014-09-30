@@ -28,10 +28,14 @@ angular.module('webwalletApp')
         'use strict';
 
         var _forgetModal = null,
-            _forgetInProgress = false;
+            _forgetInProgress = false,
+            EVENT_CONNECT = 'device.connect',
+            EVENT_DISCONNECT = 'device.disconnect',
+            EVENT_FORGET_MODAL = 'device.forgetModal';
 
-        this.EVENT_CONNECT = 'device.connect';
-        this.EVENT_DISCONNECT = 'device.disconnect';
+        this.EVENT_CONNECT = EVENT_CONNECT;
+        this.EVENT_DISCONNECT = EVENT_DISCONNECT;
+        this.EVENT_FORGET_MODAL = EVENT_FORGET_MODAL;
 
         // Broadcast connect and disconnect events for the Controller.
         deviceList.registerAfterInitHook(function sendConnectEvent(dev) {
@@ -48,6 +52,10 @@ angular.module('webwalletApp')
         // After initialize hooks
         deviceList.registerAfterInitHook(navigateToDeviceFromHomepage, 20);
         deviceList.registerAfterInitHook(initAccounts, 30);
+
+        // Forget hooks
+        deviceList.registerForgetHook(forget, 10);
+        deviceList.registerForgetHook(navigateToHomepage, 20);
 
         /**
          * Pause refreshing of the passed device while a communicate with the
@@ -128,6 +136,43 @@ angular.module('webwalletApp')
         }
 
         /**
+         * Go to homepage
+         */
+        function navigateToHomepage () {
+            $location.path('/');
+        }
+
+        /**
+         * Forget current device
+         *
+         * If the device is connected, ask the user to disconnect it before.
+         *
+         * Passed `param` object has these mandatory properties:
+         * - {TrezorDevice} `dev`: Device instance
+         * - {Boolean} `requireDisconnect`: Can the user allowed to cancel the
+         *      modal, or does he/she have to disconnect the device?
+         *
+         * Return undefined if we want to continue with device forgetting.
+         * Throw Error if we don't want to forget the device yet -- that means
+         * we are waiting for user to accept or dismiss the Forget modal.
+         *
+         * @see  DeviceList#forget()
+         *
+         * @param {Object} param  Parameters in format:
+         *                        {dev: TrezorDevice,
+         *                        requireDisconnect: Boolean}
+         * @throws Error
+         */
+         function forget(param) {
+            if (!param.dev.isConnected() && !_forgetInProgress) {
+                return;
+            }
+            _forgetInProgress = true;
+            $rootScope.$broadcast(EVENT_FORGET_MODAL, param);
+            throw new Error();
+        }
+
+        /**
          * Get previously stored reference to the Forget modal dialog.
          *
          * Forget modal is the dialog that is shown when the user disconnects
@@ -166,5 +211,4 @@ angular.module('webwalletApp')
         this.setForgetInProgress = function (forgetInProgress) {
             _forgetInProgress = forgetInProgress;
         };
-
     });

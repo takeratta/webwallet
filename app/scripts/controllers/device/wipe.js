@@ -45,19 +45,19 @@ angular.module('webwalletApp')
                 function () {
                     if (window.navigator.userAgent.match(/Mac/)) {
                         // User needs to disconnect the device.
-                        $scope.forgetDevice(true);
+                        deviceList.forget($scope.device, true);
                     } else if (!deviceList.get(oldDevId).isConnected()) {
-                        $scope.forgetDevice();
+                        deviceList.forget($scope.device);
                     } else {
                         var off = $scope.$on(
-                                deviceService.EVENT_DISCONNECT,
-                                function (e, devId) {
-                                    if (devId === oldDevId) {
-                                        $scope.forgetDevice();
-                                        off();
-                                    }
+                            deviceService.EVENT_DISCONNECT,
+                            function (e, devId) {
+                                if (devId === oldDevId) {
+                                    deviceService.forget($scope.device);
+                                    off();
                                 }
-                            );
+                            }
+                        );
                     }
                 },
                 function (err) {
