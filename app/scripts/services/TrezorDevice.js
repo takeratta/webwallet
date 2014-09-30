@@ -11,6 +11,7 @@ angular.module('webwalletApp')
       this.accounts = [];
       this.features = null;
       this.error = null;
+      this.forgetOnDisconnect = null;
 
       this._passphrase = null;
       this._session = null;
@@ -63,6 +64,7 @@ angular.module('webwalletApp')
       dev.accounts = data.accounts.map(function (item) {
         return TrezorAccount.deserialize(item);
       });
+      dev.forgetOnDisconnect = data.forgetOnDisconnect;
 
       return dev;
     };
@@ -74,7 +76,8 @@ angular.module('webwalletApp')
         features: this.features,
         accounts: this.accounts.map(function (acc) {
           return acc.serialize();
-        })
+        }),
+        forgetOnDisconnect: this.forgetOnDisconnect
       };
     };
 

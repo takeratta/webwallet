@@ -6,13 +6,11 @@
 angular.module('webwalletApp')
   .controller('DeviceCtrl', function (
             $modal, $scope, $location, $routeParams, $document,
-            flash, storage,
+            flash,
             TrezorDevice, deviceList,
             deviceService) {
 
     'use strict';
-
-    var STORAGE_FORGET_ON_DISCONNECT = 'trezorForgetOnDisconnect';
 
         // Get current device or go to homepage.
         $scope.device = deviceList.get($routeParams.deviceId);
@@ -58,15 +56,16 @@ angular.module('webwalletApp')
         }
         return;
       }
-            if (storage[STORAGE_FORGET_ON_DISCONNECT] === undefined) {
+            if (device.forgetOnDisconnect === null ||
+                    device.forgetOnDisconnect === undefined) {
         promptDisconnect()
           .then(function () {
-            storage[STORAGE_FORGET_ON_DISCONNECT] = 'true';
+                        device.forgetOnDisconnect = true;
                         _forgetDevice(device);
           }, function () {
-            storage[STORAGE_FORGET_ON_DISCONNECT] = 'false';
+                        device.forgetOnDisconnect = false;
           });
-            } else if (storage[STORAGE_FORGET_ON_DISCONNECT] === 'true') {
+            } else if (device.forgetOnDisconnect) {
                 _forgetDevice(device);
       }
     }
