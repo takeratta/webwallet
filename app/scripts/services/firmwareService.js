@@ -51,7 +51,7 @@ angular.module('webwalletApp')
                  * be executed.
                  */
                 if (_modalOpen) {
-                    throw new Error();
+                    deviceList.abortHook();
                 }
 
                 return latest()
@@ -64,7 +64,7 @@ angular.module('webwalletApp')
                                 firmware: firmware,
                             }
                         );
-                        throw new Error();
+                        deviceList.abortHook();
                     }.bind(this));
 
             // Normal mode
@@ -77,7 +77,7 @@ angular.module('webwalletApp')
                  * be executed.
                  */
                 if (_modalOpen) {
-                    throw new Error();
+                    deviceList.abortHook();
                 }
 
                 return check(dev.features)
@@ -94,7 +94,7 @@ angular.module('webwalletApp')
                                 version: _getVersion(dev.features)
                             }
                         );
-                        throw new Error();
+                        deviceList.abortHook();
                     }.bind(this));
             }
         }.bind(this), 10);
@@ -109,7 +109,7 @@ angular.module('webwalletApp')
              * be executed.
              */
             if (_modalOpen) {
-                throw new Error();
+                deviceList.abortHook();
             }
         }, 10);
 

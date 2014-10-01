@@ -169,7 +169,7 @@ angular.module('webwalletApp')
             }
             _forgetInProgress = true;
             $rootScope.$broadcast(EVENT_FORGET_MODAL, param);
-            throw new Error();
+            deviceList.abortHook();
         }
 
         /**

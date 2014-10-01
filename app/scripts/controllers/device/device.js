@@ -5,7 +5,7 @@
  */
 angular.module('webwalletApp')
   .controller('DeviceCtrl', function (
-            $modal, $scope, $location, $routeParams, $document, $q,
+            $modal, $scope, $location, $routeParams, $document,
             flash,
             TrezorDevice, deviceList,
             deviceService) {

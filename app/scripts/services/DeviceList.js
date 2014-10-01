@@ -387,8 +387,10 @@ angular.module('webwalletApp')
 
                 // Show error message if something failed.
                 .catch(function (err) {
-                    flash.error(err.message || 'Loading device failed');
-                });
+                    if (!err instanceof this.DeviceListException) {
+                        flash.error(err.message || 'Loading device failed');
+                    }
+                }.bind(this));
         }.bind(this));
     };
 
@@ -615,6 +617,25 @@ angular.module('webwalletApp')
             return hook.priority;
         });
     };
+
+    /**
+     * Call this method from any hook to abort the whole process -- that means
+     * to stop execution of all other hooks in the queue.
+     *
+     * This method is preferred over just throwing an exception, because
+     * exceptions thrown by this method will not be shown in a flash error
+     * message.
+     *
+     * @see  DeviceList#_connect()
+     */
+    DeviceList.prototype.abortHook = function () {
+        throw new this.DeviceListException();
+    };
+
+    /**
+     * @see  DeviceList#abortHook()
+     */
+    DeviceList.prototype.DeviceListException = function () {};
 
     return new DeviceList();
 
