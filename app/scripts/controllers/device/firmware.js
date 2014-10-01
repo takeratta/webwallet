@@ -168,10 +168,11 @@ angular.module('webwalletApp')
          * Close the firmware modal if the update is already finished or
          * if it failed.
          */
-        function closeFirmwareModal() {
+        function closeFirmwareModal(e, dev) {
             if (_state === STATE_UPDATE_SUCCESS ||
                     _state === STATE_UPDATE_ERROR) {
                 _modal.close();
+                deviceList.forget(dev, true);
                 return;
             }
             if (_state === STATE_INITIAL ||
