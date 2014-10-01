@@ -49,10 +49,9 @@ angular.module('webwalletApp')
      */
         function forgetOnDisconnect(e, device) {
             if (deviceService.isForgetInProgress()) {
-                if ($scope.device.id === device.id &&
-                        deviceService.getForgetModal()) {
+                if (deviceService.getForgetModal()) {
                     deviceService.getForgetModal().close();
-                    deviceList.forget($scope.device);
+                    deviceList.forget(device);
                     deviceService.setForgetInProgress(false);
         }
         return;
