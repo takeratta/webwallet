@@ -18,6 +18,7 @@ angular.module('webwalletApp')
 
         'use strict';
 
-        $scope.notConnected = deviceList.count() === 0;
-
+        $scope.isConnected = function () {
+            return deviceList.count() !== 0;
+        }
     });
