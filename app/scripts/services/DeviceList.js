@@ -137,7 +137,7 @@ angular.module('webwalletApp')
             return this._devices;
         }
         return _.filter(this._devices, function (dev) {
-            return dev.features.bootloader_mode === false;
+            return !dev.features.bootloader_mode;
         });
     };
 
