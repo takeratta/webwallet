@@ -2,7 +2,7 @@
   <!-- Device -->
   <li ng-repeat="device in devices"
       ng-class="{ disabled: device.isLoading() }">
-    <div ng-if="!device.features.bootloader_mode">
+
     <a ng-href="#/device/{{device.id}}"
        ng-class="{ active: isActive('/device/{{device.id}}$') }">
       <h4>
@@ -85,6 +85,5 @@
     </div>
 
     <hr ng-hide="$last">
-    </div>
   </li>
 </ul>
