@@ -49,6 +49,7 @@ angular.module('webwalletApp')
     DeviceList.prototype._devices = [];
 
     DeviceList.prototype._watchPaused = false;
+    DeviceList.prototype._enumerateInProgress = false;
 
     DeviceList.prototype._beforeInitHooks = [];
     DeviceList.prototype._afterInitHooks = [];
@@ -207,9 +208,15 @@ angular.module('webwalletApp')
      */
     DeviceList.prototype._watch = function (n) {
         var tick = utils.tick(n),
-            delta = this._progressWithDescriptorDelta(
-                this._progressWithConnected(tick)
-            );
+            connected = $q.defer(),
+            delta;
+
+        this._progressWithConnected(connected);
+        tick.then(null, null, function () {
+            this._progressWithConnected(connected);
+        }.bind(this));
+
+        delta = this._progressWithDescriptorDelta(connected.promise);
 
         delta.then(null, null, function (dd) {
             if (!dd) {
@@ -248,51 +255,36 @@ angular.module('webwalletApp')
     };
 
     /**
-     * Maps a promise notification with connected device descriptors.
-     *
-     * Expects a Promise as an argument and returns a new Promise.  Each time
-     * passed Promise is fulfilled, the returned Promise is fulfilled as well
-     * with a list of devices as the result.
-     *
-     * Passed Promise is expected to tick (get periodically fulfilled over
-     * and over again).
+     * Notifies passed Deferred with the list of all currently connected
+     * devices.
      *
      * @see  DeviceList#_progressWithDescriptorDelta()
      *
-     * @param {Promise} pr  Promise expected to tick
-     * @return {Promise}    Promise fulfilled with a list of devices as
-     *                      the result
+     * @param {Deferred} deferred  Deferred
      */
-    DeviceList.prototype._progressWithConnected = function (pr) {
-        var res = $q.defer(),
-            inProgress = false;
+    DeviceList.prototype._progressWithConnected = function (deferred) {
+        if (this._watchPaused || this._enumerateInProgress) {
+            return;
+        }
 
-        pr.then(null, null, function () {
-            if (this._watchPaused || inProgress) {
-                return;
-            }
-
-            inProgress = true;
-            trezor.enumerate()
-                .then(function (devices) {
-                    res.notify(devices.map(function (dev) {
-                        if (!dev.id && dev.serialNumber) {
-                            dev.id = dev.serialNumber;
-                        }
-                        return dev;
-                    }));
-                })
-                .then(
-                    function () {
-                        inProgress = false;
-                    },
-                    function () {
-                        inProgress = false;
+        this._enumerateInProgress = true;
+        trezor.enumerate()
+            .then(function (devices) {
+                deferred.notify(devices.map(function (dev) {
+                    if (!dev.id && dev.serialNumber) {
+                        dev.id = dev.serialNumber;
                     }
-                );
-        }.bind(this));
-
-        return res.promise;
+                    return dev;
+                }));
+            })
+            .then(
+                function () {
+                    this._enumerateInProgress = false;
+                },
+                function () {
+                    this._enumerateInProgress = false;
+                }
+            );
     };
 
     /**
