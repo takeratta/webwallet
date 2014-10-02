@@ -18,6 +18,6 @@ angular.module('webwalletApp')
 
         'use strict';
 
-        $scope.devices = deviceList.all();
+        $scope.notConnected = deviceList.count() === 0;
 
     });
