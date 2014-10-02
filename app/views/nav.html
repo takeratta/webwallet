@@ -1,6 +1,6 @@
 <ul class="nav nav-devices" ng-controller="NavCtrl">
   <!-- Device -->
-  <li ng-repeat="device in devices"
+  <li ng-repeat="device in devices()"
       ng-class="{ disabled: device.isLoading() }">
 
     <a ng-href="#/device/{{device.id}}"

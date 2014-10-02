@@ -54,6 +54,7 @@ angular.module('webwalletApp')
     DeviceList.prototype._afterInitHooks = [];
     DeviceList.prototype._disconnectHooks = [];
     DeviceList.prototype._forgetHooks = [];
+    DeviceList.prototype._afterForgetHooks = [];
 
     /**
      * Load known devices from localStorage and initialize them.
@@ -119,7 +120,7 @@ angular.module('webwalletApp')
      * @return {TrezorDevice}  Default device
      */
     DeviceList.prototype.getDefault = function () {
-        return this._devices[0];
+        return this.all()[0];
     };
 
     /**
@@ -136,7 +137,7 @@ angular.module('webwalletApp')
         if (includeBootloader) {
             return this._devices;
         }
-        return _.filter(this._devices, function (dev) {
+        return this._devices.filter(function (dev) {
             return !dev.features.bootloader_mode;
         });
     };
@@ -149,7 +150,7 @@ angular.module('webwalletApp')
      *
      * @param {Boolean} [includeBootloader]  Include devices that are in the
      *                                       bootloader mode.  Default: false.
-     * @return {Number}  Number of devices
+     * @return {Number}                      Number of devices
      */
     DeviceList.prototype.count = function (includeBootloader) {
         return this.all(includeBootloader).length;
@@ -182,7 +183,8 @@ angular.module('webwalletApp')
             .then(this._execHooks(this._forgetHooks))
             .then(function (param) {
                 this.remove(param.dev);
-            }.bind(this));
+            }.bind(this))
+            .then(this._execHooks(this._afterForgetHooks));
     };
 
     /**
@@ -507,13 +509,7 @@ angular.module('webwalletApp')
      * The function will be passed a single argument:
      * - {TrezorDevice}  Device instance
      *
-     * You can pass an optional Number argument `priority`.  Hooks with lower
-     * priority will be executed first.  See `DeviceList#DEFAULT_HOOK_PRIORITY`
-     * for the default priority value.
-     *
-     * You can pass an optional String argument `name`.  The name of the hook
-     * will appear in some logs and might be used in the future to find
-     * this hook in the list of hooks.
+     * @see  DeviceList#registerInitHook()
      *
      * @param {Function} fn        Function
      * @param {Number} [priority]  Hooks with lower priority are executed first
@@ -532,13 +528,7 @@ angular.module('webwalletApp')
      * The function will be passed a single argument:
      * - {TrezorDevice}  Device instance
      *
-     * You can pass an optional Number argument `priority`.  Hooks with lower
-     * priority will be executed first.  See `DeviceList#DEFAULT_HOOK_PRIORITY`
-     * for the default priority value.
-     *
-     * You can pass an optional String argument `name`.  The name of the hook
-     * will appear in some logs and might be used in the future to find
-     * this hook in the list of hooks.
+     * @see  DeviceList#registerInitHook()
      *
      * @param {Function} fn        Function
      * @param {Number} [priority]  Hooks with lower priority are executed first
@@ -560,13 +550,7 @@ angular.module('webwalletApp')
      * - {Boolean} `requireDisconnect`: Can the user allowed to cancel the
      *      modal, or does he/she have to disconnect the device?
      *
-     * You can pass an optional Number argument `priority`.  Hooks with lower
-     * priority will be executed first.  See `DeviceList#DEFAULT_HOOK_PRIORITY`
-     * for the default priority value.
-     *
-     * You can pass an optional String argument `name`.  The name of the hook
-     * will appear in some logs and might be used in the future to find
-     * this hook in the list of hooks.
+     * @see  DeviceList#registerInitHook()
      *
      * @param {Function} fn        Function
      * @param {Number} [priority]  Hooks with lower priority are executed first
@@ -575,6 +559,27 @@ angular.module('webwalletApp')
     DeviceList.prototype.registerForgetHook =
         function (fn, priority, name) {
             this._registerHook(this._forgetHooks, fn, priority, name);
+        };
+
+    /**
+     * Register forget hook
+     *
+     * Passed function will be called after every `DeviceList#forget()` call.
+     *
+     * The function will be passed an object argument with these properties:
+     * - {TrezorDevice} `dev`: Device instance
+     * - {Boolean} `requireDisconnect`: Can the user allowed to cancel the
+     *      modal, or does he/she have to disconnect the device?
+     *
+     * @see  DeviceList#registerInitHook()
+     *
+     * @param {Function} fn        Function
+     * @param {Number} [priority]  Hooks with lower priority are executed first
+     * @param {Name} [name]        Hook name
+     */
+    DeviceList.prototype.registerAfterForgetHook =
+        function (fn, priority, name) {
+            this._registerHook(this._afterForgetHooks, fn, priority, name);
         };
 
     /**

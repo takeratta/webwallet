@@ -54,8 +54,8 @@ angular.module('webwalletApp')
         deviceList.registerAfterInitHook(initAccounts, 30);
 
         // Forget hooks
-        deviceList.registerForgetHook(forget, 10);
-        deviceList.registerForgetHook(navigateToHomepage, 20);
+        deviceList.registerForgetHook(forget);
+        deviceList.registerAfterForgetHook(navigateToDefaultDevice);
 
         /**
          * Pause refreshing of the passed device while a communicate with the
@@ -136,9 +136,15 @@ angular.module('webwalletApp')
         }
 
         /**
-         * Go to homepage
+         * If the current URL is the URL of the device being disconnected,
+         * go to the default device or to homepage if no devices are connected.
          */
-        function navigateToHomepage () {
+        function navigateToDefaultDevice() {
+            var dev = deviceList.getDefault();
+            if (dev) {
+                deviceList.navigateTo(dev);
+                return;
+            }
             $location.path('/');
         }
 
