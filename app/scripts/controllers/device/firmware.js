@@ -28,12 +28,12 @@ angular.module('webwalletApp')
         // On device disconnect
         $scope.$on(firmwareService.EVENT_DISCONNECT, resetOutdatedFirmwareBar);
         /**
-         * closeFirmwareModal() has high priority, because this hook must
+         * onDisconnect() has high priority, because this hook must
          * execute even if the Firmware modal is opened.
          *
          * @see  firmwareService.firmwareMain()
          */
-        $scope.$on(firmwareService.EVENT_DISCONNECT, closeFirmwareModal, 10);
+        $scope.$on(firmwareService.EVENT_DISCONNECT, onDisconnect, 10);
 
         // States
         $scope.$on(firmwareService.EVENT_BOOTLOADER, function (e, dev) {
@@ -168,16 +168,16 @@ angular.module('webwalletApp')
          * Close the firmware modal if the update is already finished or
          * if it failed.
          */
-        function closeFirmwareModal(e, dev) {
+        function onDisconnect(e, dev) {
             if (_state === STATE_UPDATE_SUCCESS ||
-                    _state === STATE_UPDATE_ERROR) {
+                    _state === STATE_UPDATE_ERROR ||
+                    _state === STATE_BOOTLOADER) {
                 _modal.close();
                 deviceList.forget(dev, true);
                 return;
             }
             if (_state === STATE_INITIAL ||
-                    _state === STATE_NORMAL ||
-                    _state === STATE_BOOTLOADER) {
+                    _state === STATE_NORMAL) {
                 setState(STATE_INITIAL_DISCONNECTED);
                 return;
             }
