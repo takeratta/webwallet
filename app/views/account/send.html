@@ -81,45 +81,37 @@
             </div>
 
             <div class="tx-output-add">
-              <div class="btn-group">
-                <span tooltip="Please connect your device to send coins."
-                      tooltip-trigger="{{
-                        device.status() !== 'connected'
-                          ? 'mouseenter'
-                          : 'manual'
-                      }}"
-                      tooltip-placement="bottom">
-                  <button type="submit"
-                          class="btn btn-primary"
-                          ng-disabled="device.status() !== 'connected' || !tx.prepared ">
-                    Send
-                  </button>
-                </span>
-                <button type="button"
-                  class="btn btn-default dropdown-toggle"
-                  ng-disabled="qr.scanning"
-                  ng-click="addOutput()">
-                  <span class="glyphicon glyphicon-plus"></span>
-                  More please
-                </button>
-                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-                  <span class="caret"></span>
-                  <span class="sr-only">Toggle Dropdown</span>
-                </button>
-                <ul class="dropdown-menu" role="menu">
-                  <li ng-show="tx.values.outputs.length > 1">
-                    <a href="javascript:void(0)"
-                        ng-click="removeAllOutputs()">
-                      Remove all
-                    </a>
-                  </li>
-                  <li>
-                    <a href="javascript:void(0)"
-                        ng-click="importCsv()">
-                      Import CSV
-                    </a>
-                  </li>
-                </ul>
+              <div class="row">
+                <div class="col-md-6">
+                  <a href=""
+                    class="btn btn-link"
+                    ng-disabled="qr.scanning"
+                    ng-click="addOutput()">
+                    <span class="glyphicon glyphicon-plus"></span>
+                    Add recipient
+                  </a>
+                </div>
+                <div class="col-md-6 text-right">
+                  <a href="#/device/{{device.id}}/account/{{account.id}}"
+                      class="btn btn-link btn-sm"
+                      ng-click="cancelTxValues()">
+                    Cancel transaction
+                    <span class="glyphicon glyphicon-remove"></span>
+                  </a>
+                  <a href="javascript:void(0)"
+                      class="btn btn-link btn-sm"
+                      ng-click="removeAllOutputs()"
+                      ng-show="tx.values.outputs.length > 1">
+                    Remove all
+                    <span class="glyphicon glyphicon-remove"></span>
+                  </a>
+                  <a href="javascript:void(0)"
+                      class="btn btn-link btn-sm"
+                      ng-click="importCsv()">
+                    Import CSV
+                    <span class="glyphicon glyphicon-import"></span>
+                  </a>
+                </div>
               </div>
             </div>
 
@@ -139,29 +131,46 @@
           </fieldset>
         </div>
 
-        <div class="row tx-submit">
-          <div class="col-sm-6">
-            <a href="#/device/{{device.id}}/account/{{account.id}}"
-               class="btn btn-default"
-               ng-click="cancelTxValues()">
-              Cancel
-            </a>
-          </div>
-          <div class="col-sm-6 text-right">
-            <span class="form-control-static text-danger" ng-show="tx.error">
-              {{tx.error}}
-            </span>
-            <button type="submit" class="btn btn-primary"
-                ng-disabled="!tx.prepared">
+        <div class="tx-submit">
+          <span tooltip="Please connect your device to send coins."
+                tooltip-trigger="{{
+                  device.status() !== 'connected'
+                    ? 'mouseenter'
+                    : 'manual'
+                }}"
+                tooltip-placement="bottom">
+            <button type="submit"
+                    class="btn btn-primary"
+                    ng-disabled="device.status() !== 'connected' || !tx.prepared ">
               Send
               <span class="glyphicon glyphicon-chevron-right"></span>
             </button>
+          </span>
+          <div class="form-control-static" ng-show="tx.prepared">
+            Fee: {{tx.fee}} {{account.coin.coin_shortcut}}
+          </div>
+          <div class="form-control-static text-danger" ng-show="tx.error">
+            {{tx.error}}
           </div>
         </div>
+      </form>
 
-        <div class="well tx-preview"
-            ng-if="tx.prepared">
-          <h4>Transaction Preview</h4>
+      <div class="line-divider">
+        <hr>
+        <div class="line-divider-content text-center">
+          <button class="btn btn-xs btn-default"
+              ng-disabled="!tx.prepared"
+              ng-click="advanced = !advanced">
+            Advanced details
+            <span class="glyphicon glyphicon-plus"></span>
+          </button>
+        </div>
+      </div>
+
+      <div class="well tx-preview"
+          ng-if="advanced">
+        <h4>Transaction Preview</h4>
+        <div ng-if="tx.prepared">
           <h5>Fee</h5>
           <span tooltip="The transaction fee is calculated automatically."
                 tooltip-placement="bottom"
@@ -185,7 +194,10 @@
             </li>
           </ol>
         </div>
-      </form>
+        <div ng-if="!tx.prepared">
+          Transaction is not prepared yet.
+        </div>
+      </div>
     </div>
   </div>
 </div>

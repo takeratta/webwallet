@@ -393,11 +393,16 @@ body {
 /* Device send/receive nav */
 
 .tab-content {
+  padding-top: 30px;
+}
+/*
+.tab-content {
   border: 1px solid #ddd;
   border-top: 0;
   padding: 20px;
   padding-bottom: 5px;
 }
+*/
 .tab-content .row {
   padding-bottom: 16px;
 }
@@ -569,6 +574,20 @@ body {
 .tx-send .tx-output-add {
   padding-bottom: 1.25em;
 }
+.tx-output-add {
+  border-top: 1px solid #d9d9d9;
+  padding-top: 0.5em;
+}
+.tx-output-add .btn-link {
+  padding: 0;
+  margin-right: 0.8em;
+}
+.tx-output-add .text-right .btn-link,
+.tx-output-add .text-right .btn-link:hover,
+.tx-output-add .text-right .btn-link:focus,
+.tx-output-add .text-right .btn-link:active {
+  color: #999;
+}
 .tx-output .btn-sm {
   margin-right: -13px;
 }
@@ -593,15 +612,13 @@ body {
 }
 
 .tx-submit {
-  margin: 0;
-  border: 1px solid #ddd;
-  border-top: 0;
-  padding: 1em 0;
-  background: #f5f5f5;
+  padding-bottom: 0.8em;
 }
 .tx-submit .form-control-static {
   padding-top: 0.5em;
-  padding-right: 1em;
+}
+.tx-submit .btn {
+  font-size: 120%;
 }
 
 .tx-preview {

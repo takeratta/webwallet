@@ -3,18 +3,30 @@
           ng-click="$dismiss()">&times;</button>
   <h4 class="modal-title">Import addresses from CSV</h4>
 </div>
-<form
-  ng-submit="$close(csv)">
+<form role="form"
+  ng-submit="$close({delimiter: delimiter, header: header, data: data})">
 <div class="modal-body">
-  <div class="form-inline">
+  <div>
     <p>Example:</p>
     <pre>address,amount
 masdyerjendIJSDNausdnalsdjaudJDAsd,0.00073
 adsSADJASDjasdASdkjSAdkjSKAjdaorew,1.2</pre>
     <div class="form-group">
+      <label>Cell delimiter</label>
+      <input type="text" class="form-control" checked="checked"
+        ng-model="delimiter" value=",">
+    </div>
+    <div class="checkbox">
+      <label>
+        <input type="checkbox" checked="checked"
+          ng-model="header">
+        First row is header
+      </label>
+    </div>
+    <div class="form-group">
       <label>Paste the CSV here:</label>
       <textarea class="form-control input-lg" cols="50" rows="10" autofocus
-          ng-model="csv"></textarea>
+          ng-model="data"></textarea>
     </div>
   </div>
 </div>

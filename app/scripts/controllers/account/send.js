@@ -1,9 +1,9 @@
-/*global angular*/
+/*global angular, CSV*/
 
 angular.module('webwalletApp')
   .controller('AccountSendCtrl', function (
     flash, temporaryStorage, utils, config, trezorService,
-    $filter, $scope, $rootScope, $location, $routeParams, $modal) {
+    $filter, $scope, $rootScope, $routeParams, $modal) {
     'use strict';
 
     var STORAGE_TXVALUES = 'trezorSendValues';
@@ -301,7 +301,7 @@ angular.module('webwalletApp')
       $scope.tx.values.outputs.push({});
     };
 
-    $scope.removeAllOutputs = function (i) {
+    $scope.removeAllOutputs = function () {
       $scope.tx.values.outputs = [{}];
     };
 
@@ -394,16 +394,30 @@ angular.module('webwalletApp')
      */
     $scope.importCsv = function () {
       promptCsv()
-        .then(function (data) {
-          data = data.replace('\r', '\n').replace('\n\n', '\n');
+        .then(function (form) {
+          var data = form.data.replace('\r', '\n').replace('\n\n', '\n'),
+              options = {
+                cellDelimiter: (form.delimiter || '')[0] || ',',
+                header: !!form.header,
+                lineDelimiter: '\n'
+              },
+              colAddress,
+              colAmount;
+          if (options.header) {
+            colAddress = 'address';
+            colAmount = 'amount';
+          } else {
+            colAddress = 0;
+            colAmount = 1;
+          }
           /*
            * Can't use CSV#forEach() because of a bug in the library:
            * `data is undefined`.
            */
-          new CSV(data, {line: '\n'}).parse().forEach(function (line) {
+          new CSV(data, options).parse().forEach(function (line) {
             $scope.tx.values.outputs.push({
-              address: line[0].toString(),
-              amount: line[1].toString()
+              address: line[colAddress].toString(),
+              amount: line[colAmount].toString()
             });
           });
         });
@@ -425,6 +439,8 @@ angular.module('webwalletApp')
         backdrop: 'static',
         keyboard: false,
         scope: scope,
+        delimiter: ',',
+        header: true
       });
       modal.opened.then(function () { scope.$emit('modal.csv.show'); });
       modal.result.finally(function () { scope.$emit('modal.csv.hide'); });
