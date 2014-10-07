@@ -6,7 +6,7 @@ angular.module('webwalletApp').constant('config', {
 
   bridge: {
     // address that the bridge is available on
-    url: 'https://localhost.mytrezor.com:21324',
+    url: 'https://localback.net:21324',
 
     // address of the bridge configuration file
     configUrl: '/data/plugin/config_signed.bin',
