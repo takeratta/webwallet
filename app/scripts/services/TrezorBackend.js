@@ -15,7 +15,11 @@ angular.module('webwalletApp')
       this._clientIdP = null;
       this._stream = null;
       this._handlers = {};
+
+      this._keepConnected();
     }
+
+    TrezorBackend.RECONNECT_DELAY = 5000;
 
     TrezorBackend.singleton = function (coin) {
       if (!backends[coin.coin_name])
@@ -36,6 +40,18 @@ angular.module('webwalletApp')
 
     // Stream
 
+    TrezorBackend.prototype._keepConnected = function () {
+      utils.endure(function () {
+        return this.connect().then(function () {
+          return this._stream;
+        }.bind(this))
+      }.bind(this), TrezorBackend.RECONNECT_DELAY);
+    };
+
+    TrezorBackend.prototype.isConnected = function () {
+      return this._clientIdP && this._stream;
+    };
+
     TrezorBackend.prototype.connect = function () {
       if (!this._clientIdP)
         this._openStream();
@@ -55,8 +71,8 @@ angular.module('webwalletApp')
       });
 
       // reset if the request fails
-      this._clientIdP.catch(function () {
-        // $log.error('[backed] Client ID error', err);
+      this._clientIdP.catch(function (err) {
+        $log.error('[backed] Client ID error', err);
         self._clientIdP = null;
       });
 
@@ -79,8 +95,8 @@ angular.module('webwalletApp')
       }, throttle);
 
       // reset on stream error
-      this._stream.catch(function () {
-        // $log.error('[backed] Stream error', err);
+      this._stream.catch(function (err) {
+        $log.error('[backed] Stream error', err);
         self._stream = null;
         self._clientIdP = null;
       });
@@ -96,7 +112,7 @@ angular.module('webwalletApp')
       var xpub = msg.publicMaster;
 
       if (!this._handlers[xpub]) {
-        console.warn('[backend] Received a message for unknown xpub', xpub);
+        $log.warn('[backend] Received a message for unknown xpub', xpub);
         return;
       }
 

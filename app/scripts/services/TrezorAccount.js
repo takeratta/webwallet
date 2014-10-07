@@ -36,6 +36,10 @@ angular.module('webwalletApp')
       };
     };
 
+    TrezorAccount.prototype.isOffline = function () {
+      return !this._backend.isConnected();
+    };
+
     TrezorAccount.prototype.isEmpty = function () {
       return !this.transactions || !this.transactions.length;
     };

@@ -55,6 +55,10 @@
             <span ng-if="account.balance == null">
               <span class="icon-loading" title="Loading&hellip;"></span>
             </span>
+            <span ng-if="account.isOffline()"
+                  class="pull-right text-danger">
+              <span class="glyphicon glyphicon-warning-sign"></span> Offline
+            </span>
           </small>
         </a>
       </li>
