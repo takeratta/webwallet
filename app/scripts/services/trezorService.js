@@ -445,6 +445,7 @@ angular.module('webwalletApp')
     // maps a promise notifications with connected device descriptors
     function progressWithConnected(pr) {
       var res = $q.defer(),
+          canWait = false,
           inProgress = false;
 
       pr.then(null, null, function () {
@@ -452,8 +453,9 @@ angular.module('webwalletApp')
           return;
 
         inProgress = true;
-        trezor.enumerate()
+        trezor.enumerate(canWait)
           .then(function (devices) {
+            canWait = true;
             res.notify(devices.map(function (dev) {
               if (!dev.id && dev.serialNumber) {
                 dev.id = dev.serialNumber;
