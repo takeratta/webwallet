@@ -5,84 +5,118 @@
             <li><a ng-href="#/device/{{device.id}}">{{device.label()}}</a></li>
             <li><a ng-href="#/device/{{device.id}}/account/{{account.id}}"
                     >{{account.label()}}</a></li>
-            <li class="active">Receive</li>
+            <li class="active">Sign & Verify</li>
             <ng-include src="'views/device/forget.link.html'"></ng-include>
         </ol>
 
         <ng-include src="'views/account/nav.html'"></ng-include>
 
-        <div class="tab-content">
-            <div ng-controller="AccountSignCtrl"
-                 class="row">
+        <div class="tab-content"
+            ng-controller="AccountSignCtrl">
 
-                <div class="col-md-8">
+            <div class="row">
+                <div class="col-md-6">
+                    <form name="form"
+                        ng-submit="sign()">
+                        <fieldset>
+                            <legend>Sign message</legend>
 
-                    <button class="address-list-toggleused btn btn-sm btn-link pull-right"
-                            ng-show="!usedAddresses.length && account.transactions.length"
-                            ng-click="usedAddresses = account.usedAddresses()">
-                        <span class="glyphicon glyphicon-chevron-up"></span> Show used
-                    </button>
-
-                    <button class="address-list-toggleused btn btn-sm btn-link pull-right"
-                            ng-show="usedAddresses.length && account.transactions.length"
-                            ng-click="usedAddresses = []">
-                        <span class="glyphicon glyphicon-chevron-down"></span> Hide used
-                    </button>
-
-                    <h5>Address</h5>
-
-                    <div class="list-group address-list address-list-used"
-                         ng-show="usedAddresses.length">
-                        <a class="list-group-item"
-                           ng-repeat="address in usedAddresses"
-                           ng-class="{ active: activeAddress.address === address.address }"
-                           ng-click="signWith(address)">
-                            <span class="address-list-address">{{address.address}}</span>
-                            <small class="address-list-balance text-success pull-right"
-                                    >({{address.balance | amount}} {{account.coin.coin_shortcut}})</small>
-                        </a>
-                        <hr>
-                    </div>
-
-                    <div class="list-group address-list">
-                        <div ng-repeat="address in addresses">
-                            <a class="list-group-item"
-                               ng-class="{ active: activeAddress.address === address.address }"
-                               ng-click="signWith(address)">
-                                <span class="address-list-address">{{address.address}}</span>
-                            </a>
-                            <div class="line-divider"
-                                 ng-show="$first">
-                                <hr>
-                                <div class="line-divider-content text-center">
-                                    <button class="btn btn-xs btn-default"
-                                            ng-disabled="addresses.length >= lookAhead"
-                                            ng-click="more()">
-                                        More please
-                                        <span class="glyphicon glyphicon-plus"></span>
-                                    </button>
-                                </div>
+                            <div class="alert"
+                                ng-show="isAlertVisible('sign')"
+                                ng-class="getAlertClass('sign')">
+                                {{sign.res.message}}
                             </div>
-                        </div>
-                    </div>
 
-                    <div ng-show="addresses.length == lookAhead">
-                        <p class="text-danger">
-                            To access subsequent addresses, please use some of the
-                            listed addresses in a transaction.
-                        </p>
-                    </div>
+                            <div class="form-group">
+                                <label for="sign-message">Message</label>
+                                <textarea class="form-control"
+                                    name="message" id="sign-message"
+                                    ng-model="sign.message"
+                                    ng-change="sign.signature = ''"></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="sign-address">Address</label>
+                                <input type="text" class="form-control"
+                                    name="address" id="sign-address"
+                                    ng-model="sign.address"
+                                    typeahead="address.address as address.label
+                                    for address in suggestAddresses() | filter:$viewValue"
+                                    ng-change="sign.signature = ''"
+                                    ></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="sign-signature">Signature</label>
+                                <textarea class="form-control"
+                                    name="signature" id="sign-signature"
+                                    rows="4" readonly="readonly"
+                                    ng-model="sign.signature"></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">
+                                Sign
+                            </button>
+                        </fieldset>
+                    </form>
                 </div>
 
-                <div class="col-md-4">
-                    <h5>Message</h5>
-                    <textarea name="message" id="message" class="form-control">Your message here</textarea>
-                    <h5>Signature</h5>
-                    <textarea name="signature" id="signature" class="form-control" rows="4" readonly="readonly">{{signature}}</textarea>
-                </div>
+                <div class="col-md-6">
+                    <form name="form"
+                        ng-submit="verify()">
+                        <fieldset>
+                            <legend>Verify message</legend>
 
+                            <div class="alert"
+                                ng-show="isAlertVisible('verify')"
+                                ng-class="getAlertClass('verify')">
+                                <span class="glyphicon glyphicon-ok"
+                                    ng-show="verify.res.status === 'success'"
+                                    ></span>
+                                <span class="glyphicon glyphicon-remove"
+                                    ng-show="verify.res.status === 'error'"
+                                    ></span>
+                                {{verify.res.message}}
+                            </div>
+
+                            <div class="form-group">
+                                <label for="verify-message">Message</label>
+                                <textarea class="form-control"
+                                    name="message" id="verify-message"
+                                    required
+                                    ng-model="verify.message"
+                                    ng-change="verify.res.status = null"
+                                    ></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="verify-address">Address</label>
+                                <input type="text" class="form-control"
+                                    name="address" id="verify-address"
+                                    ng-model="verify.address"
+                                    typeahead="address.address as address.label
+                                    for address in suggestAddresses() | filter:$viewValue"
+                                    ng-change="hideAlert('verify')"
+                                    ></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="verify-signature">Signature</label>
+                                <textarea class="form-control"
+                                    name="signature" id="verify-signature"
+                                    rows="4"
+                                    ng-model="verify.signature"
+                                    ng-change="hideAlert('verify')"
+                                    ></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">
+                                Verify
+                            </button>
+                        </fieldset>
+                    </form>
+                </div>
             </div>
-
         </div>
     </div>
 </div>

@@ -167,6 +167,11 @@ a .icon-loading,
   opacity: 0;
 }
 
+/* Tab navigation */
+.nav-tabs .nav-tab-small {
+  float: right;
+}
+
 /* Line divider component */
 
 .line-divider {
