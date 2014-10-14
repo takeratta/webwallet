@@ -338,6 +338,7 @@ angular.module('webwalletApp')
     this.xpub2node = xpub2node;
     this.node2xpub = node2xpub;
     this.node2address = node2address;
+    this.address2str = address2str;
     this.decodeAddress = decodeAddress;
     this.deriveChildNode = deriveChildNode;
 

@@ -78,46 +78,89 @@ angular.module('webwalletApp')
         };
 
         $scope.suggestAddresses = function () {
-            var currentDevice = $scope.device,
-                currentAccount = $scope.account,
-                suggestedAccounts = [],
-                multipleDevices = trezorService.devices.length > 1;
+            var multipleDevices = trezorService.devices.length > 1,
+                suggestedAddresses = [];
 
             trezorService.devices.forEach(function (dev) {
                 dev.accounts.forEach(function (acc) {
-                    if (dev.id === currentDevice.id &&
-                            acc.id === currentAccount.id) {
-                        return;
+                    var label,
+                        accAddresses,
+                        addrHash;
+
+                    if (multipleDevices) {
+                        label = dev.label() + ' / ' + acc.label();
+                    } else {
+                        label = acc.label();
                     }
-                    suggestedAccounts.push([dev, acc]);
+
+                    accAddresses = getUsedAddresses(acc);
+                    for (addrHash in accAddresses) {
+                        if (accAddresses.hasOwnProperty(addrHash)) {
+                            suggestedAddresses.push({
+                                label: label + ': ' + addrHash,
+                                address: addrHash,
+                                path: accAddresses[addrHash],
+                                source: 'Accounts',
+                                // TODO Is this toString working?
+                                toString: function () {
+                                    return this.address;
+                                }
+                            });
+                        }
+                    }
                 });
             });
 
-            return suggestedAccounts.map(function (item) {
-                var dev = item[0],
-                    acc = item[1],
-                    address = acc.address(0),
-                    label;
-
-                if (multipleDevices) {
-                    label = dev.label() + ' / ' + acc.label();
-                } else {
-                    label = acc.label();
-                }
-
-                _addressPaths[address.address] = address.path; // TODO Implement proper path calculation.
-
-                return {
-                    label: label + ': ' + address.address,
-                    address: address.address,
-                    path: address.path,
-                    source: 'Accounts',
-                    toString: function () {
-                        return this.address;
-                    }
-                };
-            });
+            return suggestedAddresses;
         };
+
+        /**
+         * Get all used addresses on passed account
+         *
+         * @param {TrezorAccount} account  Account
+         */
+        function getUsedAddresses(account) {
+            var i,
+                j,
+                lenTxs,
+                tx,
+                lenOuts,
+                out,
+                addrHash,
+                addrType,
+                usedAddrs = {};
+
+            lenTxs = account.transactions.length;
+            for (i = 0; i < lenTxs; i = i + 1) {
+                tx = account.transactions[i];
+
+                lenOuts = tx.outs.length;
+                for (j = 0; j < lenOuts; j = j + 1) {
+                    out = tx.outs[j];
+                    if (!out.path) {
+                        continue;
+                    }
+                    try {
+                        switch (out.script.getOutType()) {
+                            case 'Scripthash':
+                                addrType = account._wallet.scriptHashVersion;
+                            default:
+                                addrType = account._wallet.addressVersion;
+                        }
+                        addrHash = utils.address2str(
+                            out.script.simpleOutPubKeyHash(),
+                            addrType
+                        );
+                    } catch (e) {
+                        // non-standard output, skipping
+                        continue;
+                    }
+                    usedAddrs[addrHash] = usedAddrs[addrHash] || out.path;
+                }
+            }
+
+            return usedAddrs;
+        }
 
         $scope.isAlertVisible = function (type) {
             return $scope[type] && $scope[type].res &&
