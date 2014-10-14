@@ -328,8 +328,11 @@ angular.module('webwalletApp')
 
       scope = angular.extend($scope.$new(), {
         check: !$scope.device.hasSavedPassphrase(),
-        passphrase: '',
-        passphraseCheck: '',
+        checkCorrect: false,
+        values: {
+          passphrase: '',
+          passphraseCheck: ''
+        },
         installHandler: installSubmitHandlers
       });
 
@@ -354,22 +357,35 @@ angular.module('webwalletApp')
         function (err) { callback(err); }
       );
 
+      scope.$watch('values.passphrase', checkPassphrase);
+      scope.$watch('values.passphraseCheck', checkPassphrase);
+
+      function checkPassphrase() {
+        var v = scope.values;
+        if (!scope.check) {
+          scope.checkCorrect = true;
+          return;
+        }
+        scope.checkCorrect =
+          (v.passphrase === v.passphraseCheck) &&
+          (v.passphrase.length <= 50);
+      }
+
       function installSubmitHandlers() {
-        var submit = document.getElementById('passphrase-submit');
-        var form = document.getElementById('passphrase-form');
+        var submit = document.getElementById('passphrase-submit'),
+            form = document.getElementById('passphrase-form');
 
         submit.addEventListener('submit', submitModal, false);
         submit.addEventListener('click', submitModal, false);
         form.addEventListener('submit', submitModal, false);
         form.addEventListener('keypress', function (e) {
-          if (e.keyCode === 13) submitModal();
+          if (e.keyCode === 13 && scope.checkCorrect)
+            submitModal();
         }, true);
       }
 
       function submitModal() {
-        var passphrase = document.getElementById('passphrase-form')
-          .getAttribute('data-passphrase');
-        modal.close(passphrase);
+        modal.close(scope.values.passphrase);
         return false;
       }
     }

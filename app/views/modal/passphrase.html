@@ -5,25 +5,28 @@
 </div>
 <div class="modal-body">
   <form id="passphrase-form"
-        ng-init="installHandler()"
-        data-passphrase="{{passphrase}}">
+        ng-init="installHandler()">
     <div class="form-group">
-      <input type="text" class="form-control input-lg" size="12"
-             autofocus autocomplete="off"
-             ng-model="passphrase"
-             ng-show="showPassphrase">
-      <input type="password" class="form-control input-lg" size="12"
+      <input type="text"
+             class="form-control input-lg" size="12"
              autocomplete="off"
-             ng-model="passphrase"
+             ng-model="values.passphrase"
+             ng-show="showPassphrase">
+      <input type="password"  id="passphrase-input"
+             class="form-control input-lg" size="12"  autofocus
+             autocomplete="off"
+             ng-model="values.passphrase"
              ng-hide="showPassphrase">
-      <div ng-if="check" style="margin-top: -1px">
-        <input type="text" class="form-control input-lg" size="12"
+      <div ng-show="check" style="margin-top: -1px">
+        <input type="text"
+               class="form-control input-lg" size="12"
                autocomplete="off" placeholder="Re-type for control"
-               ng-model="$parent.passphraseCheck"
+               ng-model="values.passphraseCheck"
                ng-show="showPassphrase">
-        <input type="password" class="form-control input-lg" size="12"
+        <input type="password"
+               class="form-control input-lg" size="12"
                autocomplete="off" placeholder="Re-type for control"
-               ng-model="$parent.passphraseCheck"
+               ng-model="values.passphraseCheck"
                ng-hide="showPassphrase">
       </div>
     </div>
@@ -52,11 +55,7 @@
   </form>
 </div>
 <div class="modal-footer">
-  <button type="button"
-      class="btn btn-block btn-primary btn-lg"
-      id="passphrase-submit"
-      ng-disabled="
-      check &&
-      passphrase !== passphraseCheck ||
-      passphrase.length > 50">Enter</button>
+  <button type="button" id="passphrase-submit"
+          class="btn btn-block btn-primary btn-lg"
+          ng-disabled="!checkCorrect">Enter</button>
 </div>
