@@ -70,12 +70,6 @@
                             <div class="alert"
                                 ng-show="isAlertVisible('verify')"
                                 ng-class="getAlertClass('verify')">
-                                <span class="glyphicon glyphicon-ok"
-                                    ng-show="verify.res.status === 'success'"
-                                    ></span>
-                                <span class="glyphicon glyphicon-remove"
-                                    ng-show="verify.res.status === 'error'"
-                                    ></span>
                                 {{verify.res.message}}
                             </div>
 
