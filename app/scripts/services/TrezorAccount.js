@@ -1,7 +1,7 @@
 /*global angular*/
 
 angular.module('webwalletApp')
-  .factory('TrezorAccount', function (config, utils, trezor, TrezorBackend,
+  .factory('TrezorAccount', function (config, utils, TrezorBackend,
       _, BigInteger, Bitcoin, $log, $q) {
     'use strict';
 
@@ -103,7 +103,8 @@ angular.module('webwalletApp')
           path: utxos[0] ? utxos[0].path : null,
           address: tx.analysis.addr.toString(),
           timestamp: tx.timestamp,
-          balance: balance
+          balance: balance,
+          tx: tx
         };
       });
 
@@ -132,6 +133,65 @@ angular.module('webwalletApp')
       });
 
       return ret;
+    };
+
+    /**
+     * Get address path of the first output of passed transaction
+     *
+     * @param {Object} tx    Bitcoin.js transaction object
+     * @return {Array|null}  Address path
+     */
+    TrezorAccount.prototype.getOutPath = function (tx) {
+      var i,
+          len = tx.outs.length;
+
+      for (i = 0; i < len; i = i + 1) {
+        if (tx.outs[i].path) {
+          return tx.outs[i].path;
+        }
+      }
+
+      return null;
+    };
+
+    /**
+     * Get address hash of the first output of passed transaction
+     *
+     * @param {Object} tx     Bitcoin.js transaction object
+     * @return {String|null}  Address hash
+     */
+    TrezorAccount.prototype.getOutHash = function (tx) {
+      var i,
+          len,
+          out,
+          addrType,
+          addrHash;
+
+      len = tx.outs.length;
+      for (i = 0; i < len; i = i + 1) {
+        out = tx.outs[i];
+        if (!out.path) {
+          continue;
+        }
+        try {
+          switch (out.script.getOutType()) {
+            case 'Scripthash':
+              addrType = this._wallet.scriptHashVersion;
+              break;
+            default:
+              addrType = this._wallet.addressVersion;
+          }
+          addrHash = utils.address2str(
+            out.script.simpleOutHash(),
+            addrType
+          );
+        } catch (e) {
+          continue;
+        }
+        return addrHash;
+      }
+
+      return null;
     };
 
     //
@@ -349,7 +409,7 @@ angular.module('webwalletApp')
       };
     };
 
-    TrezorAccount.prototype.buildTx = function (outputs, device) {
+    TrezorAccount.prototype.buildTx = function (outputs) {
       var self = this;
 
       return $q.when(tryToBuild(0));
