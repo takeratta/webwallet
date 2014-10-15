@@ -226,11 +226,15 @@ angular.module('webwalletApp')
     }
 
     function address2str(hash, version) {
-      var csum, bytes;
+      var csum,
+          bytes,
+          hasWithVersion = [+version].concat(hash);
 
-      hash.unshift(+version);
-      csum = Crypto.SHA256(Crypto.SHA256(hash, {asBytes: true}), {asBytes: true});
-      bytes = hash.concat(csum.slice(0, 4));
+      csum = Crypto.SHA256(
+        Crypto.SHA256(hasWithVersion, {asBytes: true}),
+        {asBytes: true}
+      );
+      bytes = hasWithVersion.concat(csum.slice(0, 4));
 
       return Bitcoin.Base58.encode(bytes);
     }
