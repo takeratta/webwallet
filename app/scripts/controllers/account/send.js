@@ -3,10 +3,11 @@
 angular.module('webwalletApp')
   .controller('AccountSendCtrl', function (
     flash, temporaryStorage, utils, config, trezorService,
-    $filter, $scope, $rootScope, $routeParams, $modal) {
+    $filter, $scope, $rootScope, $routeParams, $modal, $http) {
     'use strict';
 
-    var STORAGE_TXVALUES = 'trezorSendValues';
+    var STORAGE_TXVALUES = 'trezorSendValues',
+        DEFAULT_CURRENCY = 'USD';
 
     $scope.tx = {
       values: initialTxValues(),
@@ -15,7 +16,10 @@ angular.module('webwalletApp')
       fee: null
     };
     $scope.sending = false;
-    $scope.outputIndex = null;
+
+    getSupportedAltCurrencies().then(function (currencies) {
+      $scope.currenciesAlt = currencies;
+    });
 
     /*
      * If a transaction output was specified in an HTTP GET param, use that
@@ -56,7 +60,7 @@ angular.module('webwalletApp')
     function restoreTxValues() {
       if (temporaryStorage[STORAGE_TXVALUES])
         return JSON.parse(temporaryStorage[STORAGE_TXVALUES]);
-      return { outputs: [{}] };
+      return { outputs: [createNewOutput()] };
     }
 
     $scope.cancelTxValues = cancelTxValues;
@@ -298,12 +302,20 @@ angular.module('webwalletApp')
     };
 
     $scope.addOutput = function () {
-      $scope.tx.values.outputs.push({});
+      $scope.tx.values.outputs.push(createNewOutput());
     };
 
     $scope.removeAllOutputs = function () {
-      $scope.tx.values.outputs = [{}];
+      $scope.tx.values.outputs = [createNewOutput()];
     };
+
+    function createNewOutput() {
+      return {
+        amount: '',
+        amountAlt: '',
+        currencyAlt: DEFAULT_CURRENCY
+      };
+    }
 
     // Suggest the highest possible amount to pay, taking filled
     // amounts in consideration
@@ -451,4 +463,78 @@ angular.module('webwalletApp')
 
       return modal.result;
     }
+
+    /**
+     * Convert amount on passed transaction output from BTC to another
+     * currency.
+     *
+     * Fills the `amountAlt` property on the passed tx output object.
+     *
+     * @param {Object} output  Output in format:
+     *              {amount: String, amountAlt: String, currencyAlt: String...}
+     * @return {Promise}       Fulfilled when finished
+     */
+    $scope.convertToBtc = function (output) {
+      var amountAlt = +output.amountAlt;
+      if (!amountAlt) {
+        output.amount = '';
+        return;
+      }
+      getConversionRate(output.currencyAlt).then(function (rate) {
+        output.amount = Math.round10(amountAlt / rate, -5).toString();
+      });
+    };
+
+    /**
+     * Convert amount on passed transaction output from another currency to
+     * BTC.
+     *
+     * Fills the `amount` property on the passed tx output object.
+     *
+     * @param {Object} output  Output in format:
+     *              {amount: String, amountAlt: String, currencyAlt: String...}
+     * @return {Promise}       Fulfilled when finished
+     */
+    $scope.convertToAltCurrency = function (output) {
+      var amount = +output.amount;
+      if (!amount) {
+        output.amountAlt = '';
+        return;
+      }
+      getConversionRate(output.currencyAlt).then(function (rate) {
+        output.amountAlt = Math.round10(amount * rate, -2).toString();
+      });
+    };
+
+    /**
+     * Get conversion rate between BTC and passed currency.
+     *
+     * @param {String} currency  Currency abbreviation; example: "USD"
+     * @return {Float}           Convertsion rate
+     */
+    function getConversionRate(currency) {
+      var url = [
+            'https://api.coindesk.com/v1/bpi/currentprice/',
+            currency,
+            '.json'
+          ].join('');
+      return $http.get(url).then(function (res) {
+        return res.data.bpi[currency].rate_float;
+      });
+    }
+
+    /**
+     * Get all currencies that we are able to convert to and from BTC.
+     *
+     * @return {Array}  List of currency abbrevs; example: ["USD", "GBP" ...]
+     */
+    function getSupportedAltCurrencies() {
+      var url = 'https://api.coindesk.com/v1/bpi/supported-currencies.json';
+      return $http.get(url).then(function (res) {
+        return res.data.map(function (currency) {
+          return currency.currency;
+        });
+      });
+    }
+
   });

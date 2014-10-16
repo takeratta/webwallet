@@ -16,73 +16,93 @@
     <ng-include src="'views/account/nav.html'"></ng-include>
 
     <div ng-controller="AccountSendCtrl">
-      <form name="form" class="form-inline"
+      <form name="form" class="form-horizontal"
           ng-submit="send()"
           ng-disabled="device.status() !== 'connected'">
         <div class="tab-content tx-send">
           <fieldset ng-disabled="!device.isConnected()"
               class="overlay-container">
-            <div class="row tx-output"
+            <div class="tx-output"
                 ng-repeat="output in tx.values.outputs">
-              <div class="col-md-8" ng-class="{ 'has-error': output.error.address }">
-                <div class="form-group">
-                  <div class="tx-output-label">
-                    <label for="address">Address</label>
+              <div class="row">
+                <div class="col-sm-10"
+                  ng-class="{ 'has-error': output.error.address }">
+                  <div class="form-group">
+                    <label for="address" class="control-label col-sm-2">Address</label>
+                    <div class="col-sm-10">
+                      <span class="input-with-icon">
+                        <input id="address" class="form-control" type="text"
+                            ng-model="output.address"
+                            typeahead="
+                            address.address as address.label
+                            for address in suggestAddresses() | filter:$viewValue"
+                            required>
+                        <a href=""
+                           class="glyphicon glyphicon-qrcode input-icon text-muted"
+                           tooltip="Scan QR code"
+                           tooltip-append-to-body="true"
+                           ng-click="scanQr($index)"
+                           ng-show="!output.address && !qr.scanning && qr.enabled"></a>
+                      </span>
+                    </div>
                   </div>
-                  <div class="tx-output-controls input-with-icon">
-                    <input id="address" class="form-control" type="text"
-                        ng-model="output.address"
-                        typeahead="
-                        address.address as address.label
-                        for address in suggestAddresses() | filter:$viewValue"
-                        required>
-                    <a href=""
-                       class="glyphicon glyphicon-qrcode input-icon text-muted"
-                       tooltip="Scan QR code"
-                       tooltip-append-to-body="true"
-                       ng-click="scanQr($index)"
-                       ng-show="!output.address && !qr.scanning && qr.enabled"></a>
-                  </div>
-                </div>
-                <div class="tx-output-help">
-                  <span class="help-block">{{output.error.address}}</span>
-                </div>
-              </div>
-              <div ng-class="{ 'col-md-3' : tx.values.outputs.length > 1, 'col-md-4': tx.values.outputs.length === 1, 'has-error': output.error.amount }">
-                <div class="form-group">
-                  <div class="tx-output-label">
-                    <label for="amount">Send {{account.coin.coin_shortcut}}</label>
-                  </div>
-                  <div class="tx-output-controls input-with-icon">
-                    <input id="amount" class="form-control" type="text"
-                        ng-model="output.amount"
-                        required>
-                    <!-- <a href=""
-                    class="glyphicon glyphicon-upload input-icon text-muted"
-                    tooltip="Send all {{ account.coin.coin_shortcut }} from {{ account.label() }}"
-                    ng-click="output.amount = suggestAmount()"
-                    ng-show="!output.amount"></a> -->
+                  <div class="tx-output-help">
+                    <span class="help-block">{{output.error.address}}</span>
                   </div>
                 </div>
-                <div class="tx-output-help">
-                  <span class="help-block">{{output.error.amount}}</span>
+                <div class="col-sm-2"
+                  ng-show="tx.values.outputs.length > 1">
+                  <button type="button" class="btn btn-sm btn-link pull-right"
+                      ng-click="removeOutput($index)"
+                      ng-disabled="qr.scanning"
+                      tooltip="Remove recipient">
+                    <span class="glyphicon glyphicon-remove"></span>
+                    <span class="sr-only">Remove</span>
+                  </button>
                 </div>
               </div>
-              <div class="col-md-1"
-                ng-show="tx.values.outputs.length > 1">
-                <button type="button" class="btn btn-sm btn-link pull-right"
-                    ng-click="removeOutput($index)"
-                    ng-disabled="qr.scanning"
-                    tooltip="Remove recipient">
-                  <span class="glyphicon glyphicon-remove"></span>
-                  <span class="sr-only">Remove</span>
-                </button>
+              <div class="row">
+                <div class="col-sm-10"
+                  ng-class="{'has-error': output.error.amount}">
+                  <div class="form-group">
+                    <label for="amount" class="control-label col-sm-2">Amount</label>
+                    <div class="col-sm-10 tx-amount">
+                      <input id="amount" class="form-control" type="text"
+                          ng-model="output.amount"
+                          ng-change="convertToAltCurrency(output)"
+                          required>
+                      <select class="form-control"
+                        disabled>
+                        <option value="{{account.coin.coin_shortcut}}"
+                          selected>{{account.coin.coin_shortcut}}</option>
+                      </select>
+                      <p class="form-control-static">=</p>
+                      <input type="text" class="form-control"
+                          ng-model="output.amountAlt"
+                          ng-change="convertToBtc(output)">
+                      <select class="form-control"
+                        ng-model="output.currencyAlt"
+                        ng-change="convertToAltCurrency(output)"
+                        ng-options="currency for currency in currenciesAlt">
+                      </select>
+                      <!-- <a href=""
+                      class="glyphicon glyphicon-upload input-icon text-muted"
+                      tooltip="Send all {{ account.coin.coin_shortcut }} from {{ account.label() }}"
+                      ng-click="output.amount = suggestAmount()"
+                      ng-show="!output.amount"></a> -->
+                      <span class="help-block" ng-if="output.error.amount">
+                        {{output.error.amount}}
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
+              <hr ng-hide="$last">
             </div>
 
             <div class="tx-output-add">
               <div class="row">
-                <div class="col-md-6">
+                <div class="col-sm-6">
                   <a href=""
                     class="btn btn-link"
                     ng-disabled="qr.scanning"
@@ -91,7 +111,7 @@
                     Add recipient
                   </a>
                 </div>
-                <div class="col-md-6 text-right">
+                <div class="col-sm-6 text-right">
                   <a href="#/device/{{device.id}}/account/{{account.id}}"
                       class="btn btn-link btn-sm"
                       ng-click="cancelTxValues()">
