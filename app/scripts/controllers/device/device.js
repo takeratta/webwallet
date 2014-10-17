@@ -235,6 +235,13 @@ angular.module('webwalletApp')
 
       scope.addPin = function (num) {
         scope.pin = scope.pin + num.toString();
+        /*
+         * When the user clicks a number button, the button gets focus.
+         * Then when the user presses Enter it triggers another click on the
+         * button instead of submiting the whole Pin Modal.  Therefore we need
+         * to focus the document after each click on a number button.
+         */
+        $document.focus();
       };
 
       scope.delPin = function () {
@@ -257,6 +264,7 @@ angular.module('webwalletApp')
       modal.result.finally(function () { scope.$emit('modal.pin.hide'); });
 
       $document.on('keydown', _pinKeydownHandler);
+      $document.focus();
 
       modal.result.then(
         function (res) {
@@ -275,8 +283,10 @@ angular.module('webwalletApp')
           scope.delPin();
           scope.$digest();
           return false;
-        }
-        else if (_isNumericKey(k)) {
+        } else if (k === 13) { // Enter
+          modal.close(scope.pin);
+          return false;
+        } else if (_isNumericKey(k)) {
           var num = _getNumberFromKey(k);
           scope.addPin(String.fromCharCode(num));
           scope.$digest();
