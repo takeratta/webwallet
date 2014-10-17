@@ -1,14 +1,6 @@
 <div ng-controller="DeviceCtrl">
     <div ng-controller="AccountCtrl">
 
-        <ol class="breadcrumb">
-            <li><a ng-href="#/device/{{device.id}}">{{device.label()}}</a></li>
-            <li><a ng-href="#/device/{{device.id}}/account/{{account.id}}"
-                    >{{account.label()}}</a></li>
-            <li class="active">Sign & Verify</li>
-            <ng-include src="'views/device/forget.link.html'"></ng-include>
-        </ol>
-
         <ng-include src="'views/account/nav.html'"></ng-include>
 
         <div class="tab-content"

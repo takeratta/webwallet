@@ -1,10 +1,5 @@
 <div ng-controller="DeviceCtrl">
 
-  <ol class="breadcrumb">
-    <li class="active">{{device.label()}}</li>
-    <ng-include src="'views/device/forget.link.html'"></ng-include>
-  </ol>
-
   <fieldset class="row" ng-disabled="device.status() !== 'connected'">
 
     <div class="devinfo col-md-12" ng-hide="device.isEmpty()">
