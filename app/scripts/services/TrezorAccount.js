@@ -73,39 +73,58 @@ angular.module('webwalletApp')
       return utils.node2xpub(this.node, config.versions[this.coin.coin_name]);
     };
 
+    /**
+     * Get all used addresses on this account
+     *
+     * TODO Rewrite this completely when we get rid of Bitcoin.Transaction.
+     *
+     * TODO Consider taking utxos directly from the tx by looking up in the wallet, instead of loading from the balance.
+     *
+     * @return {Array}  Addresses in format
+     *                    [{
+     *                      path: Array,
+     *                      address: String,
+     *                      timestamp: String,
+     *                      balance: BigNumber,
+     *                      tx: Object
+     *                    }]
+     */
     TrezorAccount.prototype.usedAddresses = function () {
-      // TODO: rewrite this completely when we get rid if Bitcoin.Transaction
       var self = this,
-          ret;
+          ret = [];
 
-      // credit outputs
-      ret = (self.transactions || []).filter(function (tx) {
-        return tx.analysis && tx.analysis.type === 'recv';
-      });
+      if (!self.transactions) {
+        return ret;
+      }
 
       // zip with summed matching utxos
-      ret = ret.map(function (tx) {
-        // TODO: consider taking utxos directly from the tx by looking up in
-        // the wallet, instead of loading from the balance
-        var utxos, balance;
+      self.transactions.forEach(function (tx) {
+        // credit outputs
+        if (tx.analysis.type === 'recv') {
 
-        utxos = (self.utxos || []).filter(function (utxo) {
-          return utxo.transactionHash === tx.hash;
-        });
+          self.getTxOuts(tx).map(function (out) {
+            var utxos,
+                balance;
 
-        balance = utxos.reduce(function (bal, utxo) {
-          return bal.add(new BigInteger(
-            utxo.value.toString()
-          ));
-        }, BigInteger.ZERO);
+            utxos = (self.utxos || []).filter(function (utxo) {
+              return utxo.transactionHash === tx.hash && utxo.ix === out.ix;
+            });
 
-        return {
-          path: utxos[0] ? utxos[0].path : null,
-          address: tx.analysis.addr.toString(),
-          timestamp: tx.timestamp,
-          balance: balance,
-          tx: tx
-        };
+            balance = utxos.reduce(function (bal, utxo) {
+              return bal.add(new BigInteger(
+                utxo.value.toString()
+              ));
+            }, BigInteger.ZERO);
+
+            ret.push({
+              path: out.path,
+              address: out.address,
+              timestamp: tx.timestamp,
+              balance: balance,
+              tx: tx
+            });
+          });
+        }
       });
 
       // sort by address
@@ -155,17 +174,24 @@ angular.module('webwalletApp')
     };
 
     /**
-     * Get address hash of the first output of passed transaction
+     * Get all transaction outputs (their paths and addresses).
      *
-     * @param {Object} tx     Bitcoin.js transaction object
-     * @return {String|null}  Address hash
+     * @param {Object} tx  Bitcoin.js transaction object
+     * @return {Array}     Outputs in format
+     *                       [{
+     *                         path: Array,
+     *                         address: String,
+     *                         amount: BigNumber,
+     *                         ix: Number
+     *                       }]
      */
-    TrezorAccount.prototype.getOutHash = function (tx) {
+    TrezorAccount.prototype.getTxOuts = function (tx) {
       var i,
           len,
           out,
           addrType,
-          addrHash;
+          addrHash,
+          ret = [];
 
       len = tx.outs.length;
       for (i = 0; i < len; i = i + 1) {
@@ -185,13 +211,18 @@ angular.module('webwalletApp')
             out.script.simpleOutHash(),
             addrType
           );
+          ret.push({
+            path: out.path,
+            address: addrHash,
+            amount: out.value,
+            ix: out.index
+          });
         } catch (e) {
           continue;
         }
-        return addrHash;
       }
 
-      return null;
+      return ret;
     };
 
     //
