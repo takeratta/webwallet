@@ -33,7 +33,8 @@
        class="dev-forget close"
        tooltip="Forget this device"
        tooltip-placement="bottom"
-       tooltip-append-to-body="true">&times;</a>
+       tooltip-append-to-body="true"
+       ng-click="forgetDevice()">&times;</a>
 
     <div class="dev-blocked tooltip tooltip-danger in right"
          ng-show="device.error">
