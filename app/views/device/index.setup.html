@@ -81,18 +81,26 @@
 
     <hr>
     <h4>Additional passphrase encryption</h4>
-    <p>
-      Using an encryption passphrase adds an additional level of security. You'll be asked for your passhrase every time
-      you want to access your wallet. Be careful though, if you forget the passphrase
-      there will be no way to recover your bitcoins. Not even the Recovery seed.
-      Also note that TREZOR passphrases are case-sensitive.
-      <span class="text-danger">For experts only!</span>
-    </p>
+    <p>Using an encryption passphrase adds an additional level of security.
+      You'll be asked for your passphrase every time you want to access your
+      wallet.</p>
+    <div class="alert alert-warning alert-withicon">
+      <span class="glyphicon glyphicon-warning-sign alert-icon"></span>
+      <h4>Passphrase encryption is for experts only. Proceed with caution!</h4>
+      <p>Passphrase works like a 25th word of the seed which is not stored in
+      the Trezor. If you forget you passphrase, your wallet is lost for good. There is
+      absolutely no way to recover your funds.<br>
+      <p>If you mistype your passphrase, a different wallet is created, which
+      will look as if you had 0 BTC on your account.</p>
+      <p>If you choose to use passphrase encryption now, you cannot turn it
+      off later and vice versa (if you choose not to use it, you cannot turn it
+      on later).</p>
+    </div>
     <div class="checkbox">
       <label>
         <input type="checkbox" name="passphrase-protection"
                ng-model="settings.passphrase_protection">
-        I take responsibility and want to enable passphrase encryption
+        I've read all the information above and I want to enable passphrase encryption.
       </label>
     </div>
     <hr>
