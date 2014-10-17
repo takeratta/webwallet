@@ -49,6 +49,7 @@ a .icon-loading,
 .btn,
 .alert,
 .container .jumbotron,
+.breadcrumb,
 .dropdown-menu,
 .modal-content,
 .nav-tabs > li > a,
@@ -103,6 +104,10 @@ a .icon-loading,
 
 .modal-body > .alert:last-child {
   margin-bottom: 0;
+}
+
+.breadcrumb li.pull-right:before {
+  display: none;
 }
 
 .text-capitals {
@@ -272,21 +277,8 @@ body {
 .nav-devices .active {
   background: rgba(66, 139, 202, 0.1);
 }
-
 .nav-devices .btn {
   margin-left: 3px;
-}
-
-.nav-devices > li > .dev-forget {
-  display: none;
-  padding: 2px 6px;
-  position: absolute;
-  top: 38px;
-  right: 6px;
-}
-
-.nav-devices > li:hover > .dev-forget {
-  display: block;
 }
 
 .dev-status {
