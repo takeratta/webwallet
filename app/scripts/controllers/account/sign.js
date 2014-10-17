@@ -127,6 +127,15 @@ angular.module('webwalletApp')
                 $scope[type].res.status === 'error');
         };
 
+        $scope.resetSign = function () {
+            $scope.sign.signature = '';
+            $scope.hideAlert('sign');
+        };
+
+        $scope.resetVerify = function () {
+            $scope.hideAlert('verify');
+        };
+
         $scope.hideAlert = function (type) {
             if ($scope[type] && $scope[type].res) {
                 $scope[type].res.status = null;

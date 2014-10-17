@@ -32,7 +32,7 @@
                                 <textarea class="form-control"
                                     name="message" id="sign-message"
                                     ng-model="sign.message"
-                                    ng-change="sign.signature = ''"></textarea>
+                                    ng-change="resetSign()"></textarea>
                             </div>
 
                             <div class="form-group">
@@ -42,7 +42,7 @@
                                     ng-model="sign.address"
                                     typeahead="address.address as address.label
                                     for address in suggestAddresses() | filter:$viewValue"
-                                    ng-change="sign.signature = ''"
+                                    ng-change="resetSign()"
                                     ></textarea>
                             </div>
 
@@ -90,7 +90,7 @@
                                     ng-model="verify.address"
                                     typeahead="address.address as address.label
                                     for address in suggestAddresses() | filter:$viewValue"
-                                    ng-change="hideAlert('verify')"
+                                    ng-change="resetVerify()"
                                     ></textarea>
                             </div>
 
@@ -100,7 +100,7 @@
                                     name="signature" id="verify-signature"
                                     rows="4"
                                     ng-model="verify.signature"
-                                    ng-change="hideAlert('verify')"
+                                    ng-change="resetVerify()"
                                     ></textarea>
                             </div>
 
