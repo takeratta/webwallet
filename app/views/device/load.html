@@ -1,10 +1,5 @@
 <div ng-controller="DeviceCtrl">
 
-  <ol class="breadcrumb">
-    <li><a ng-href="#/device/{{device.id}}">{{device.label()}}</a></li>
-    <li class="active">Load device</li>
-    <ng-include src="'views/device/forget.link.html'"></ng-include>
-  </ol>
   <div ng-if="!device.isConnected()" class="alert alert-warning">
     <strong>Please connect your device</strong> to access this section.
   </div>
