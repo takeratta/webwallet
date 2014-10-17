@@ -78,6 +78,7 @@
       <div ng-if="device.canAddAccount()">
         <a ng-href="" class="btn btn-sm"
            ng-click="addAccount(device)"
+           ng-disabled="addingInProgress"
           ><span class="glyphicon glyphicon-plus"></span> Add account</a>
       </div>
     </div>

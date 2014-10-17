@@ -5,14 +5,18 @@ angular.module('webwalletApp')
 
     $scope.devices = trezorService.devices;
 
+    $scope.addingInProgress = false;
+
     $scope.isActive = function (path) {
       return $location.path().match(path);
     };
 
     $scope.addAccount = function (dev) {
+      $scope.addingInProgress = true;
       dev.addAccount().then(
         function (acc) {
           $location.path('/device/' + dev.id + '/account/' + acc.id);
+          $scope.addingInProgress = false;
         },
         function (err) {
           flash.error(err.message || 'Failed to add account.');
