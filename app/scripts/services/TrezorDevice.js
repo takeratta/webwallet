@@ -15,9 +15,10 @@ angular.module('webwalletApp')
       this._session = null;
       this._statusLabel = null;
       this._loadingLevel = 0;
-
-      this._DEFAULT_LABEL = 'My TREZOR';
     }
+
+    TrezorDevice.prototype.DEFAULT_LABEL = 'My TREZOR';
+    TrezorDevice.prototype.LABEL_MAX_LENGTH = 24;
 
     TrezorDevice.deserialize = function (data) {
       var dev = new TrezorDevice(data.id);
@@ -79,11 +80,7 @@ angular.module('webwalletApp')
       if (this.features && this.features.label)
         return this.features.label;
       else
-        return this.getDefaultLabel();
-    };
-
-    TrezorDevice.prototype.getDefaultLabel = function () {
-      return this._DEFAULT_LABEL;
+        return this.DEFAULT_LABEL;
     };
 
     TrezorDevice.prototype.statusLabel = function () {
@@ -446,6 +443,10 @@ angular.module('webwalletApp')
 
     TrezorDevice.prototype.changeLabel = function (label) {
       var self = this;
+
+      if (label.length > this.LABEL_MAX_LENGTH) {
+        label = label.slice(0, this.LABEL_MAX_LENGTH);
+      }
 
       return self.withLoading(function () {
         return self._session.initialize()

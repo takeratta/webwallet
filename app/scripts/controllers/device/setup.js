@@ -41,9 +41,9 @@ angular.module('webwalletApp')
 
       set.strength = +set.strength;
       if (set.label) {
-        set.label = set.label.trim() || dev.getDefaultLabel();
+        set.label = set.label.trim() || dev.DEFAULT_LABEL;
       } else {
-        set.label = dev.getDefaultLabel();
+        set.label = dev.DEFAULT_LABEL;
       }
 
       // Set the total word count so the modal window initialized in

@@ -120,12 +120,12 @@ angular.module('webwalletApp')
      *
      * Ask the user to set the label.  If he/she fills in an empty value, the
      * default label is used.  The default label is read from
-     * `TrezorDevice#getDefaultLabel()`.
+     * `TrezorDevice#DEFAULT_LABEL`.
      */
     $scope.changeLabel = function () {
       promptLabel()
         .then(function (label) {
-          label = label.trim() || $scope.device.getDefaultLabel();
+          label = label.trim() || $scope.device.DEFAULT_LABEL;
           return $scope.device.changeLabel(label);
         })
         .then(
