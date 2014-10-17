@@ -44,10 +44,10 @@
                            ng-click="scanQr($index)"
                            ng-show="!output.address && !qr.scanning && qr.enabled"></a>
                       </span>
+                      <span class="help-block">
+                        {{output.error.address}}
+                      </span>
                     </div>
-                  </div>
-                  <div class="tx-output-help">
-                    <span class="help-block">{{output.error.address}}</span>
                   </div>
                 </div>
                 <div class="col-sm-2"
