@@ -574,47 +574,18 @@ body {
 
 /* Transaction Send */
 
-.tx-send {
-  border-bottom: 0;
-  padding-bottom: 0;
-}
-.tx-output .row,
-.tx-output-add {
-  padding-bottom: 1em;
-}
-.tx-output-add {
-  border-top: 1px solid #d9d9d9;
-  padding-top: 0.5em;
-}
-.tx-output-add .btn-link {
-  padding: 0;
-  margin-right: 0.8em;
-}
-.tx-output-add .text-right .btn-link,
-.tx-output-add .text-right .btn-link:hover,
-.tx-output-add .text-right .btn-link:focus,
-.tx-output-add .text-right .btn-link:active {
-  color: #999;
-}
-.tx-output .btn-sm {
-  margin-right: -13px;
-}
-.tx-output hr {
-  margin-top: 0;
-  margin-bottom: 2em;
-}
 .tx-amount input,
 .tx-amount select {
   float: left;
-  width: 6em;
+  width: 7em;
 }
 .tx-amount select {
-  width: 5.5em;
+  width: 6em;
   border-left: 0;
 }
 .tx-amount .form-control-static {
   float: left;
-  width: 1em;
+  width: 1.5em;
   font-size: 150%;
   text-align: center;
   padding: 0;
@@ -626,26 +597,23 @@ body {
   padding-top: 0.5em;
 }
 
-.tx-submit {
-  padding-bottom: 0.8em;
+.tx-output {
+  margin-bottom: 25px;
 }
-.tx-submit .form-control-static {
-  padding-top: 0.5em;
-}
-.tx-submit .btn {
-  font-size: 120%;
+.tx-submit-additional {
+  margin-top: 10px;
+  margin-left: 15px;
 }
 
 .tx-preview {
-  margin-top: 1em;
+  margin-top: 15px;
   font-size: 10px;
-  word-wrap: break-word;
-  color: #666;
 }
-.tx-preview h4 {
-  font-size: 14px;
-  font-weight: bold;
-  margin-top: 0;
-  padding-bottom: 0.5em;
-  color: #666;
+.tx-preview h6 {
+  font-size: 11px;
+  margin: 4px 0;
+}
+.tx-preview ul,
+.tx-preview ol {
+  margin: 4px 0;
 }
