@@ -130,6 +130,9 @@ angular.module('webwalletApp')
      * If param `includeBootloader` is true, than include also devices that
      * are in the bootloader mode.
      *
+     * WARNING: Devices that don't have features yet are treated as if they
+     * were in the bootloader mode.
+     *
      * @param {Boolean} [includeBootloader]  Include devices that are in the
      *                                       bootloader mode.  Default: false.
      * @return {Array of TrezorDevice}       All devices
@@ -139,7 +142,7 @@ angular.module('webwalletApp')
             return this._devices;
         }
         return this._devices.filter(function (dev) {
-            return !dev.features.bootloader_mode;
+            return dev.features && !dev.features.bootloader_mode;
         });
     };
 
@@ -276,15 +279,8 @@ angular.module('webwalletApp')
                     }
                     return dev;
                 }));
-            })
-            .then(
-                function () {
-                    this._enumerateInProgress = false;
-                },
-                function () {
-                    this._enumerateInProgress = false;
-                }
-            );
+                this._enumerateInProgress = false;
+            }.bind(this));
     };
 
     /**
