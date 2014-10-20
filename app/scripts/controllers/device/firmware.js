@@ -41,9 +41,11 @@ angular.module('webwalletApp').controller('FirmwareCtrl', function (
         /*
          * We need to change the reference to the device in modal's scope,
          * because the device changes when switching to the bootloader
-         * mode.
+         * mode. We save a reference to the original device, to forget
+         * it in case user cancels the update process.
          */
         if (_modalScope) {
+            _modalScope.previousDevice = _modalScope.device;
             _modalScope.device = dev;
         }
         setState(STATE_BOOTLOADER);
@@ -173,8 +175,10 @@ angular.module('webwalletApp').controller('FirmwareCtrl', function (
         if (_state === STATE_UPDATE_SUCCESS ||
             _state === STATE_UPDATE_ERROR ||
             _state === STATE_BOOTLOADER) {
-            _modal.close();
             deviceList.forget(dev, true);
+            if (_modalScope.previousDevice)
+                deviceList.forget(_modalScope.previousDevice, true);
+            _modal.close();
             return;
         }
         if (_state === STATE_INITIAL ||
