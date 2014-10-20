@@ -278,11 +278,14 @@ body {
 
 .nav-devices > li > .dev-forget {
   display: none;
-  margin-top: -22px;
+  padding: 2px 6px;
+  position: absolute;
+  top: 38px;
+  right: 6px;
 }
 
 .nav-devices > li:hover > .dev-forget {
-    display: block;
+  display: block;
 }
 
 .dev-status {
