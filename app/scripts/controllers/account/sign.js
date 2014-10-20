@@ -1,8 +1,7 @@
 /*global angular*/
 
 angular.module('webwalletApp')
-    .controller('AccountSignCtrl', function (utils, trezorService,
-        $scope) {
+    .controller('AccountSignCtrl', function (utils, deviceList, $scope) {
 
         'use strict';
 
@@ -67,9 +66,17 @@ angular.module('webwalletApp')
                 $scope.verify.message
             ));
             address = $scope.verify.address;
-            signature = utils.bytesToHex(utils.base64ToBytes(
-                $scope.verify.signature
-            ));
+            try {
+                signature = utils.bytesToHex(utils.base64ToBytes(
+                    $scope.verify.signature
+                ));
+            } catch (e) {
+                $scope.verify.res = {
+                    status: 'error',
+                    message: 'Failed to verify message: Invalid signature.'
+                };
+                return;
+            }
 
             $scope.device.verifyMessage(address, signature, message).then(
                 function () {
@@ -92,10 +99,10 @@ angular.module('webwalletApp')
         };
 
         $scope.suggestAddresses = function () {
-            var multipleDevices = trezorService.devices.length > 1,
+            var multipleDevices = deviceList.count() > 1,
                 usedAddresses = [];
 
-            trezorService.devices.forEach(function (dev) {
+            deviceList.all().forEach(function (dev) {
                 dev.accounts.forEach(function (acc) {
                     var label;
 
