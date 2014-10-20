@@ -153,13 +153,6 @@ angular.module('webwalletApp').controller('DeviceCtrl', function (
     };
 
     /**
-     * Forget the device
-     */
-    $scope.forget = function () {
-        deviceList.forget($scope.device);
-    };
-
-    /**
      * Prompt forget
      *
      * Ask the user to disconnect the device using a modal dialog.  If the

@@ -45,4 +45,8 @@ angular.module('webwalletApp').controller('NavCtrl', function (
         return link;
     };
 
+    $scope.forget = function (dev) {
+        deviceList.forget(dev);
+    };
+
 });

@@ -35,14 +35,15 @@
        tooltip="Forget this device"
        tooltip-placement="bottom"
        tooltip-append-to-body="true"
-       ng-click="forgetDevice()">&times;</a>
+       ng-click="forget(device)">&times;</a>
 
     <div class="dev-blocked tooltip tooltip-danger in right"
          ng-show="device.error">
       <div class="tooltip-inner"
            ng-switch="device.error">
         <span ng-switch-when="Opening device failed">
-          Device could not be opened. Make sure you don't have myTREZOR running in another tab or browser window!
+          Device could not be opened.
+          Make sure you don't have myTREZOR running in another tab or browser window!
         </span>
         <span ng-switch-default>{{device.error}}</span>
       </div>
