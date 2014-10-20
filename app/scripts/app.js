@@ -1,5 +1,3 @@
-/*jslint browser: true, devel: true, indent: 4, maxlen: 79 */
-
 /**
  * Main
  *
@@ -11,11 +9,11 @@
     'use strict';
 
     angular.module('webwalletApp', [
-    'ngRoute',
-    'ngSanitize',
-    'ui.bootstrap',
-    'ja.qr'
-  ]);
+        'ngRoute',
+        'ngSanitize',
+        'ui.bootstrap',
+        'ja.qr'
+    ]);
 
     // Load the Transport and bootstrap the Angular app.
     angular.element(document).ready(function () {
@@ -35,22 +33,22 @@
      */
     function init(config) {
         var bridgeUrl = config.bridge.url,
-      bridgeConfigUrl = config.bridge.configUrl,
+            bridgeConfigUrl = config.bridge.configUrl,
             bridgeConfigPromise = window.trezor.http(bridgeConfigUrl);
 
         acquireTransport(bridgeUrl)
-    .then(function (transport) {
-      return bridgeConfigPromise
-        .then(function (config) {
-          return transport.configure(config);
-        })
-        .then(function () {
+            .then(function (transport) {
+                return bridgeConfigPromise
+                    .then(function (config) {
+                        return transport.configure(config);
+                    })
+                    .then(function () {
                         return createApp(null, transport);
-        });
-    })
-    .catch(function (err) {
+                    });
+            })
+            .catch(function (err) {
                 return createApp(err);
-    });
+            });
     }
 
     /**
@@ -75,28 +73,28 @@
     function acquireTransport(bridgeUrl) {
         var trezor = window.trezor;
 
-    function loadHttp() {
+        function loadHttp() {
             return trezor.HttpTransport.connect(bridgeUrl).then(
-          function (info) {
+                function (info) {
                     console.log('[app] Loading http transport successful',
-                        info);
-            return new trezor.HttpTransport(bridgeUrl);
-          },
-          function (err) {
-            console.error('[app] Loading http transport failed', err);
-            throw err;
+                                info);
+                    return new trezor.HttpTransport(bridgeUrl);
+                },
+                function (err) {
+                    console.error('[app] Loading http transport failed', err);
+                    throw err;
                 }
             );
-    }
+        }
 
-    function loadPlugin() {
-      return trezor.PluginTransport.loadPlugin().then(function (plugin) {
-        return new trezor.PluginTransport(plugin);
-      });
-    }
+        function loadPlugin() {
+            return trezor.PluginTransport.loadPlugin().then(function (plugin) {
+                return new trezor.PluginTransport(plugin);
+            });
+        }
 
         return loadHttp().catch(loadPlugin);
-  }
+    }
 
     /**
      * Bootstrap (create and initialize) the Angular app.
@@ -111,22 +109,22 @@
         var app = angular.module('webwalletApp');
 
         // Attach routes.
-    if (!err) {
+        if (!err) {
             app.config(attachRoutes);
-    }
+        }
 
         // Pass Transport reference.
-    app
-      .value('trezorError', err)
-      .value('trezorApi', window.trezor)
-      .value('trezor', transport);
+        app
+            .value('trezorError', err)
+            .value('trezorApi', window.trezor)
+            .value('trezor', transport);
 
         // Initialize Angular.js.
         angular.bootstrap(
             document.getElementById('webwalletApp-container'),
             ['webwalletApp']
         );
-  }
+    }
 
     /**
      * Attach routes to passed $routeProvider.
@@ -136,75 +134,75 @@
      */
     function attachRoutes($routeProvider) {
         $routeProvider
-          .when('/', {
-            templateUrl: 'views/main.html'
-          })
-          .when('/import', {
-            templateUrl: 'views/import.html'
-          })
-          .when('/device/:deviceId', {
-            templateUrl: 'views/device/index.html'
-          })
-          .when('/device/:deviceId/load', {
-            templateUrl: 'views/device/load.html'
-          })
-          .when('/device/:deviceId/recovery', {
-            templateUrl: 'views/device/recovery.html'
-          })
-          .when('/device/:deviceId/wipe', {
-            templateUrl: 'views/device/wipe.html'
-          })
-          .when('/device/:deviceId/account/:accountId', {
-            templateUrl: 'views/account/index.html'
-          })
-          .when('/device/:deviceId/account/:accountId/send', {
-            templateUrl: 'views/account/send.html'
-          })
-          .when('/device/:deviceId/account/:accountId/send/:output', {
-            templateUrl: 'views/account/send.html'
-          })
-          .when('/device/:deviceId/account/:accountId/send/:output/amount/:amount', {
-            templateUrl: 'views/account/send.html'
-          })
-          .when('/device/:deviceId/account/:accountId/receive', {
-            templateUrl: 'views/account/receive.html'
-          })
-          .when('/device/:deviceId/account/:accountId/sign', {
-            templateUrl: 'views/account/sign.html'
-          })
-          .when('/send/:uri*', {
-            resolve: {
-              uriRedirect: 'uriRedirect'
-            }
-          })
-          .otherwise({
-            redirectTo: '/'
-          });
-  }
+            .when('/', {
+                templateUrl: 'views/main.html'
+            })
+            .when('/import', {
+                templateUrl: 'views/import.html'
+            })
+            .when('/device/:deviceId', {
+                templateUrl: 'views/device/index.html'
+            })
+            .when('/device/:deviceId/load', {
+                templateUrl: 'views/device/load.html'
+            })
+            .when('/device/:deviceId/recovery', {
+                templateUrl: 'views/device/recovery.html'
+            })
+            .when('/device/:deviceId/wipe', {
+                templateUrl: 'views/device/wipe.html'
+            })
+            .when('/device/:deviceId/account/:accountId', {
+                templateUrl: 'views/account/index.html'
+            })
+            .when('/device/:deviceId/account/:accountId/send', {
+                templateUrl: 'views/account/send.html'
+            })
+            .when('/device/:deviceId/account/:accountId/send/:output', {
+                templateUrl: 'views/account/send.html'
+            })
+            .when('/device/:deviceId/account/:accountId/send/:output/amount/:amount', {
+                templateUrl: 'views/account/send.html'
+            })
+            .when('/device/:deviceId/account/:accountId/receive', {
+                templateUrl: 'views/account/receive.html'
+            })
+            .when('/device/:deviceId/account/:accountId/sign', {
+                templateUrl: 'views/account/sign.html'
+            })
+            .when('/send/:uri*', {
+                resolve: {
+                    uriRedirect: 'uriRedirect'
+                }
+            })
+            .otherwise({
+                redirectTo: '/'
+            });
+    }
 
-  /**
-   * Register Bitcoin URI handler
+    /**
+     * Register Bitcoin URI handler
      *
      * Requests to this URI are then handled by the `uriRedirect` service.
      *
      * @see  services/uriRedirect.js
-   */
-  function registerUriHandler() {
-    var URI_PROTOCOL = 'bitcoin',
-        URI_TEMPLATE = '/#/send/%s',
-        URI_NAME = 'MyTrezor: Send Bitcoins to address',
-        url;
+     */
+    function registerUriHandler() {
+        var URI_PROTOCOL = 'bitcoin',
+            URI_TEMPLATE = '/#/send/%s',
+            URI_NAME = 'MyTrezor: Send Bitcoins to address',
+            url;
 
-    url = location.protocol + '//' + location.host + URI_TEMPLATE;
-    if (navigator.registerProtocolHandler &&
-        (!navigator.isProtocolHandlerRegistered ||
-         !navigator.isProtocolHandlerRegistered(URI_PROTOCOL, url))) {
-      navigator.registerProtocolHandler(
-        URI_PROTOCOL,
-        url,
-        URI_NAME
-      );
+        url = location.protocol + '//' + location.host + URI_TEMPLATE;
+        if (navigator.registerProtocolHandler &&
+            (!navigator.isProtocolHandlerRegistered ||
+             !navigator.isProtocolHandlerRegistered(URI_PROTOCOL, url))) {
+            navigator.registerProtocolHandler(
+                URI_PROTOCOL,
+                url,
+                URI_NAME
+            );
+        }
     }
-  }
 
 }(this.angular));
