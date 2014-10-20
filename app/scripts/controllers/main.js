@@ -9,16 +9,15 @@
  *
  * @see  main.html
  */
-angular.module('webwalletApp')
-    .controller('MainCtrl', function (
-            $scope,
-            deviceList,
-            deviceService,
-            firmwareService) {
+angular.module('webwalletApp').controller('MainCtrl', function (
+    $scope,
+    deviceList,
+    deviceService,
+    firmwareService) {
 
-        'use strict';
+    'use strict';
 
-        $scope.isConnected = function () {
-            return deviceList.count() !== 0;
-        }
-    });
+    $scope.isConnected = function () {
+        return deviceList.count() !== 0;
+    }
+});

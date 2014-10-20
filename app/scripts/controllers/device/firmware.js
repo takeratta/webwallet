@@ -1,193 +1,194 @@
 /*global angular*/
 
-angular.module('webwalletApp')
-    .controller('FirmwareCtrl', function (
-            $modal, $scope, $rootScope,
-            deviceList,
-            firmwareService,
-            TrezorDevice) {
+angular.module('webwalletApp').controller('FirmwareCtrl', function (
+    $modal,
+    $scope,
+    $rootScope,
+    deviceList,
+    firmwareService,
+    TrezorDevice) {
 
-        'use strict';
+    'use strict';
 
-        var _modal = null,
-            _modalScope = null,
-            _state = null,
-            STATE_INITIAL = 'initial',
-            STATE_INITIAL_DISCONNECTED = 'initial-disconnected',
-            STATE_NORMAL = 'device-normal',
-            STATE_BOOTLOADER = 'device-bootloader',
-            STATE_UPDATE_DOWNLOADING = 'update-downloading',
-            STATE_UPDATE_FLASHING = 'update-flashing',
-            STATE_UPDATE_SUCCESS = 'update-success',
-            STATE_UPDATE_ERROR = 'update-error',
-            STATE_UPDATE_CHECK = 'update-check';
+    var _modal = null,
+        _modalScope = null,
+        _state = null,
+        STATE_INITIAL = 'initial',
+        STATE_INITIAL_DISCONNECTED = 'initial-disconnected',
+        STATE_NORMAL = 'device-normal',
+        STATE_BOOTLOADER = 'device-bootloader',
+        STATE_UPDATE_DOWNLOADING = 'update-downloading',
+        STATE_UPDATE_FLASHING = 'update-flashing',
+        STATE_UPDATE_SUCCESS = 'update-success',
+        STATE_UPDATE_ERROR = 'update-error',
+        STATE_UPDATE_CHECK = 'update-check';
 
-        // On device connect
-        $scope.$on(firmwareService.EVENT_CONNECT, resetOutdatedFirmwareBar);
+    // On device connect
+    $scope.$on(firmwareService.EVENT_CONNECT, resetOutdatedFirmwareBar);
 
-        // On device disconnect
-        $scope.$on(firmwareService.EVENT_DISCONNECT, resetOutdatedFirmwareBar);
-        /**
-         * onDisconnect() has high priority, because this hook must
-         * execute even if the Firmware modal is opened.
-         *
-         * @see  firmwareService.firmwareMain()
+    // On device disconnect
+    $scope.$on(firmwareService.EVENT_DISCONNECT, resetOutdatedFirmwareBar);
+    /**
+     * onDisconnect() has high priority, because this hook must
+     * execute even if the Firmware modal is opened.
+     *
+     * @see  firmwareService.firmwareMain()
+     */
+    $scope.$on(firmwareService.EVENT_DISCONNECT, onDisconnect, 10);
+
+    // States
+    $scope.$on(firmwareService.EVENT_BOOTLOADER, function (e, dev) {
+        /*
+         * We need to change the reference to the device in modal's scope,
+         * because the device changes when switching to the bootloader
+         * mode.
          */
-        $scope.$on(firmwareService.EVENT_DISCONNECT, onDisconnect, 10);
+        if (_modalScope) {
+            _modalScope.device = dev;
+        }
+        setState(STATE_BOOTLOADER);
+    });
+    $scope.$on(firmwareService.EVENT_NORMAL, function () {
+        setState(STATE_NORMAL);
+    });
 
-        // States
-        $scope.$on(firmwareService.EVENT_BOOTLOADER, function (e, dev) {
-            /*
-             * We need to change the reference to the device in modal's scope,
-             * because the device changes when switching to the bootloader
-             * mode.
-             */
-            if (_modalScope) {
-                _modalScope.device = dev;
+    // Modals
+    $scope.$on(firmwareService.EVENT_CANDIDATE,
+               function (e, params) {
+                   showCandidateFirmwareModal(
+                       params.dev,
+                       params.firmware
+                   );
+               });
+    $scope.$on(firmwareService.EVENT_OUTDATED,
+               function (e, params) {
+                   showOutdatedFirmware(
+                       params.dev,
+                       params.firmware,
+                       params.version
+                   );
+               });
+
+    function showOutdatedFirmware(dev, firmware, version) {
+        if (firmware.required) {
+            return showOutdatedFirmwareModal(dev, firmware, version);
+        }
+        return showOutdatedFirmwareBar(dev, firmware, version);
+    }
+
+    function showOutdatedFirmwareBar(dev, firmware, version) {
+        $rootScope.optionalFirmware = {
+            device: dev,
+            firmware: firmware,
+            version: version,
+            update: function () {
+                showOutdatedFirmwareModal(dev, firmware, version);
             }
-            setState(STATE_BOOTLOADER);
+        };
+    }
+
+    function resetOutdatedFirmwareBar(e, devId) {
+        if ($rootScope.optionalFirmware &&
+            $rootScope.optionalFirmware.device.id === devId &&
+            !firmwareService.isModalOpen()) {
+            delete $rootScope.optionalFirmware;
+        }
+    }
+
+    function showOutdatedFirmwareModal(dev, firmware, version) {
+        _showFirmwareModal(dev, firmware, version, STATE_INITIAL);
+    }
+
+    function showCandidateFirmwareModal(dev, firmware) {
+        _showFirmwareModal(dev, firmware, undefined, STATE_BOOTLOADER);
+    }
+
+    function _showFirmwareModal(dev, firmware, version, state) {
+        _modalScope = angular.extend($rootScope.$new(), {
+            firmware: firmware,
+            version: version,
+            device: dev,
+            update: function () {
+                updateFirmware(firmware);
+            }
         });
-        $scope.$on(firmwareService.EVENT_NORMAL, function () {
-            setState(STATE_NORMAL);
+        setState(state);
+
+        _modal = $modal.open({
+            templateUrl: 'views/modal/firmware.html',
+            backdrop: 'static',
+            keyboard: false,
+            scope: _modalScope
         });
 
-        // Modals
-        $scope.$on(firmwareService.EVENT_CANDIDATE,
-            function (e, params) {
-                showCandidateFirmwareModal(
-                    params.dev,
-                    params.firmware
+        _modal.result.then(function () {
+            firmwareService.setModalOpen(false);
+        }, function () {
+            firmwareService.setModalOpen(false);
+            deviceList.forget(dev, true);
+        });
+
+        return _modal.result;
+    }
+
+    function updateFirmware(firmware) {
+        var deregister;
+
+        _modalScope.firmware = firmware;
+        setState(STATE_UPDATE_DOWNLOADING);
+
+        firmwareService.download(firmware)
+            .then(function (data) {
+                deregister = $rootScope.$on(
+                    TrezorDevice.EVENT_PREFIX + TrezorDevice.EVENT_BUTTON,
+                    promptButton
                 );
-            });
-        $scope.$on(firmwareService.EVENT_OUTDATED,
-            function (e, params) {
-                showOutdatedFirmware(
-                    params.dev,
-                    params.firmware,
-                    params.version
-                );
-            });
-
-        function showOutdatedFirmware(dev, firmware, version) {
-            if (firmware.required) {
-                return showOutdatedFirmwareModal(dev, firmware, version);
-            }
-            return showOutdatedFirmwareBar(dev, firmware, version);
-        }
-
-        function showOutdatedFirmwareBar(dev, firmware, version) {
-            $rootScope.optionalFirmware = {
-                device: dev,
-                firmware: firmware,
-                version: version,
-                update: function () {
-                    showOutdatedFirmwareModal(dev, firmware, version);
+                setState(STATE_UPDATE_FLASHING);
+                return _modalScope.device.flash(data);
+            })
+            .then(
+                function () {
+                    setState(STATE_UPDATE_SUCCESS);
+                    deregister();
+                },
+                function (err) {
+                    setState(STATE_UPDATE_ERROR);
+                    _modalScope.error = err.message;
+                    deregister();
                 }
-            };
-        }
+            );
 
-        function resetOutdatedFirmwareBar(e, devId) {
-            if ($rootScope.optionalFirmware &&
-                    $rootScope.optionalFirmware.device.id === devId &&
-                    !firmwareService.isModalOpen()) {
-                delete $rootScope.optionalFirmware;
+        function promptButton(e, dev, code) {
+            if (code === TrezorDevice.REQ_BUTTON_FIRMWARE) {
+                setState(STATE_UPDATE_CHECK);
             }
         }
+    }
 
-        function showOutdatedFirmwareModal(dev, firmware, version) {
-            _showFirmwareModal(dev, firmware, version, STATE_INITIAL);
+    /**
+     * Close the firmware modal if the update is already finished or
+     * if it failed.
+     */
+    function onDisconnect(e, dev) {
+        if (_state === STATE_UPDATE_SUCCESS ||
+            _state === STATE_UPDATE_ERROR ||
+            _state === STATE_BOOTLOADER) {
+            _modal.close();
+            deviceList.forget(dev, true);
+            return;
         }
-
-        function showCandidateFirmwareModal(dev, firmware) {
-            _showFirmwareModal(dev, firmware, undefined, STATE_BOOTLOADER);
+        if (_state === STATE_INITIAL ||
+            _state === STATE_NORMAL) {
+            setState(STATE_INITIAL_DISCONNECTED);
+            return;
         }
+        setState(STATE_INITIAL);
+    }
 
-        function _showFirmwareModal(dev, firmware, version, state) {
-            _modalScope = angular.extend($rootScope.$new(), {
-                firmware: firmware,
-                version: version,
-                device: dev,
-                update: function () {
-                    updateFirmware(firmware);
-                }
-            });
-            setState(state);
-
-            _modal = $modal.open({
-                templateUrl: 'views/modal/firmware.html',
-                backdrop: 'static',
-                keyboard: false,
-                scope: _modalScope
-            });
-
-            _modal.result.then(function () {
-                firmwareService.setModalOpen(false);
-            }, function () {
-                firmwareService.setModalOpen(false);
-                deviceList.forget(dev, true);
-            });
-
-            return _modal.result;
+    function setState(state) {
+        _state = state;
+        if (_modalScope) {
+            _modalScope.state = state;
         }
-
-        function updateFirmware(firmware) {
-            var deregister;
-
-            _modalScope.firmware = firmware;
-            setState(STATE_UPDATE_DOWNLOADING);
-
-            firmwareService.download(firmware)
-                .then(function (data) {
-                    deregister = $rootScope.$on(
-                        TrezorDevice.EVENT_PREFIX + TrezorDevice.EVENT_BUTTON,
-                        promptButton
-                    );
-                    setState(STATE_UPDATE_FLASHING);
-                    return _modalScope.device.flash(data);
-                })
-                .then(
-                    function () {
-                        setState(STATE_UPDATE_SUCCESS);
-                        deregister();
-                    },
-                    function (err) {
-                        setState(STATE_UPDATE_ERROR);
-                        _modalScope.error = err.message;
-                        deregister();
-                    }
-                );
-
-            function promptButton(e, dev, code) {
-                if (code === TrezorDevice.REQ_BUTTON_FIRMWARE) {
-                    setState(STATE_UPDATE_CHECK);
-                }
-            }
-        }
-
-        /**
-         * Close the firmware modal if the update is already finished or
-         * if it failed.
-         */
-        function onDisconnect(e, dev) {
-            if (_state === STATE_UPDATE_SUCCESS ||
-                    _state === STATE_UPDATE_ERROR ||
-                    _state === STATE_BOOTLOADER) {
-                _modal.close();
-                deviceList.forget(dev, true);
-                return;
-            }
-            if (_state === STATE_INITIAL ||
-                    _state === STATE_NORMAL) {
-                setState(STATE_INITIAL_DISCONNECTED);
-                return;
-            }
-            setState(STATE_INITIAL);
-        }
-
-        function setState(state) {
-            _state = state;
-            if (_modalScope) {
-                _modalScope.state = state;
-            }
-        }
-  });
+    }
+});

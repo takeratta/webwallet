@@ -10,34 +10,37 @@
  * @see  error.html
  * @see  error.install.html
  */
-angular.module('webwalletApp')
-    .controller('ErrorCtrl', function (config, trezor, trezorApi,
-            trezorError, $scope) {
+angular.module('webwalletApp').controller('ErrorCtrl', function (
+    config,
+    trezor,
+    trezorApi,
+    trezorError,
+    $scope) {
 
-        'use strict';
+    'use strict';
 
-        if (trezorError === null) {
-            $scope.error = false;
+    if (trezorError === null) {
+        $scope.error = false;
 
-            if (trezor instanceof trezorApi.PluginTransport) {
-                $scope.deprecatePlugin = config.deprecatePlugin;
-                $scope.usingPluginTransport = true;
-                $scope.installers = trezorApi.installers();
-                $scope.installers.forEach(function (inst) {
-                    if (inst.preferred) {
-                        $scope.selectedInstaller = inst;
-                    }
-                });
-            }
-        } else {
-            $scope.error = true;
-            $scope.installed = trezorError.installed !== false;
+        if (trezor instanceof trezorApi.PluginTransport) {
+            $scope.deprecatePlugin = config.deprecatePlugin;
+            $scope.usingPluginTransport = true;
             $scope.installers = trezorApi.installers();
-
             $scope.installers.forEach(function (inst) {
                 if (inst.preferred) {
-                    $scope.selected = inst;
+                    $scope.selectedInstaller = inst;
                 }
             });
         }
-    });
+    } else {
+        $scope.error = true;
+        $scope.installed = trezorError.installed !== false;
+        $scope.installers = trezorApi.installers();
+
+        $scope.installers.forEach(function (inst) {
+            if (inst.preferred) {
+                $scope.selected = inst;
+            }
+        });
+    }
+});

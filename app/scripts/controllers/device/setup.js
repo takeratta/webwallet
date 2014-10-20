@@ -1,7 +1,10 @@
 /*global angular*/
 
-angular.module('webwalletApp')
-  .controller('DeviceSetupCtrl', function (utils, flash, $scope, $modal) {
+angular.module('webwalletApp').controller('DeviceSetupCtrl', function (
+    utils,
+    flash,
+    $scope,
+    $modal) {
 
     'use strict';
 
@@ -9,7 +12,7 @@ angular.module('webwalletApp')
 
     $scope.advanced = false;
     $scope.settings = {
-      pin_protection: true
+        pin_protection: true
     };
 
     // `recoveryWords` count depends on users choice and gets
@@ -20,10 +23,10 @@ angular.module('webwalletApp')
     $scope.recoveryCurrentWord = 1;
 
     $scope.$on('device.button', function (event, dev, code) {
-      if (dev.id === $scope.device.id &&
-          code === 'ButtonRequest_ConfirmWord') {
-        $scope.setupRecoveryNext();
-      }
+        if (dev.id === $scope.device.id &&
+            code === 'ButtonRequest_ConfirmWord') {
+            $scope.setupRecoveryNext();
+        }
     });
 
     /**
@@ -32,81 +35,81 @@ angular.module('webwalletApp')
      * @summary Number -> Number
      */
     function getWordCountFromSeedStrength(bits) {
-      return (bits + (bits / 32)) / 11;
+        return (bits + (bits / 32)) / 11;
     }
 
     $scope.setupDevice = function () {
-      var set = $scope.settings,
-          dev = $scope.device;
+        var set = $scope.settings,
+            dev = $scope.device;
 
-      set.strength = +set.strength;
-      if (set.label) {
-        set.label = set.label.trim() || dev.DEFAULT_LABEL;
-      } else {
-        set.label = dev.DEFAULT_LABEL;
-      }
-
-      // Set the total word count so the modal window initialized in
-      // `setupRecoveryNext` can pick it up
-      $scope.recoveryWords = getWordCountFromSeedStrength(set.strength);
-
-      dev.reset(set).then(
-        function () {
-          utils.redirect('/device/' + dev.id).then(function () {
-            flash.success('Congratulations! Your device is now ready to use.');
-          });
-        },
-        function (err) {
-          flash.error(err.message || 'Setup failed');
+        set.strength = +set.strength;
+        if (set.label) {
+            set.label = set.label.trim() || dev.DEFAULT_LABEL;
+        } else {
+            set.label = dev.DEFAULT_LABEL;
         }
-      );
+
+        // Set the total word count so the modal window initialized in
+        // `setupRecoveryNext` can pick it up
+        $scope.recoveryWords = getWordCountFromSeedStrength(set.strength);
+
+        dev.reset(set).then(
+            function () {
+                utils.redirect('/device/' + dev.id).then(function () {
+                    flash.success('Congratulations! Your device is now ready to use.');
+                });
+            },
+            function (err) {
+                flash.error(err.message || 'Setup failed');
+            }
+        );
     };
 
     $scope.setupRecoveryNext = function () {
 
-      // First write
-      if (!$scope.recoveryStarted) {
-        $scope.recoveryStarted = true;
-        $scope.stage = 'writeFirst';
-        openModal();
-        return;
-      }
+        // First write
+        if (!$scope.recoveryStarted) {
+            $scope.recoveryStarted = true;
+            $scope.stage = 'writeFirst';
+            openModal();
+            return;
+        }
 
-      $scope.recoveryWordsDone = $scope.recoveryWordsDone + 1;
-      $scope.recoveryCurrentWord = $scope.recoveryCurrentWord + 1;
+        $scope.recoveryWordsDone = $scope.recoveryWordsDone + 1;
+        $scope.recoveryCurrentWord = $scope.recoveryCurrentWord + 1;
 
-      // Write
-      if ($scope.recoveryWordsDone < $scope.recoveryWords) {
-        $scope.stage = 'write';
+        // Write
+        if ($scope.recoveryWordsDone < $scope.recoveryWords) {
+            $scope.stage = 'write';
 
-      // First check
-      } else if ($scope.recoveryWordsDone === $scope.recoveryWords) {
-        $scope.recoveryCurrentWord = 1;
-        $scope.stage = 'checkFirst';
+            // First check
+        } else if ($scope.recoveryWordsDone === $scope.recoveryWords) {
+            $scope.recoveryCurrentWord = 1;
+            $scope.stage = 'checkFirst';
 
-      // Check
-      } else if ($scope.recoveryWordsDone < 2 * $scope.recoveryWords - 1) {
-        $scope.stage = 'check';
+            // Check
+        } else if ($scope.recoveryWordsDone < 2 * $scope.recoveryWords - 1) {
+            $scope.stage = 'check';
 
-      // Last check
-      } else {
-        $scope.device.once('receive', function () {
-          closeModal();
-        });
-      }
+            // Last check
+        } else {
+            $scope.device.once('receive', function () {
+                closeModal();
+            });
+        }
     };
 
     function closeModal() {
-      modal.close();
+        modal.close();
     }
 
     function openModal() {
-      modal = $modal.open({
-        templateUrl: 'views/modal/setup.html',
-        windowClass: 'buttonmodal',
-        backdrop: 'static',
-        keyboard: false,
-        scope: $scope
-      });
+        modal = $modal.open({
+            templateUrl: 'views/modal/setup.html',
+            windowClass: 'buttonmodal',
+            backdrop: 'static',
+            keyboard: false,
+            scope: $scope
+        });
     }
-  });
+});

@@ -1,162 +1,164 @@
 /*global angular*/
 
-angular.module('webwalletApp')
-    .controller('AccountSignCtrl', function (utils, deviceList, $scope) {
+angular.module('webwalletApp').controller('AccountSignCtrl', function (
+    utils,
+    deviceList,
+    $scope) {
 
-        'use strict';
+    'use strict';
 
-        var _usedAddressesCache = [];
+    var _usedAddressesCache = [];
 
-        function getAddressPath(address) {
-            var i,
-                len,
-                usedAddress;
+    function getAddressPath(address) {
+        var i,
+            len,
+            usedAddress;
 
-            if (!_usedAddressesCache) {
-                $scope.suggestAddresses();
-            }
-
-            len = _usedAddressesCache.length;
-            for (i = 0; i < len; i = i + 1) {
-                usedAddress = _usedAddressesCache[i];
-                if (usedAddress.address === address) {
-                    return usedAddress.acc.getOutPath(usedAddress.tx);
-                }
-            }
-            return null;
+        if (!_usedAddressesCache) {
+            $scope.suggestAddresses();
         }
 
-        $scope.sign = function () {
-            var message,
-                address_n,
-                coin;
+        len = _usedAddressesCache.length;
+        for (i = 0; i < len; i = i + 1) {
+            usedAddress = _usedAddressesCache[i];
+            if (usedAddress.address === address) {
+                return usedAddress.acc.getOutPath(usedAddress.tx);
+            }
+        }
+        return null;
+    }
 
-            message = utils.bytesToHex(utils.stringToBytes(
-                $scope.sign.message
+    $scope.sign = function () {
+        var message,
+            address_n,
+            coin;
+
+        message = utils.bytesToHex(utils.stringToBytes(
+            $scope.sign.message
+        ));
+        address_n = getAddressPath($scope.sign.address);
+        coin = $scope.device.defaultCoin();
+
+        $scope.device.signMessage(address_n, message, coin).then(
+            function (res) {
+                $scope.sign.signature =
+                    utils.bytesToBase64(utils.hexToBytes(
+                        res.message.signature
+                    ));
+            },
+            function (err) {
+                $scope.sign.res = {
+                    status: 'error',
+                    message: [
+                        'Failed to sign message: ',
+                        err.message,
+                        '.'
+                    ].join('')
+                };
+            }
+        );
+    };
+
+    $scope.verify = function () {
+        var message,
+            address,
+            signature;
+
+        message = utils.bytesToHex(utils.stringToBytes(
+            $scope.verify.message
+        ));
+        address = $scope.verify.address;
+        try {
+            signature = utils.bytesToHex(utils.base64ToBytes(
+                $scope.verify.signature
             ));
-            address_n = getAddressPath($scope.sign.address);
-            coin = $scope.device.defaultCoin();
+        } catch (e) {
+            $scope.verify.res = {
+                status: 'error',
+                message: 'Failed to verify message: Invalid signature.'
+            };
+            return;
+        }
 
-            $scope.device.signMessage(address_n, message, coin).then(
-                function (res) {
-                    $scope.sign.signature =
-                        utils.bytesToBase64(utils.hexToBytes(
-                            res.message.signature
-                        ));
-                },
-                function (err) {
-                    $scope.sign.res = {
-                        status: 'error',
-                        message: [
-                            'Failed to sign message: ',
-                            err.message,
-                            '.'
-                        ].join('')
-                    };
-                }
-            );
-        };
-
-        $scope.verify = function () {
-            var message,
-                address,
-                signature;
-
-            message = utils.bytesToHex(utils.stringToBytes(
-                $scope.verify.message
-            ));
-            address = $scope.verify.address;
-            try {
-                signature = utils.bytesToHex(utils.base64ToBytes(
-                    $scope.verify.signature
-                ));
-            } catch (e) {
+        $scope.device.verifyMessage(address, signature, message).then(
+            function () {
+                $scope.verify.res = {
+                    status: 'success',
+                    message: 'Message verified.'
+                };
+            },
+            function (err) {
                 $scope.verify.res = {
                     status: 'error',
-                    message: 'Failed to verify message: Invalid signature.'
+                    message: [
+                        'Failed to verify message: ',
+                        err.message,
+                        '.'
+                    ].join('')
                 };
-                return;
             }
+        );
+    };
 
-            $scope.device.verifyMessage(address, signature, message).then(
-                function () {
-                    $scope.verify.res = {
-                        status: 'success',
-                        message: 'Message verified.'
-                    };
-                },
-                function (err) {
-                    $scope.verify.res = {
-                        status: 'error',
-                        message: [
-                            'Failed to verify message: ',
-                            err.message,
-                            '.'
-                        ].join('')
-                    };
+    $scope.suggestAddresses = function () {
+        var multipleDevices = deviceList.count() > 1,
+            usedAddresses = [];
+
+        deviceList.all().forEach(function (dev) {
+            dev.accounts.forEach(function (acc) {
+                var label;
+
+                if (multipleDevices) {
+                    label = [dev.label(), '/', acc.label()].join(' ');
+                } else {
+                    label = acc.label();
                 }
-            );
-        };
 
-        $scope.suggestAddresses = function () {
-            var multipleDevices = deviceList.count() > 1,
-                usedAddresses = [];
-
-            deviceList.all().forEach(function (dev) {
-                dev.accounts.forEach(function (acc) {
-                    var label;
-
-                    if (multipleDevices) {
-                        label = [dev.label(), '/', acc.label()].join(' ');
-                    } else {
-                        label = acc.label();
-                    }
-
-                    acc.usedAddresses().forEach(function (address) {
-                        usedAddresses.push({
-                            label: label + ': ' + address.address,
-                            address: address.address,
-                            tx: address.tx,
-                            acc: acc,
-                            source: 'Account'
-                        });
+                acc.usedAddresses().forEach(function (address) {
+                    usedAddresses.push({
+                        label: label + ': ' + address.address,
+                        address: address.address,
+                        tx: address.tx,
+                        acc: acc,
+                        source: 'Account'
                     });
                 });
             });
+        });
 
-            _usedAddressesCache = usedAddresses;
-            return usedAddresses;
-        };
+        _usedAddressesCache = usedAddresses;
+        return usedAddresses;
+    };
 
-        $scope.isAlertVisible = function (type) {
-            return $scope[type] && $scope[type].res &&
-                ($scope[type].res.status === 'success' ||
-                $scope[type].res.status === 'error');
-        };
+    $scope.isAlertVisible = function (type) {
+        return $scope[type] && $scope[type].res &&
+            ($scope[type].res.status === 'success' ||
+             $scope[type].res.status === 'error');
+    };
 
-        $scope.resetSign = function () {
-            $scope.sign.signature = '';
-            $scope.hideAlert('sign');
-        };
+    $scope.resetSign = function () {
+        $scope.sign.signature = '';
+        $scope.hideAlert('sign');
+    };
 
-        $scope.resetVerify = function () {
-            $scope.hideAlert('verify');
-        };
+    $scope.resetVerify = function () {
+        $scope.hideAlert('verify');
+    };
 
-        $scope.hideAlert = function (type) {
-            if ($scope[type] && $scope[type].res) {
-                $scope[type].res.status = null;
+    $scope.hideAlert = function (type) {
+        if ($scope[type] && $scope[type].res) {
+            $scope[type].res.status = null;
+        }
+    };
+
+    $scope.getAlertClass = function (type) {
+        if ($scope[type] && $scope[type].res) {
+            if ($scope[type].res.status === 'error') {
+                return 'alert-danger';
             }
-        };
-
-        $scope.getAlertClass = function (type) {
-            if ($scope[type] && $scope[type].res) {
-                if ($scope[type].res.status === 'error') {
-                    return 'alert-danger';
-                }
-                if ($scope[type].res.status === 'success') {
-                    return 'alert-success';
-                }
+            if ($scope[type].res.status === 'success') {
+                return 'alert-success';
             }
-        };
-    });
+        }
+    };
+});
