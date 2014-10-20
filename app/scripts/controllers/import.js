@@ -6,69 +6,84 @@ angular.module('webwalletApp').controller('ImportCtrl', function (
     TrezorAccount,
     config,
     utils,
-    $scope) {
+    $scope,
+    $log) {
 
     'use strict';
 
     $scope.coins = {
         Bitcoin: {
-            address_type: "0",
+            address_type: 0,
             coin_name: "Bitcoin",
             coin_shortcut: "BTC",
-            maxfee_kb: "10000"
+            maxfee_kb: 10000
         },
         Testnet: {
-            address_type: "111",
+            address_type: 111,
             coin_name: "Testnet",
             coin_shortcut: "TEST",
-            maxfee_kb: "10000000"
+            maxfee_kb: 10000000
         }
     };
 
     $scope.settings = {
-        id: randId()
+        id: randomDeviceId()
     };
 
-    function randId() {
-        return '42';
+    function randomDeviceId() {
+        return Math.random().toString(36).substr(2);
+    }
+
+    function parseAccounts(device, payload) {
+        var coin = device.defaultCoin();
+
+        return (payload.match(/[^\r\n]+/g) || [])
+            .map(function parseXpub(line) {
+                line = line.split(':');
+                line = line[line.length - 1];
+                line = line.trim();
+                if (line.match(/\w+/))
+                    return line;
+                return null;
+            })
+            .map(function createAccount(xpub, index) {
+                var node, account;
+
+                node = utils.xpub2node(xpub);
+                node.path = device.accountPath(index, coin);
+
+                $log.log('Importing account', node);
+                account = new TrezorAccount(index, coin, node);
+                account.subscribe();
+                return account;
+            });
     }
 
     $scope.importDevice = function () {
         var id = $scope.settings.id,
-            pl = $scope.settings.payload,
-            dev = new TrezorDevice(id),
-            keys;
+            payload = $scope.settings.payload,
+            device;
 
         console.log('[import] Importing device', id);
-        deviceList.add(dev);
+        device = new TrezorDevice(id);
+        device.features = {
+            'device_id': id,
+            'coins': $scope.coins,
+            'initialized': true,
+            'imported': true,
+            'major_version': 0,
+            'minor_version': 0,
+            'patch_version': 0,
+            'pin_protection': false,
+            'passphrase_protection': false,
+            'revision': 'deadbeef',
+            'bootloader_hash': 'deafbeef',
+            'vendor': 'bitcointrezor.com'
+        };
 
-        keys = pl.match(/[^\r\n]+/g);
-        if (!keys)
-            return;
-        keys = keys.map(function (k) {
-            k = k.split(':');
-            k = k[k.length - 1];
-            k = k.trim();
-            if (k.match(/\w+/))
-                return k;
-            return null;
-        });
-
-        keys.forEach(function (k, i) {
-            console.log('[import] Importing account', k);
-
-            var coin = $scope.coins[config.coin],
-                path = dev.accountPath(i, coin),
-                node = utils.xpub2node(k),
-                acc;
-
-            if (!node)
-                return;
-            node.path = path;
-            acc = new TrezorAccount(i, coin, node);
-            dev.accounts.push(acc);
-            acc.subscribe();
-        });
+        if (payload)
+            device.accounts = parseAccounts(device, payload);
+        deviceList.add(device);
     };
 
 });
