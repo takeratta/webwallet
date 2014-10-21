@@ -1,7 +1,8 @@
 /*global angular*/
 
-angular.module('webwalletApp')
-.factory('ItemStorage', function ($rootScope, storage) {
+angular.module('webwalletApp').factory('ItemStorage', function (
+    $rootScope,
+    storage) {
 
     'use strict';
 

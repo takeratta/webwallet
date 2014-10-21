@@ -5,11 +5,17 @@
  *
  * Provides an instance of `DeviceList` as an Angular service `deviceList`.
  */
-angular.module('webwalletApp')
-.factory('deviceList', function (
-        _, $q, config, utils, flash,
-        trezor, trezorApi,
-        TrezorDevice, ItemStorage, $location) {
+angular.module('webwalletApp').factory('deviceList', function (
+    _,
+    $q,
+    config,
+    utils,
+    flash,
+    trezor,
+    trezorApi,
+    TrezorDevice,
+    ItemStorage,
+    $location) {
 
     'use strict';
 
@@ -359,7 +365,7 @@ angular.module('webwalletApp')
 
         dev.withLoading(function () {
             return trezor.acquire(desc)
-                // Run low-level connect routine.
+            // Run low-level connect routine.
                 .then(function (res) {
                     // TODO Too complicated, move to trezor.js
                     dev.connect(
@@ -368,15 +374,15 @@ angular.module('webwalletApp')
                     return dev;
                 })
 
-                // Execute before initialize hooks.
+            // Execute before initialize hooks.
                 .then(this._execHooks(this._beforeInitHooks))
 
-                // Run low-level initialize routine.
+            // Run low-level initialize routine.
                 .then(function (dev) {
                     return dev.initializeDevice();
                 })
 
-                // Was low-level initialization succesfull?
+            // Was low-level initialization succesfull?
                 .then(
                     // If it was, then set params for the following hooks.
                     function () {
@@ -389,10 +395,10 @@ angular.module('webwalletApp')
                     }
                 )
 
-                // Execute after initialize hooks.
+            // Execute after initialize hooks.
                 .then(this._execHooks(this._afterInitHooks))
 
-                // Show error message if something failed.
+            // Show error message if something failed.
                 .catch(function (err) {
                     if (!err instanceof this.DeviceListException) {
                         flash.error(err.message || 'Loading device failed');
@@ -450,9 +456,9 @@ angular.module('webwalletApp')
                     $q.when(res).then(function () {
                         next(i + 1);
                     },
-                    function (e) {
-                        deferred.reject(e);
-                    });
+                                      function (e) {
+                                          deferred.reject(e);
+                                      });
                 } else {
                     next(i + 1);
                 }

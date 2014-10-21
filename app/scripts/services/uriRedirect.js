@@ -19,22 +19,24 @@
  *
  * @see app.js#registerUriHandler()
  */
-angular.module('webwalletApp')
-  .factory('uriRedirect', function (deviceList, $route, $location) {
+angular.module('webwalletApp').factory('uriRedirect', function (
+    deviceList,
+    $route,
+    $location) {
 
     'use strict';
 
     var PATH_SEND_PATTERN = [
-          '/device/',
-          null,
-          '/account/',
-          null,
-          '/send/',
-          null
-        ],
+        '/device/',
+        null,
+        '/account/',
+        null,
+        '/send/',
+        null
+    ],
         PATH_SEND_PATTERN_AMOUNT = [
-          '/amount/',
-          null
+            '/amount/',
+            null
         ],
         device,
         account,
@@ -64,53 +66,53 @@ angular.module('webwalletApp')
      * @returns {Dict}  Parsed URI
      */
     function parseUri(uri) {
-      var params = {},
-          uri_parsed = uri.match(/bitcoin:(\w+)\??(.*)/),
-          raw_address,
-          raw_params_str,
-          raw_params_list;
+        var params = {},
+            uri_parsed = uri.match(/bitcoin:(\w+)\??(.*)/),
+            raw_address,
+            raw_params_str,
+            raw_params_list;
 
-      if (!uri_parsed) {
-        throw new Error('Invalid bitcoin URI');
-      }
-      raw_address = uri_parsed[1];
-      raw_params_str = uri_parsed[2];
-      if (raw_params_str) {
-        if (raw_params_str.indexOf('&')) {
-          raw_params_list = raw_params_str.split('&');
-        } else {
-          raw_params_list = [raw_params_str];
+        if (!uri_parsed) {
+            throw new Error('Invalid bitcoin URI');
         }
-        raw_params_list.forEach(function (raw_param) {
-          var raw_param_key_value;
-          if (!raw_param.indexOf('=')) {
-            return;
-          }
-          raw_param_key_value = raw_param.split('=');
-          params[raw_param_key_value[0]] = decodeURI(raw_param_key_value[1]);
-        });
-      }
-      return {
-        address: raw_address,
-        amount: parseFloat(params.amount) || null,
-        label: params.label || null,
-        message: params.message || null,
-        params: params || null
-      };
+        raw_address = uri_parsed[1];
+        raw_params_str = uri_parsed[2];
+        if (raw_params_str) {
+            if (raw_params_str.indexOf('&')) {
+                raw_params_list = raw_params_str.split('&');
+            } else {
+                raw_params_list = [raw_params_str];
+            }
+            raw_params_list.forEach(function (raw_param) {
+                var raw_param_key_value;
+                if (!raw_param.indexOf('=')) {
+                    return;
+                }
+                raw_param_key_value = raw_param.split('=');
+                params[raw_param_key_value[0]] = decodeURI(raw_param_key_value[1]);
+            });
+        }
+        return {
+            address: raw_address,
+            amount: parseFloat(params.amount) || null,
+            label: params.label || null,
+            message: params.message || null,
+            params: params || null
+        };
     }
 
     // Get default device and default account.
     device = deviceList.getDefault();
     if (!device) {
-      console.warn('[uri] Failed to find default device.  No redirect to Send will be made.');
-      $location.path('/');
-      return;
+        console.warn('[uri] Failed to find default device.  No redirect to Send will be made.');
+        $location.path('/');
+        return;
     }
     account = device.getDefaultAccount();
     if (!account) {
-      console.warn('[uri] Failed to find default account.  No redirect to Send will be made.');
-      $location.path('/');
-      return;
+        console.warn('[uri] Failed to find default account.  No redirect to Send will be made.');
+        $location.path('/');
+        return;
     }
 
     // Parse Bitcoin URI.
@@ -122,11 +124,11 @@ angular.module('webwalletApp')
     PATH_SEND_PATTERN[5] = parsedUri.address;
     redirectUri = PATH_SEND_PATTERN.join('');
     if (parsedUri.amount) {
-      PATH_SEND_PATTERN_AMOUNT[1] = parsedUri.amount;
-      redirectUri = redirectUri + PATH_SEND_PATTERN_AMOUNT.join('');
+        PATH_SEND_PATTERN_AMOUNT[1] = parsedUri.amount;
+        redirectUri = redirectUri + PATH_SEND_PATTERN_AMOUNT.join('');
     }
 
     // Redirect.
     console.log('[uri] redirecting to ' + redirectUri);
     $location.path(redirectUri).replace();
-  });
+});
