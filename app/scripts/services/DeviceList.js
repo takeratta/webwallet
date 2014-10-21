@@ -50,6 +50,7 @@ angular.module('webwalletApp')
 
     DeviceList.prototype._watchPaused = false;
     DeviceList.prototype._enumerateInProgress = false;
+    DeviceList.prototype._enumerateCanWait = false;
 
     DeviceList.prototype._beforeInitHooks = [];
     DeviceList.prototype._afterInitHooks = [];
@@ -271,7 +272,7 @@ angular.module('webwalletApp')
         }
 
         this._enumerateInProgress = true;
-        trezor.enumerate()
+        trezor.enumerate(this._enumerateCanWait)
             .then(function (devices) {
                 deferred.notify(devices.map(function (dev) {
                     if (!dev.id && dev.serialNumber) {
@@ -279,6 +280,7 @@ angular.module('webwalletApp')
                     }
                     return dev;
                 }));
+                this._enumerateCanWait = true;
                 this._enumerateInProgress = false;
             }.bind(this));
     };
