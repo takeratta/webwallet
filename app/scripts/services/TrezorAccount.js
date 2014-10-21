@@ -163,6 +163,20 @@ angular.module('webwalletApp').factory('TrezorAccount', function (
     };
 
     /**
+     * Get all used addresses on this account.
+     *
+     * @return {Array}  Addresses in the same format as #usedAddresses(), sans tx info
+     */
+    TrezorAccount.prototype.unusedAddresses = function (n) {
+        var i,
+            adresses = [];
+        for (i = 0; i < n; i++) {
+            adresses.push(this.address(i));
+        }
+        return adresses;
+    };
+
+    /**
      * Get address path of the first output of passed transaction
      *
      * @param {Object} tx    Bitcoin.js transaction object

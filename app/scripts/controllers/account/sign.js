@@ -7,24 +7,27 @@ angular.module('webwalletApp').controller('AccountSignCtrl', function (
 
     'use strict';
 
-    var _usedAddressesCache = [];
+    var _suggestedAddressesCache = [];
 
     function getAddressPath(address) {
-        var i,
-            len,
-            usedAddress;
+        var i, a, len;
 
-        if (!_usedAddressesCache) {
+        if (!_suggestedAddressesCache.length) {
             $scope.suggestAddresses();
         }
 
-        len = _usedAddressesCache.length;
+        len = _suggestedAddressesCache.length;
         for (i = 0; i < len; i = i + 1) {
-            usedAddress = _usedAddressesCache[i];
-            if (usedAddress.address === address) {
-                return usedAddress.acc.getOutPath(usedAddress.tx);
+            a = _suggestedAddressesCache[i];
+            if (a.address === address) {
+                if (a.path) {
+                    return a.path;
+                } else {
+                    return a.acc.getOutPath(a.tx);
+                }
             }
         }
+
         return null;
     }
 
@@ -101,8 +104,9 @@ angular.module('webwalletApp').controller('AccountSignCtrl', function (
     };
 
     $scope.suggestAddresses = function () {
-        var multipleDevices = deviceList.count() > 1,
-            usedAddresses = [];
+        var UNUSED_COUNT = 10,
+            multipleDevices = deviceList.count() > 1,
+            addresses = [];
 
         deviceList.all().forEach(function (dev) {
             dev.accounts.forEach(function (acc) {
@@ -114,20 +118,35 @@ angular.module('webwalletApp').controller('AccountSignCtrl', function (
                     label = acc.label();
                 }
 
-                acc.usedAddresses().forEach(function (address) {
-                    usedAddresses.push({
+                acc.usedAddresses()
+                    .map(_suggestAddress)
+                    .forEach(function (a) { addresses.push(a); });
+                acc.unusedAddresses(UNUSED_COUNT)
+                    .map(_suggestAddress)
+                    .forEach(function (a) { addresses.push(a); });
+
+                function _suggestAddress(address) {
+                    return {
                         label: label + ': ' + address.address,
                         address: address.address,
                         tx: address.tx,
                         acc: acc,
                         source: 'Account'
-                    });
-                });
+                    };
+                }
             });
         });
 
-        _usedAddressesCache = usedAddresses;
-        return usedAddresses;
+        _suggestedAddressesCache = addresses;
+        return addresses;
+    };
+
+    $scope.suggestAddressesWithCache = function () {
+        if (_suggestedAddressesCache.length) {
+            return _suggestedAddressesCache;
+        } else {
+            return $scope.suggestAddresses();
+        }
     };
 
     $scope.isAlertVisible = function (type) {
