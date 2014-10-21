@@ -308,8 +308,10 @@ body {
   margin-left: 10px;
 }
 
+/* Account Public Key (XPUB) */
+
 .nav-devices-accounts {
-  margin-bottom: 10px;
+  margin-bottom: 15px;
 }
 
 .nav-devices-accounts li:hover {
