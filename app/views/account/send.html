@@ -10,8 +10,7 @@
 
     <div ng-controller="AccountSendCtrl">
       <form name="form" class="form-horizontal"
-            ng-submit="send()"
-            ng-disabled="device.status() !== 'connected'">
+            ng-submit="send()">
         <div class="tab-content tx-send">
           <fieldset class="overlay-container">
 
@@ -94,16 +93,19 @@
             <!-- Button bar -->
             <div class="tx-submit form-group">
               <div class="col-sm-10 col-sm-push-2">
-                <span tooltip="Please connect your device to send coins."
-                      tooltip-trigger="{{
-                      device.status() !== 'connected' ? 'mouseenter' : 'manual'
-                      }}"
-                      tooltip-placement="bottom">
-                  <button type="submit"
-                          class="btn btn-primary btn-lg"
-                          ng-disabled="device.status() !== 'connected' || !tx.prepared">
-                    Send
-                  </button>
+                <div class="clearfix">
+                  <div class="pull-left"
+                       tooltip="Please connect your device to send coins."
+                       tooltip-trigger="{{
+                       device.status() !== 'connected' ? 'mouseenter' : 'manual'
+                       }}"
+                       tooltip-placement="bottom">
+                    <button type="submit"
+                            class="btn btn-primary btn-lg"
+                            ng-disabled="device.status() !== 'connected' || !tx.prepared">
+                      Send
+                    </button>
+                  </div>
 
                   <div class="tx-submit-additional pull-right btn-group">
                     <button type="button" class="btn btn-default btn-sm"
@@ -123,7 +125,7 @@
                       </li>
                     </ul>
                   </div>
-                </span>
+                </div>
 
                 <div class="form-control-static text-danger"
                      ng-show="tx.error">
@@ -156,7 +158,11 @@
                     <h6>Outputs:</h6>
                     <ol class="list-unstyled">
                       <li ng-repeat="output in tx.prepared.outputs">
-                        <strong>{{output.amount | amount}} {{account.coin.coin_shortcut}}</strong><br>
+                        <strong>
+                          {{output.amount | amount}}
+                          {{account.coin.coin_shortcut}}
+                        </strong>
+                        <br>
                         <span ng-if="output.address">
                           {{output.address}}
                         </span>
