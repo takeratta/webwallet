@@ -43,11 +43,11 @@
                         return transport.configure(config);
                     })
                     .then(function () {
-                        return createApp(null, transport);
+                        createApp(null, transport);
                     });
             })
             .catch(function (err) {
-                return createApp(err);
+                createApp(err);
             });
     }
 
@@ -106,11 +106,14 @@
      */
     function createApp(err, transport) {
         // Create module.
-        var app = angular.module('webwalletApp');
+        var app = angular.module('webwalletApp'),
+            container = document.getElementById('webwalletApp-container');
 
         // Attach routes.
         if (!err) {
             app.config(attachRoutes);
+        } else {
+            console.err(err);
         }
 
         // Pass Transport reference.
@@ -120,10 +123,29 @@
             .value('trezor', transport);
 
         // Initialize Angular.js.
-        angular.bootstrap(
-            document.getElementById('webwalletApp-container'),
-            ['webwalletApp']
-        );
+        try {
+            angular.bootstrap(container, ['webwalletApp']);
+        } catch (err2) {
+            console.error('[app] Error occured while bootstrapping ' +
+                'the Angular.js app.');
+            console.error(err2);
+            container.innerHTML = [
+                '<div class="page-container container">',
+                '  <div class="row" ng-if="installed">',
+                '    <div class="col-md-6 col-md-offset-3">',
+                '      <div class="alert alert-danger">',
+                '        <h4>Plugin loading failed :(</h4>',
+                '        <textarea>',
+                err || '',
+                err2,
+                '        </textarea>',
+                '      </div>',
+                '    </div>',
+                '  </div>',
+                '</div>'
+            ].join('');
+            container.removeAttribute('ng-cloak');
+        }
     }
 
     /**

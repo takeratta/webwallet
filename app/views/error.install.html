@@ -13,12 +13,12 @@
       <div class="text-center">
         <p class="form-inline">
           <a class="btn-installer-download btn btn-lg btn-success"
-             ng-href="{{ selected.url }}">
+             ng-href="{{ selectedInstaller.url }}">
             <span class="glyphicon glyphicon-download"></span> Download
           </a>
           <select class="form-control"
                   placeholder="Select platform..."
-                  ng-model="selected"
+                  ng-model="selectedInstaller"
                   ng-options="
                     installer as 'for ' + installer.label
                     for installer

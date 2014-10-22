@@ -19,28 +19,30 @@ angular.module('webwalletApp').controller('ErrorCtrl', function (
 
     'use strict';
 
+    try {
+        $scope.installers = trezorApi.installers();
+        $scope.installers.forEach(function (inst) {
+            if (inst.preferred) {
+                $scope.selectedInstaller = inst;
+            }
+        });
+    } catch (e) {
+        trezorError = trezorError || e;
+
+        console.error('[ErrorCtrl] Error occured while rendering the error ' +
+            'view.');
+        console.error(e.message);
+    }
+
     if (trezorError === null) {
         $scope.error = false;
 
         if (trezor instanceof trezorApi.PluginTransport) {
             $scope.deprecatePlugin = config.deprecatePlugin;
             $scope.usingPluginTransport = true;
-            $scope.installers = trezorApi.installers();
-            $scope.installers.forEach(function (inst) {
-                if (inst.preferred) {
-                    $scope.selectedInstaller = inst;
-                }
-            });
         }
     } else {
         $scope.error = true;
         $scope.installed = trezorError.installed !== false;
-        $scope.installers = trezorApi.installers();
-
-        $scope.installers.forEach(function (inst) {
-            if (inst.preferred) {
-                $scope.selected = inst;
-            }
-        });
     }
 });
