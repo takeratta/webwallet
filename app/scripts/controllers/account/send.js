@@ -10,6 +10,7 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
     $scope,
     $rootScope,
     $routeParams,
+    $modal,
     $http) {
 
     'use strict';
