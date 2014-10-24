@@ -25,7 +25,7 @@ angular.module('webwalletApp').factory('TrezorDevice', function (
     }
 
     TrezorDevice.prototype.DEFAULT_LABEL = 'My TREZOR';
-    TrezorDevice.prototype.LABEL_MAX_LENGTH = 24;
+    TrezorDevice.prototype.LABEL_MAX_LENGTH = 16;
 
     TrezorDevice.EVENT_PIN = 'pin';
     TrezorDevice.EVENT_BUTTON = 'button';
