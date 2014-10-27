@@ -595,8 +595,8 @@ body {
 .tx-amount select {
   width: 7em;
 }
-.tx-amount .input-group {
-  width: 11em;
+.tx-amount .input-group-addon {
+  width: 3em;
 }
 .tx-amount select {
   width: 6em;
@@ -621,6 +621,9 @@ body {
 .tx-submit-additional {
   margin-top: 10px;
   margin-left: 15px;
+}
+.tx-output .input-with-icon {
+  max-width: 26.5em;
 }
 
 .tx-preview {
