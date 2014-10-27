@@ -42,8 +42,21 @@ angular.module('webwalletApp').controller('AccountSignCtrl', function (
         address_n = getAddressPath($scope.sign.address);
         coin = $scope.device.defaultCoin();
 
+        if (!address_n) {
+            $scope.sign.res = {
+                status: 'error',
+                message: [
+                    'myTREZOR was not able to sign the message with this ',
+                    'address. Make sure the address is valid and belongs to ',
+                    'your Trezor.'
+                ].join('')
+            };
+            return;
+        }
+
         $scope.device.signMessage(address_n, message, coin).then(
             function (res) {
+                $scope.hideAlert('sign');
                 $scope.sign.signature =
                     utils.bytesToBase64(utils.hexToBytes(
                         res.message.signature
