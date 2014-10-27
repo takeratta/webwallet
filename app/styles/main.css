@@ -584,16 +584,25 @@ body {
 /* Transaction Send */
 
 .tx-amount input,
-.tx-amount select {
+.tx-amount select,
+.tx-amount .input-group,
+.tx-amount .form-control-static,
+.tx-amount .input-wrapper {
   float: left;
+}
+.tx-amount input,
+.tx-amount .input-group input,
+.tx-amount select {
   width: 7em;
+}
+.tx-amount .input-group {
+  width: 11em;
 }
 .tx-amount select {
   width: 6em;
   border-left: 0;
 }
 .tx-amount .form-control-static {
-  float: left;
   width: 1.5em;
   font-size: 150%;
   text-align: center;

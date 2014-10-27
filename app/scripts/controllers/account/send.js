@@ -10,69 +10,155 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
     $scope,
     $rootScope,
     $routeParams,
+    $q,
     $modal,
     $http) {
 
     'use strict';
 
     var STORAGE_TXVALUES = 'trezorSendValues',
-        DEFAULT_CURRENCY = 'USD';
+        DEFAULT_ALT_CURRENCY = 'USD',
+        _supportedAltCurrenciesCache = null;
 
+    // Scope defaults
     $scope.tx = {
-        values: initialTxValues(),
+        values: null,
         prepared: null,
         error: null,
         fee: null
     };
     $scope.sending = false;
 
-    getSupportedAltCurrencies().then(function (currencies) {
-        $scope.currenciesAlt = currencies;
-    });
+    // Start by loading tx values from localStorage or Bitcoin URI (if passed).
+    loadTxValues();
 
-    /*
+    /**
+     * Fill the list of all supported alt currencies and recalculate alt amount
+     * on each tx output.
+     */
+    function fillAltCurrencies() {
+        getSupportedAltCurrencies().then(function (currencies) {
+            $scope.currenciesAlt = currencies;
+            if (!$scope.tx.values && $scope.tx.values.outputs) {
+                return;
+            }
+            $scope.tx.values.outputs.forEach(function (output) {
+                output.currencyAlt =
+                    output.currencyAlt || DEFAULT_ALT_CURRENCY;
+                $scope.convertToAltCurrency(output);
+            });
+        });
+    }
+
+    /**
+     * Create a new tx output Object with the default values filled.
+     *
+     * This method loads the list of supported alt currencies before returning
+     * the new output, because the list must be available before setting the
+     * currently selected alt currency of the output.
+     *
+     * @return {Object}  Tx output Object
+     */
+    function newOutput() {
+        fillAltCurrencies();
+        return _doFillOutput({});
+    }
+
+    /**
+     * Fill passed tx output Object with the default values, if they are not
+     * filled already.
+     *
+     * @return output {Object}  Tx output in format:
+     *                          {address: String, amount: String,
+     *                          amountAlt: String, currencyAlt: String}
+     * @return {Object}         Tx output Object with default values filled
+     */
+    function fillOutput(output) {
+        fillAltCurrencies();
+        return _doFillOutput(output || {});
+    }
+
+    /**
+     * Fill passed tx output Objects with the default values, if they are not
+     * filled already.
+     *
+     * @return outputs {Array}  Array of tx outputs in format:
+     *                          {address: String, amount: String,
+     *                          amountAlt: String, currencyAlt: String}
+     * @return {Array}          Array of tx outputs Objects with default
+     *                          values filled
+     */
+    function fillOutputs(outputs) {
+        fillAltCurrencies();
+        return outputs.map(function (output) {
+            return _doFillOutput(output);
+        });
+    }
+
+    function _doFillOutput(output) {
+        return {
+            address: output.address,
+            amount: output.amount || '',
+            amountAlt: output.amountAlt || '',
+            currencyAlt: output.currencyAlt
+        };
+    }
+
+    /**
      * If a transaction output was specified in an HTTP GET param, use that
      * value first.  Otherwise load previously filled output values from
      * localStorage.
      */
-    function initialTxValues() {
-        var values,
-            output;
-
+    function loadTxValues() {
         if ($routeParams.output) {
-            output = {
+            var output = {
                 address: $routeParams.output
             };
             if ($routeParams.amount) {
                 output.amount = $routeParams.amount;
             }
-            values = {
-                outputs: [output]
+            $scope.tx.values = {
+                outputs: [fillOutput(output)]
             };
         } else {
-            values = restoreTxValues();
+            $scope.tx.values = {
+                outputs: fillOutputs(
+                    restoreTxValues().outputs
+                )
+            };
         }
-
-        return values;
     }
 
-    // Tx values save/restore
-
+    /**
+     * Save currently filled tx outputs in localStorage.
+     */
     function saveTxValues() {
         temporaryStorage[STORAGE_TXVALUES] = JSON.stringify($scope.tx.values);
     }
 
+    /**
+     * Remove all tx outputs store in localStorage.
+     */
     function cancelTxValues() {
         delete temporaryStorage[STORAGE_TXVALUES];
     }
 
-    function restoreTxValues() {
-        if (temporaryStorage[STORAGE_TXVALUES])
-            return JSON.parse(temporaryStorage[STORAGE_TXVALUES]);
-        return { outputs: [createNewOutput()] };
-    }
-
     $scope.cancelTxValues = cancelTxValues;
+
+    /**
+     * Restore tx values from localStorage.
+     *
+     * @return {Object}  Tx values in format:
+     *                   { outputs: Array of tx output objects }
+     */
+    function restoreTxValues() {
+        if (temporaryStorage[STORAGE_TXVALUES]) {
+            return JSON.parse(temporaryStorage[STORAGE_TXVALUES]);
+        }
+        return {
+            outputs: [newOutput()]
+        };
+    }
 
     // Tx preparing
 
@@ -81,8 +167,9 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
             return $scope.account.balance !== null;
         },
         function (hasBalance) {
-            if (hasBalance)
+            if (hasBalance) {
                 prepareTx($scope.tx.values);
+            }
         }
     );
 
@@ -97,11 +184,16 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
         var preparedOuts = [],
             outsOk = true;
 
+        if (!vals) {
+            return;
+        }
+
         vals.outputs.forEach(prepareOutput);
-        if (outsOk && preparedOuts.length)
+        if (outsOk && preparedOuts.length) {
             $scope.account.buildTx(preparedOuts, $scope.device).then(success, cancel);
-        else
+        } else {
             cancel();
+        }
 
         function prepareOutput(out) {
             var address = out.address,
@@ -110,8 +202,9 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
 
             address = address ? address.trim() : '';
             amount = amount ? amount.trim() : '';
-            if (!address || !amount)
+            if (!address || !amount) {
                 return; // skip empty fields in silence
+            }
             amount = utils.str2amount(amount);
 
             try {
@@ -131,9 +224,9 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
             if (pout) {
                 preparedOuts.push(pout);
                 out.error = null;
-            }
-            else
+            } else {
                 outsOk = false;
+            }
         }
 
         function success(tx) {
@@ -145,8 +238,9 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
         function cancel(err) {
             $scope.tx.fee = null;
             $scope.tx.prepared = null;
-            if (err)
+            if (err) {
                 $scope.tx.error = err.message || 'Failed to prepare transaction.';
+            }
         }
     }
 
@@ -166,7 +260,9 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
     function qrAddressModified(val) {
         var values, output;
 
-        if (!$scope.qr.scanning) return;
+        if (!$scope.qr.scanning) {
+            return;
+        }
         $scope.qr.scanning = false;
 
         if (!val) {
@@ -175,27 +271,34 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
         }
 
         values = parseQr(val);
-        if (!values)
+        if (!values) {
             return flash.error('Provided QR code does not contain valid address');
+        }
 
         output = $scope.tx.values.outputs[$scope.qr.outputIndex];
-        if (values.address) output.address = values.address;
-        if (values.amount) output.amount = values.amount;
+        if (values.address) {
+            output.address = values.address;
+        }
+        if (values.amount) {
+            output.amount = values.amount;
+        }
         $scope.qr.address = undefined;
     }
 
     function parseQr(str) {
         var vals, query;
 
-        if (str.indexOf('bitcoin:') === 0)
+        if (str.indexOf('bitcoin:') === 0) {
             str = str.substring(8);
+        }
 
         query = str.split('?');
         vals = (query.length > 1) ? parseQuery(query[1]) : {};
         vals.address = query[0];
 
-        if (vals.address.length < 27 || vals.address.length > 34)
+        if (vals.address.length < 27 || vals.address.length > 34) {
             return;
+        }
 
         return vals;
     }
@@ -206,8 +309,9 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
                 return val.split('=');
             })
             .reduce(function (vals, pair) {
-                if (pair.length > 1)
+                if (pair.length > 1) {
                     vals[pair[0]] = pair[1];
+                }
                 return vals;
             }, {});
     }
@@ -217,10 +321,12 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
     $rootScope.$on('modal.button.show', modalShown);
 
     function modalShown(event, code) {
-        if (code === 'ButtonRequest_ConfirmOutput')
+        if (code === 'ButtonRequest_ConfirmOutput') {
             injectTxInfo(event.targetScope, true);
-        if (code === 'ButtonRequest_SignTx')
+        }
+        if (code === 'ButtonRequest_SignTx') {
             injectTxInfo(event.targetScope, false);
+        }
     }
 
     function injectTxInfo(scope, injectOutput) {
@@ -229,13 +335,15 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
         scope.account = $scope.account;
         scope.tx = prepared;
 
-        if (!prepared || !injectOutput)
+        if (!prepared || !injectOutput) {
             return;
+        }
 
         // detect internal output
         if (prepared.outputs[$scope.outputIndex] &&
-            prepared.outputs[$scope.outputIndex].address_n)
+                prepared.outputs[$scope.outputIndex].address_n) {
             $scope.outputIndex++;
+        }
 
         if (prepared.outputs[$scope.outputIndex]) {
             scope.output = prepared.outputs[$scope.outputIndex];
@@ -246,36 +354,38 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
     // Sending
 
     $scope.send = function () {
-        var tx = $scope.tx.prepared;
-        if (!tx) return;
+        var tx = $scope.tx.prepared,
+            redirectUrl;
+        if (!tx) {
+            return;
+        }
 
         $scope.sending = true;
         $scope.outputIndex = 0;
 
         $scope.account.sendTx(tx, $scope.device).then(
             function (res) {
-
                 cancelTxValues();
                 $scope.sending = false;
 
-                utils.redirect('/device/' + $scope.device.id +
-                               '/account/' + $scope.account.id).then(function () {
-                                   res.hashRev = res.hash.slice();
-                                   res.hashRev.reverse();
-                                   var hashHex = utils.bytesToHex(res.hashRev);
-                                   flash.success(
-                                       {
-                                           template: [
-                                               'Transaction <a href="{{url}}" target="_blank" ',
-                                               'title="Transaction info at {{title}}">{{hashHex}}</a> ',
-                                               'was successfully sent.'
-                                           ].join(''),
-                                           hashHex: hashHex,
-                                           url: config.blockExplorers[config.coin].urlTx + hashHex,
-                                           title: config.blockExplorers[config.coin].name
-                                       }
-                                   );
-                               });
+                redirectUrl = ['/device/', $scope.device.id, '/account/',
+                    $scope.account.id].join('');
+
+                utils.redirect(redirectUrl).then(function () {
+                    res.hashRev = res.hash.slice();
+                    res.hashRev.reverse();
+                    var hashHex = utils.bytesToHex(res.hashRev);
+                    flash.success({
+                        template: [
+                            'Transaction <a href="{{url}}" target="_blank" ',
+                            'title="Transaction info at {{title}}">{{hashHex}}</a> ',
+                            'was successfully sent.'
+                        ].join(''),
+                        hashHex: hashHex,
+                        url: config.blockExplorers[config.coin].urlTx + hashHex,
+                        title: config.blockExplorers[config.coin].name
+                    });
+                });
             },
             function (err) {
                 $scope.sending = false;
@@ -311,20 +421,12 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
     };
 
     $scope.addOutput = function () {
-        $scope.tx.values.outputs.push(createNewOutput());
+        $scope.tx.values.outputs.push(newOutput());
     };
 
     $scope.removeAllOutputs = function () {
-        $scope.tx.values.outputs = [createNewOutput()];
+        $scope.tx.values.outputs = [newOutput()];
     };
-
-    function createNewOutput() {
-        return {
-            amount: '',
-            amountAlt: '',
-            currencyAlt: DEFAULT_CURRENCY
-        };
-    }
 
     // Suggest the highest possible amount to pay, taking filled
     // amounts in consideration
@@ -333,7 +435,7 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
         var ptx = $scope.tx.prepared,
             account = $scope.account,
             outputSum = ptx ? ptx.outputSum : 0,
-            available = parseInt(account.balance.toString());
+            available = parseInt(account.balance.toString(), 10);
 
         return $filter('amount')(available - outputSum);
     };
@@ -348,7 +450,7 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
         deviceList.all().forEach(function (dev) {
             dev.accounts.forEach(function (acc) {
                 if (dev.id === currentDevice.id &&
-                    acc.id === currentAccount.id) {
+                        acc.id === currentAccount.id) {
                     return;
                 }
                 suggestedAccounts.push([dev, acc]);
@@ -402,7 +504,7 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
             windowClass: '',
             backdrop: 'static',
             keyboard: false,
-            scope: scope,
+            scope: scope
         });
         modal.opened.then(function () { scope.$emit('modal.qr.show'); });
         modal.result.finally(function () { scope.$emit('modal.qr.hide'); });
@@ -535,15 +637,24 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
     /**
      * Get all currencies that we are able to convert to and from BTC.
      *
-     * @return {Array}  List of currency abbrevs; example: ["USD", "GBP" ...]
+     * The list of currencies is cached.  The API is polled only once.
+     *
+     * @return {Promise}  Resolved with an Array of currency abbrevs.
+     *                    Example: ["USD", "GBP"...]
      */
     function getSupportedAltCurrencies() {
-        var url = 'https://api.coindesk.com/v1/bpi/supported-currencies.json';
-        return $http.get(url).then(function (res) {
-            return res.data.map(function (currency) {
-                return currency.currency;
+        var url;
+        if (_supportedAltCurrenciesCache === null) {
+            url = 'https://api.coindesk.com/v1/bpi/supported-currencies.json';
+            return $http.get(url).then(function (res) {
+                _supportedAltCurrenciesCache =
+                    res.data.map(function (currency) {
+                        return currency.currency;
+                    });
+                return _supportedAltCurrenciesCache;
             });
-        });
+        }
+        return $q.when(_supportedAltCurrenciesCache);
     }
 
 });

@@ -63,24 +63,25 @@
                    ng-class="{'has-error': output.error.amount}">
                 <label for="amount" class="control-label col-sm-2">Amount</label>
                 <div class="col-sm-10 tx-amount">
-                  <input id="amount" class="form-control" type="text"
-                         ng-model="output.amount"
-                         ng-change="convertToAltCurrency(output)"
-                         required>
-                  <select class="form-control"
-                          disabled>
-                    <option value="{{account.coin.coin_shortcut}}"
-                            selected>{{account.coin.coin_shortcut}}</option>
-                  </select>
-                  <p class="form-control-static">=</p>
-                  <input type="text" class="form-control"
-                         ng-model="output.amountAlt"
-                         ng-change="convertToBtc(output)">
-                  <select class="form-control"
-                          ng-model="output.currencyAlt"
-                          ng-change="convertToAltCurrency(output)"
-                          ng-options="currency for currency in currenciesAlt">
-                  </select>
+                  <div class="input-group">
+                    <input id="amount" class="form-control" type="text"
+                           ng-model="output.amount"
+                           ng-change="convertToAltCurrency(output)"
+                           required>
+                    <div class="input-group-addon">{{account.coin.coin_shortcut}}</div>
+                  </div>
+                  <div class="input-wrapper"
+                      ng-if="currenciesAlt">
+                    <p class="form-control-static">=</p>
+                    <input type="text" class="form-control"
+                           ng-model="output.amountAlt"
+                           ng-change="convertToBtc(output)">
+                    <select class="form-control"
+                            ng-model="output.currencyAlt"
+                            ng-change="convertToAltCurrency(output)"
+                            ng-options="currency for currency in currenciesAlt">
+                    </select>
+                  </div>
                   <span class="help-block" ng-if="output.error.amount">
                     {{output.error.amount}}
                   </span>
@@ -121,6 +122,11 @@
                       <li>
                         <a href="" ng-click="importCsv()">
                           <span class="glyphicon glyphicon-import"></span> Import from CSV
+                        </a>
+                      </li>
+                      <li ng-show="tx.values.outputs.length > 1">
+                        <a href="" ng-click="removeAllOutputs()">
+                          <span class="glyphicon glyphicon-remove"></span> Remove all outputs
                         </a>
                       </li>
                     </ul>
