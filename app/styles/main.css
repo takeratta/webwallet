@@ -602,13 +602,19 @@ body {
   width: 6em;
   border-left: 0;
 }
-.tx-amount .form-control-static {
+.tx-amount-sep {
   width: 1.5em;
   font-size: 150%;
   text-align: center;
   padding: 0;
   margin: 0;
   line-height: 1.5;
+}
+.tx-amount-info {
+  padding-left: 1.5em;
+  color: #777; /* .text-muted */
+  font-size: 10px; /* .tx-preview */
+  line-height: 2;
 }
 .tx-amount .help-block {
   clear: both;

@@ -72,7 +72,7 @@
                   </div>
                   <div class="input-wrapper"
                       ng-if="currenciesAlt">
-                    <p class="form-control-static">=</p>
+                    <p class="form-control-static tx-amount-sep">=</p>
                     <input type="text" class="form-control"
                            ng-model="output.amountAlt"
                            ng-change="convertToBtc(output)">
@@ -81,6 +81,11 @@
                             ng-change="convertToAltCurrency(output)"
                             ng-options="currency for currency in currenciesAlt">
                     </select>
+                    <p class="form-control-static tx-amount-info">
+                      Exchange rates provided by
+                      <a href="http://www.coindesk.com/api/"
+                        target="_blank">CoinDesk</a>.
+                    </p>
                   </div>
                   <span class="help-block" ng-if="output.error.amount">
                     {{output.error.amount}}
