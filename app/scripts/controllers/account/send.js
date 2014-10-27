@@ -18,7 +18,9 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
 
     var STORAGE_TXVALUES = 'trezorSendValues',
         DEFAULT_ALT_CURRENCY = 'USD',
-        _supportedAltCurrenciesCache = null;
+        TIMEOUT_AMOUNT_ERR = 500,
+        _supportedAltCurrenciesCache = null,
+        _timeoutsAmountErr = [];
 
     // Scope defaults
     $scope.tx = {
@@ -195,7 +197,7 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
             cancel();
         }
 
-        function prepareOutput(out) {
+        function prepareOutput(out, i) {
             var address = out.address,
                 amount = out.amount,
                 pout;
@@ -214,14 +216,30 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
                     out.error = out.error || {};
                     out.error.address = e.message;
                 } else if (e.field === $scope.account.FIELD_AMOUNT) {
-                    out.error = out.error || {};
-                    out.error.amount = e.message;
+                    /*
+                     * Wait for the user to finish typing before showing
+                     * an error that the amount is too low.
+                     */
+                    if (_timeoutsAmountErr[i]) {
+                        console.log('T CLEAR 1');
+                        window.clearTimeout(_timeoutsAmountErr[i]);
+                    }
+                    console.log('T SET');
+                    _timeoutsAmountErr[i] = window.setTimeout(function () {
+                        console.log('T DONE');
+                        out.error = out.error || {};
+                        out.error.amount = e.message;
+                    }, TIMEOUT_AMOUNT_ERR);
                 } else {
                     out.error = e.message;
                 }
             }
 
             if (pout) {
+                if (_timeoutsAmountErr[i]) {
+                    console.log('T CLEAR 2');
+                    window.clearTimeout(_timeoutsAmountErr[i]);
+                }
                 preparedOuts.push(pout);
                 out.error = null;
             } else {
