@@ -14,7 +14,7 @@ cd app/data
 cd ../../
 
 rm -rf app/bower_components
-bower install -F || $(npm bin)/bower install
+bower install -F || $(npm bin)/bower install -F
 #npm install
 
 grunt build || $(npm bin)/grunt build
