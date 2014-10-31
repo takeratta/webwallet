@@ -542,8 +542,10 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
                         header: !!form.header,
                         lineDelimiter: '\n'
                     },
+                    outputs = $scope.tx.values.outputs,
                     colAddress,
                     colAmount;
+
                 if (options.header) {
                     colAddress = 'address';
                     colAmount = 'amount';
@@ -551,16 +553,24 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
                     colAddress = 0;
                     colAmount = 1;
                 }
+
                 /*
                  * Can't use CSV#forEach() because of a bug in the library:
                  * `data is undefined`.
                  */
                 new CSV(data, options).parse().forEach(function (line) {
-                    $scope.tx.values.outputs.push({
+                    outputs.push({
                         address: line[colAddress].toString(),
                         amount: line[colAmount].toString()
                     });
                 });
+
+                // Trim empty old outputs from the beginning
+                while (outputs.length > 1 &&
+                       !outputs[0].amount &&
+                       !outputs[0].address) {
+                    outputs.shift();
+                }
             });
     };
 
@@ -571,7 +581,13 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
         var scope,
             modal;
 
-        scope = angular.extend($scope.$new(), {});
+        scope = angular.extend($scope.$new(), {
+            values: {
+                data: '',
+                delimiter: ',',
+                header: true
+            }
+        });
 
         modal = $modal.open({
             templateUrl: 'views/modal/csv.html',
@@ -579,9 +595,7 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
             windowClass: '',
             backdrop: 'static',
             keyboard: false,
-            scope: scope,
-            delimiter: ',',
-            header: true
+            scope: scope
         });
         modal.opened.then(function () { scope.$emit('modal.csv.show'); });
         modal.result.finally(function () { scope.$emit('modal.csv.hide'); });

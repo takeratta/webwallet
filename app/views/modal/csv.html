@@ -4,35 +4,36 @@
   <h4 class="modal-title">Import addresses from CSV</h4>
 </div>
 <form role="form"
-  ng-submit="$close({delimiter: delimiter, header: header, data: data})">
-<div class="modal-body">
-  <div>
-    <p>Example:</p>
-    <pre>address,amount
+      ng-submit="$close(values)">
+  <div class="modal-body">
+    <div>
+      <p>Example:</p>
+      <pre>address,amount
 masdyerjendIJSDNausdnalsdjaudJDAsd,0.00073
 adsSADJASDjasdASdkjSAdkjSKAjdaorew,1.2</pre>
-    <div class="form-group">
-      <label>Cell delimiter</label>
-      <input type="text" class="form-control" checked="checked"
-        ng-model="delimiter" value=",">
-    </div>
-    <div class="checkbox">
-      <label>
-        <input type="checkbox" checked="checked"
-          ng-model="header">
-        First row is header
-      </label>
-    </div>
-    <div class="form-group">
-      <label>Paste the CSV here:</label>
-      <textarea class="form-control input-lg" cols="50" rows="10" autofocus
-          ng-model="data"></textarea>
+      <div class="form-group">
+        <label>Cell delimiter</label>
+        <input type="text" class="form-control"
+               ng-model="values.delimiter"
+               ng-trim="false">
+      </div>
+      <div class="checkbox">
+        <label>
+          <input type="checkbox"
+                 ng-model="values.header">
+          First row is header
+        </label>
+      </div>
+      <div class="form-group">
+        <label>Paste the CSV here:</label>
+        <textarea class="form-control input-lg" cols="50" rows="10" autofocus
+                  ng-model="values.data"></textarea>
+      </div>
     </div>
   </div>
-</div>
-<div class="modal-footer">
-  <button type="button" class="btn btn-default"
-      ng-click="$dismiss()">Cancel</button>
-  <button type="submit" class="btn btn-primary">Import</button>
-</div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-default"
+            ng-click="$dismiss()">Cancel</button>
+    <button type="submit" class="btn btn-primary">Import</button>
+  </div>
 </form>
