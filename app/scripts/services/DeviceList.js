@@ -59,7 +59,7 @@ angular.module('webwalletApp').factory('deviceList', function (
     DeviceList.prototype.POLLING_PERIOD = 1000;
 
     DeviceList.prototype.DEFAULT_HOOK_PRIORITY = 50;
-    DeviceList.prototype.DEFAULT_HOOK_NAME = 'anonymouse';
+    DeviceList.prototype.DEFAULT_HOOK_NAME = 'anonymous';
 
     /**
      * Load known devices from localStorage and initialize them.
