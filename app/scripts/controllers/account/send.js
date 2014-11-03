@@ -559,10 +559,12 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
                  * `data is undefined`.
                  */
                 new CSV(data, options).parse().forEach(function (line) {
-                    outputs.push({
-                        address: line[colAddress].toString(),
-                        amount: line[colAmount].toString()
-                    });
+                    outputs.push(
+                        fillOutput({
+                            address: line[colAddress].toString(),
+                            amount: line[colAmount].toString()
+                        })
+                    );
                 });
 
                 // Trim empty old outputs from the beginning
