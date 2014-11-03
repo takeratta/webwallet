@@ -57,6 +57,9 @@ angular.module('webwalletApp')
         deviceList.registerForgetHook(forget);
         deviceList.registerAfterForgetHook(navigateToDefaultDevice);
 
+        // Watch for newly connected and disconnected devices
+        deviceList.watch(deviceList.POLLING_PERIOD);
+
         /**
          * Pause refreshing of the passed device while a communicate with the
          * device is in progress.  While the watching is passed, webwallet will

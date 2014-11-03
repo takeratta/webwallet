@@ -38,11 +38,20 @@ angular.module('webwalletApp').factory('deviceList', function (
      * @constructor
      */
     function DeviceList() {
+        this._devices = [];
+
+        this._watchPaused = false;
+        this._enumerateInProgress = false;
+        this._enumerateCanWait = false;
+
+        this._beforeInitHooks = [];
+        this._afterInitHooks = [];
+        this._disconnectHooks = [];
+        this._forgetHooks = [];
+        this._afterForgetHooks = [];
+
         // Load devices from localStorage
         this._restore();
-
-        // Watch for newly connected and disconnected devices
-        this._watch(this.POLLING_PERIOD);
     }
 
     DeviceList.prototype.STORAGE_DEVICES = 'trezorDevices';
@@ -51,18 +60,6 @@ angular.module('webwalletApp').factory('deviceList', function (
 
     DeviceList.prototype.DEFAULT_HOOK_PRIORITY = 50;
     DeviceList.prototype.DEFAULT_HOOK_NAME = 'anonymouse';
-
-    DeviceList.prototype._devices = [];
-
-    DeviceList.prototype._watchPaused = false;
-    DeviceList.prototype._enumerateInProgress = false;
-    DeviceList.prototype._enumerateCanWait = false;
-
-    DeviceList.prototype._beforeInitHooks = [];
-    DeviceList.prototype._afterInitHooks = [];
-    DeviceList.prototype._disconnectHooks = [];
-    DeviceList.prototype._forgetHooks = [];
-    DeviceList.prototype._afterForgetHooks = [];
 
     /**
      * Load known devices from localStorage and initialize them.
@@ -216,7 +213,7 @@ angular.module('webwalletApp').factory('deviceList', function (
      * @param {Number} n  Polling period in miliseconds
      * @return {Promise}  Ticking Promise
      */
-    DeviceList.prototype._watch = function (n) {
+    DeviceList.prototype.watch = function (n) {
         var tick = utils.tick(n),
             connected = $q.defer(),
             delta;
