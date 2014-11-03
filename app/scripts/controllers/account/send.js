@@ -221,12 +221,9 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
                      * an error that the amount is too low.
                      */
                     if (_timeoutsAmountErr[i]) {
-                        console.log('T CLEAR 1');
                         window.clearTimeout(_timeoutsAmountErr[i]);
                     }
-                    console.log('T SET');
                     _timeoutsAmountErr[i] = window.setTimeout(function () {
-                        console.log('T DONE');
                         out.error = out.error || {};
                         out.error.amount = e.message;
                     }, TIMEOUT_AMOUNT_ERR);
@@ -237,7 +234,6 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
 
             if (pout) {
                 if (_timeoutsAmountErr[i]) {
-                    console.log('T CLEAR 2');
                     window.clearTimeout(_timeoutsAmountErr[i]);
                 }
                 preparedOuts.push(pout);
@@ -531,55 +527,89 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
     }
 
     /**
-     * Import CSV
+     * Import CSV -- read data from passed Angular.js form, parse it, and fill
+     * in tx outputs.
+     *
+     * @param {Object} [form]  Angular.js form values.  It should contain keys:
+     *                         `data`,
+     *                         `cellDelimiter`,
+     *                         `header`,
+     *                         `lineDelimiter`
+     * @return {String|null}   Error message if import failed, otherwise null.
      */
-    $scope.importCsv = function () {
-        promptCsv()
-            .then(function (form) {
-                var data = form.data.replace('\r', '\n').replace('\n\n', '\n'),
-                    options = {
-                        cellDelimiter: (form.delimiter || '')[0] || ',',
-                        header: !!form.header,
-                        lineDelimiter: '\n'
-                    },
-                    outputs = $scope.tx.values.outputs,
-                    colAddress,
-                    colAmount;
+    function importCsv(form) {
+        var data,
+            options,
+            line,
+            lines,
+            len,
+            i,
+            outputs = $scope.tx.values.outputs,
+            colAddress,
+            colAmount;
 
-                if (options.header) {
-                    colAddress = 'address';
-                    colAmount = 'amount';
-                } else {
-                    colAddress = 0;
-                    colAmount = 1;
-                }
+        // Sanitize CSV data
+        data = form.data.replace('\r', '\n').replace('\n\n', '\n');
+        if (!data) {
+            return 'Please fill the CSV.';
+        }
 
-                /*
-                 * Can't use CSV#forEach() because of a bug in the library:
-                 * `data is undefined`.
-                 */
-                new CSV(data, options).parse().forEach(function (line) {
-                    outputs.push(
-                        fillOutput({
-                            address: line[colAddress].toString(),
-                            amount: line[colAmount].toString()
-                        })
-                    );
-                });
+        // Sanitize CSV options
+        options = {
+            cellDelimiter: (form.delimiter || '')[0] || ',',
+            header: !!form.header,
+            lineDelimiter: '\n'
+        };
 
-                // Trim empty old outputs from the beginning
-                while (outputs.length > 1 &&
-                       !outputs[0].amount &&
-                       !outputs[0].address) {
-                    outputs.shift();
-                }
-            });
-    };
+        // Parse CSV
+        lines = new CSV(data, options).parse();
+        len = lines.length;
+        if (!len) {
+            return 'Unable to parse the CSV.';
+        }
+
+        // Fill outputs
+        if (options.header) {
+            colAddress = 'address';
+            colAmount = 'amount';
+        } else {
+            colAddress = 0;
+            colAmount = 1;
+        }
+        /*
+         * Can't use CSV#forEach() because of a bug in the library:
+         * `data is undefined`.
+         */
+        for (i = 0; i < len; i = i + 1) {
+            line = lines[i];
+            if (!line[colAddress]) {
+                return 'Address column not found in the CSV.';
+            }
+            if (!line[colAmount]) {
+                return 'Amount column not found in the CSV.';
+            }
+            outputs.push(
+                fillOutput({
+                    address: line[colAddress].toString(),
+                    amount: line[colAmount].toString()
+                })
+            );
+        }
+
+        // Trim empty old outputs from the beginning
+        while (outputs.length > 1 &&
+               !outputs[0].amount &&
+               !outputs[0].address) {
+            outputs.shift();
+        }
+
+        return null;
+    }
 
     /**
-     * Prompt CSV
+     * Open a CSV import modal dialog.
      */
-    function promptCsv() {
+    $scope.promptCsv = function () {
         var scope,
             modal;
 
@@ -588,6 +618,14 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
                 data: '',
                 delimiter: ',',
                 header: true
+            },
+            submit: function (form) {
+                var errMsg = importCsv(form);
+                if (!errMsg) {
+                    modal.close();
+                } else {
+                    scope.errMsg = errMsg;
+                }
             }
         });
 
@@ -607,7 +645,7 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
         });
 
         return modal.result;
-    }
+    };
 
     /**
      * Convert amount on passed transaction output from BTC to another

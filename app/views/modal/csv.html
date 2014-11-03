@@ -4,9 +4,11 @@
   <h4 class="modal-title">Import addresses from CSV</h4>
 </div>
 <form role="form"
-      ng-submit="$close(values)">
+      ng-submit="submit(values)">
   <div class="modal-body">
     <div>
+      <p class="alert alert-danger"
+        ng-if="errMsg">{{errMsg}}</p>
       <p>Example:</p>
       <pre>address,amount
 masdyerjendIJSDNausdnalsdjaudJDAsd,0.00073
