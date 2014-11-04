@@ -529,7 +529,11 @@ body {
 .pinmodal .form-group {
   margin: 0;
 }
-.pinmodal .btn:focus {
+.pinmodal .col-sm-4 .btn {
+  width: 83px;
+  height: 83px;
+}
+.pinmodal .col-sm-4 .btn:focus {
   outline: 0;
 }
 
