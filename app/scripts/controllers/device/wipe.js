@@ -4,68 +4,118 @@ angular.module('webwalletApp').controller('DeviceWipeCtrl', function (
     $scope,
     flash,
     deviceList,
-    deviceService) {
+    $modal) {
 
     'use strict';
 
+    var _wipeInProgress = false,
+        _disconnectModal = null;
+
+    deviceList.registerDisconnectHook(forgetOnDisconnectAfterWipe, 10);
+
     /**
-     * Wipe device
+     * Replace default modal asking the user if he/she wants to forget the
+     * device with a custom one that features a message that the wipe was
+     * successfully finished.
      *
-     * Wipe the device and then ask the user if he/she wants to forget it
-     * using the same modal that is shown when the user clicks the
-     * 'Forget device' link.
+     * @param {TrezorDevice} dev  Device
+     */
+    function forgetOnDisconnectAfterWipe(dev) {
+        var hideSuccessMessage;
+        if (_wipeInProgress) {
+            _wipeInProgress = false;
+            hideSuccessMessage = _disconnectModal !== null;
+            if (_disconnectModal) {
+                _disconnectModal.close();
+                _disconnectModal = null;
+            }
+            promptForget(hideSuccessMessage)
+                .then(function () {
+                    deviceList.forget(dev);
+                }, function () {
+                    deviceList.navigateTo(dev, true);
+                });
+            deviceList.abortHook();
+        }
+    }
+
+    /**
+     * Wipe the device
      *
-     * When a device is wiped on Windows or Linux systems, the device ID
-     * changes, therefore the `device.connect` and then the
-     * `device.disconnect` events are fired.  That means we have to take
-     * care of three problems:
-     *
-     * (1) We need to make sure that these events don't trigger the opening
-     * of the Disconnect modal (see `DeviceCtrl.handleDisconnect()`).  To
-     * achieve such a behaviour, we set the
-     * `deviceService.forgetInProgress` flag.  The Disconnect modal knows,
-     * that it should not open, if this flag is set.
-     *
-     * (2) We need to make sure that these events are fired before we open
-     * the Forget modal.  Otherwise the modal would close the moment the
-     * events get fired.  To achieve such a behaviour, we check that the
-     * device ID changed.  If it didn't, then we wait for the events to
-     * fire.
-     *
-     * (3) On OS X, the events won't fire at all, so we need to make sure
-     * user disconnects the device.
-     *
-     * @see  DeviceCtrl.handleDisconnect()
+     * Then ask the user if he/she wants to forget it -- this happens
+     * automatically, because the disconnect event is fired while wiping the
+     * device (the HID ID changes).
      */
     $scope.wipeDevice = function () {
-        var oldDevId = $scope.device.id;
-
-        deviceService.setForgetInProgress(true);
-
+        _wipeInProgress = true;
         $scope.device.wipe().then(
             function () {
+                /*
+                 * On Mac OS X, the disconnect event doesn't fire on HID ID
+                 * change, so we need to ask the user to disconnect the device.
+                 */
                 if (window.navigator.userAgent.match(/Mac/)) {
-                    // User needs to disconnect the device.
-                    deviceList.forget($scope.device, true);
-                } else if (!deviceList.get(oldDevId).isConnected()) {
-                    deviceList.forget($scope.device);
-                } else {
-                    var off = $scope.$on(
-                        deviceService.EVENT_DISCONNECT,
-                        function (e, devId) {
-                            if (devId === oldDevId) {
-                                deviceService.forget($scope.device);
-                                off();
-                            }
-                        }
-                    );
+                    promptDisconnect();
                 }
             },
             function (err) {
-                deviceService.setForgetInProgress(false);
+                _wipeInProgress = false;
                 flash.error(err.message || 'Wiping failed');
             }
         );
     };
 
+    /**
+     * Ask user to disconnect the device.
+     */
+    function promptDisconnect() {
+        var modal = $modal.open({
+            templateUrl: 'views/modal/disconnect.wipe.html',
+            size: 'sm',
+            backdrop: 'static',
+            keyboard: false
+        });
+        modal.opened.then(function () {
+            $scope.$emit('modal.disconnect.wipe.show');
+        });
+        modal.result.finally(function () {
+            $scope.$emit('modal.disconnect.wipe.hide');
+        });
+
+        _disconnectModal = modal;
+
+        return modal.result;
+    }
+
+    /**
+     * Ask user if he/she wants to forget the device.
+     *
+     * @param {Boolean} hideSuccessMsg  Hide the success message (it is not
+     *                                  necessary if the modal asking to
+     *                                  disconnect the device was already
+     *                                  shown).
+     */
+    function promptForget(hideSuccessMsg) {
+        var modal,
+            scope;
+
+        scope = angular.extend($scope.$new(), {
+            hideSuccessMsg: hideSuccessMsg
+        });
+
+        modal = $modal.open({
+            templateUrl: 'views/modal/forget.wipe.html',
+            backdrop: 'static',
+            keyboard: false,
+            scope: scope
+        });
+        modal.opened.then(function () {
+            $scope.$emit('modal.forget.wipe.show');
+        });
+        modal.result.finally(function () {
+            $scope.$emit('modal.forget.wipe.hide');
+        });
+
+        return modal.result;
+    }
 });

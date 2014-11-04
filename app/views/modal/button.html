@@ -45,11 +45,16 @@
     <h4>Please write down the recovery seed from your device.</h4>
   </div>
 
+  <div
+
   <div ng-switch-when="ButtonRequest_WipeDevice"
-       class="alert alert-block alert-warning">
+       class="alert alert-warning alert-withicon alert-lg text-left">
+    <span class="glyphicon glyphicon-warning-sign alert-icon"></span>
     <h4>All data on your device will be deleted.</h4>
-    This action cannot be undone. Please confirm on your device.<br>
-    Never do this action with TREZOR holding coins unless you have your recovery seed at hand.
+    <p>This action cannot be undone. Please <strong>confirm on your
+    device</strong>.</p>
+    <p>Never do this action with TREZOR holding coins unless you have your
+    recovery seed at hand.</p>
   </div>
 
   <div ng-switch-default class="alert alert-block alert-info">

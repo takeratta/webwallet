@@ -106,6 +106,7 @@ angular.module('webwalletApp').controller('DeviceSetupCtrl', function (
     function openModal() {
         modal = $modal.open({
             templateUrl: 'views/modal/setup.html',
+            size: 'lg',
             windowClass: 'buttonmodal',
             backdrop: 'static',
             keyboard: false,

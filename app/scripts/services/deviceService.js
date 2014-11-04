@@ -27,23 +27,14 @@ angular.module('webwalletApp')
 
         'use strict';
 
-        var _forgetModal = null,
-            _forgetInProgress = false,
-            EVENT_CONNECT = 'device.connect',
-            EVENT_DISCONNECT = 'device.disconnect',
-            EVENT_FORGET_MODAL = 'device.forgetModal';
+        var _forgetRequested = false,
+            EVENT_ASK_FORGET = 'device.askForget',
+            EVENT_ASK_DISCONNECT = 'device.askDisconnect',
+            EVENT_CLOSE_DISCONNECT = 'device.closeDisconnect';
 
-        this.EVENT_CONNECT = EVENT_CONNECT;
-        this.EVENT_DISCONNECT = EVENT_DISCONNECT;
-        this.EVENT_FORGET_MODAL = EVENT_FORGET_MODAL;
-
-        // Broadcast connect and disconnect events for the Controller.
-        deviceList.registerAfterInitHook(function sendConnectEvent(dev) {
-            $rootScope.$broadcast(this.EVENT_CONNECT, dev);
-        }.bind(this));
-        deviceList.registerDisconnectHook(function sendDisconnectEvent(dev) {
-            $rootScope.$broadcast(this.EVENT_DISCONNECT, dev);
-        }.bind(this));
+        this.EVENT_ASK_FORGET = EVENT_ASK_FORGET;
+        this.EVENT_ASK_DISCONNECT = EVENT_ASK_DISCONNECT;
+        this.EVENT_CLOSE_DISCONNECT = EVENT_CLOSE_DISCONNECT;
 
         // Before initialize hooks
         deviceList.registerBeforeInitHook(setupWatchPausing);
@@ -53,8 +44,11 @@ angular.module('webwalletApp')
         deviceList.registerAfterInitHook(navigateToDeviceFromHomepage, 20);
         deviceList.registerAfterInitHook(initAccounts, 30);
 
+        // Disconnect hooks
+        deviceList.registerDisconnectHook(onDisconnect);
+
         // Forget hooks
-        deviceList.registerForgetHook(forget);
+        deviceList.registerForgetHook(onForget);
         deviceList.registerAfterForgetHook(navigateToDefaultDevice);
 
         // Watch for newly connected and disconnected devices
@@ -152,72 +146,74 @@ angular.module('webwalletApp')
         }
 
         /**
-         * Forget current device
+         * Forget current device.
          *
          * If the device is connected, ask the user to disconnect it before.
+         *
+         * This is achieved by aborting the forget hooks if the device is
+         * connected.  When the device is disconnected, this method is called
+         * again, but in that case it passes without aborting anything, because
+         * the device is no longer connected.
          *
          * Passed `param` object has these mandatory properties:
          * - {TrezorDevice} `dev`: Device instance
          * - {Boolean} `requireDisconnect`: Can the user allowed to cancel the
          *      modal, or does he/she have to disconnect the device?
          *
-         * Return undefined if we want to continue with device forgetting.
-         * Throw Error if we don't want to forget the device yet -- that means
-         * we are waiting for user to accept or dismiss the Forget modal.
-         *
          * @see  DeviceList#forget()
+         * @see  DeviceCtrl.askToDisconnectOnForget()
          *
          * @param {Object} param  Parameters in format:
          *                        {dev: TrezorDevice,
          *                        requireDisconnect: Boolean}
          * @throws Error
          */
-         function forget(param) {
-            if (!param.dev.isConnected() && !_forgetInProgress) {
+        function onForget(param) {
+            // Device after firmware update
+            if (!param.dev) {
                 return;
             }
-            _forgetInProgress = true;
-            $rootScope.$broadcast(EVENT_FORGET_MODAL, param);
+            // If the device is not connected, forget it immediately.
+            if (!param.dev.isConnected()) {
+                $rootScope.$broadcast(EVENT_CLOSE_DISCONNECT, param);
+                return;
+            }
+            // If the device is connected, ask to user to disconnect it.
+            _forgetRequested = true;
+            $rootScope.$broadcast(EVENT_ASK_DISCONNECT, param);
             deviceList.abortHook();
         }
 
         /**
-         * Get previously stored reference to the Forget modal dialog.
+         * When a device is disconnected, ask the user if he/she wants to
+         * forget it or remember.
          *
-         * Forget modal is the dialog that is shown when the user disconnects
-         * the device.  This dialog asks the user if he/she wants to forget the
-         * device now that it is disconnected.
+         * @see  DeviceCtrl.forgetOnDisconnect()
          *
-         * @return {Object}  Angular modal dialog object
+         * @param {TrezorDevice} dev  Device
          */
-        this.getForgetModal = function () {
-            return _forgetModal;
-        };
+        function onDisconnect(dev) {
+            /*
+             * If the disconnect was triggered after the user requested
+             * to forget the device, then don't ask him/her again if he/she
+             * wants to forget the device and forget it immediately.
+             */
+            if (_forgetRequested) {
+                _forgetRequested = false;
+                deviceList.forget(dev);
+                return;
+            }
+            // Ask the user if he/she wants to forget the device.
+            $rootScope.$broadcast(EVENT_ASK_FORGET, dev);
+        }
 
         /**
-         * Store reference to the Forget modal dialog.
+         * Mark that the user decided to cancel forgettin of the device by
+         * cancelling the modal dialog asking him/her to disconnect the device.
          *
-         * @param {Object} forgetModal  Angular modal dialog object
+         * @see  onDisconnect()
          */
-        this.setForgetModal = function (forgetModal) {
-            _forgetModal = forgetModal;
-        };
-
-        /**
-         * Set flag that marks if the Forget process is in progress.
-         *
-         * @param {Boolean} modalOpen  True if the process is in progress
-         */
-        this.isForgetInProgress = function () {
-            return _forgetInProgress;
-        };
-
-        /**
-         * Is the Forget process is in progress?
-         *
-         * @return {Boolean}  True if the forget process is in progress
-         */
-        this.setForgetInProgress = function (forgetInProgress) {
-            _forgetInProgress = forgetInProgress;
+        this.forgetRequestCancelled = function () {
+            _forgetRequested = false;
         };
     });

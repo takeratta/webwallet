@@ -606,14 +606,16 @@ angular.module('webwalletApp').factory('deviceList', function (
     /**
      * Go to the URL of passed device.
      *
-     * Do nothing if we are already on that URL.
+     * Do nothing if we are already on that URL unless the `force` param
+     * is true.
      *
      * @param {TrezorDevice} dev  Device
+     * @param {Boolean} force     Go to device index page
      */
-    DeviceList.prototype.navigateTo = function (dev) {
+    DeviceList.prototype.navigateTo = function (dev, force) {
         var path = '/device/' + dev.id;
 
-        if ($location.path().indexOf(path) !== 0) {
+        if (force || $location.path().indexOf(path) !== 0) {
             $location.path(path);
         }
     };

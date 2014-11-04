@@ -514,8 +514,7 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
 
         modal = $modal.open({
             templateUrl: 'views/modal/qr.html',
-            size: '',
-            windowClass: '',
+            size: 'lg',
             backdrop: 'static',
             keyboard: false,
             scope: scope
@@ -631,8 +630,7 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
 
         modal = $modal.open({
             templateUrl: 'views/modal/csv.html',
-            size: '',
-            windowClass: '',
+            size: 'lg',
             backdrop: 'static',
             keyboard: false,
             scope: scope

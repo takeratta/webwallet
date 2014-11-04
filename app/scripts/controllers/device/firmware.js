@@ -118,6 +118,7 @@ angular.module('webwalletApp').controller('FirmwareCtrl', function (
 
         _modal = $modal.open({
             templateUrl: 'views/modal/firmware.html',
+            size: 'lg',
             backdrop: 'static',
             keyboard: false,
             scope: _modalScope
