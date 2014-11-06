@@ -84,6 +84,17 @@ angular.module('webwalletApp').controller('AccountSignCtrl', function (
             $scope.verify.message
         ));
         address = $scope.verify.address;
+
+        if (!address) {
+            $scope.verify.res = {
+                status: 'error',
+                message: [
+                    'Please fill the address.'
+                ].join('')
+            };
+            return;
+        }
+
         try {
             signature = utils.bytesToHex(utils.base64ToBytes(
                 $scope.verify.signature
