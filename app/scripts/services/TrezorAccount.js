@@ -794,27 +794,29 @@ angular.module('webwalletApp').factory('TrezorAccount', function (
     TrezorAccount.prototype._incrementOffsets = function (txs) {
         var self = this;
 
-        txs.forEach(function (tx) {
-            tx.outs
-                .filter(function (out) { return out.path; })
-                .forEach(function (out) {
-                    var id = out.path[out.path.length-1],
-                        branch = out.path[out.path.length-2],
-                        node;
+        txs
+            .filter(function (tx) { return !!tx.block; }) // only confirmed txs
+            .forEach(function (tx) {
+                tx.outs
+                    .filter(function (out) { return out.path; }) // only our outputs
+                    .forEach(function (out) {
+                        var id = out.path[out.path.length-1],
+                            branch = out.path[out.path.length-2],
+                            node;
 
-                    if (branch === 0)
-                        node = self._externalNode;
-                    else if (branch === 1)
-                        node = self._changeNode;
-                    else {
-                        $log.warn('[account] Tx with unknown branch', tx);
-                        return;
-                    }
+                        if (branch === 0)
+                            node = self._externalNode;
+                        else if (branch === 1)
+                            node = self._changeNode;
+                        else {
+                            $log.warn('[account] Tx with unknown branch', tx);
+                            return;
+                        }
 
-                    if (id >= (node.offset || 0))
-                        node.offset = id + 1;
-                });
-        });
+                        if (id >= (node.offset || 0))
+                            node.offset = id + 1;
+                    });
+            });
     };
 
     // Decorator around Bitcoin.Transaction, contains tx index and BIP32 path
