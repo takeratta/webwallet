@@ -113,7 +113,7 @@
         if (!err) {
             app.config(attachRoutes);
         } else {
-            console.err(err);
+            console.error(err);
         }
 
         // Pass Transport reference.
