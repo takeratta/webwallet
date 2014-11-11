@@ -39,6 +39,8 @@
                ng-repeat="address in usedAddresses"
                ng-class="{ active: activeAddress.address === address.address }"
                ng-click="activate(address)">
+              <span class="address-list-index"
+                    >/{{address.path[address.path.length-1]}}</span>
               <span class="address-list-address">{{address.address}}</span>
               <small class="address-list-balance text-success pull-right"
                 >({{address.balance | amount}} {{account.coin.coin_shortcut}})</small>
@@ -51,6 +53,8 @@
               <a class="list-group-item"
                   ng-class="{ active: activeAddress.address === address.address }"
                   ng-click="activate(address)">
+                <span class="address-list-index"
+                      >/{{address.path[address.path.length-1]}}</span>
                 <span class="address-list-address">{{address.address}}</span>
               </a>
               <div class="line-divider"

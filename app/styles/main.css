@@ -461,6 +461,13 @@ body {
   padding-right: 1px;
 }
 
+.address-list-index {
+  margin-bottom: -2px;
+  margin-right: 6px;
+  opacity: 0.2;
+  line-height: 1;
+}
+
 .address-qr-link {
   display: inline-block;
   margin-top: -4px;
