@@ -10,15 +10,13 @@ angular.module('webwalletApp').controller('AccountSignCtrl', function (
     var _suggestedAddressesCache = [];
 
     function getAddressPath(address) {
-        var i, a, len;
+        var i,
+            l,
+            addresses = $scope.suggestAddressesWithCache(),
+            a;
 
-        if (!_suggestedAddressesCache.length) {
-            $scope.suggestAddresses();
-        }
-
-        len = _suggestedAddressesCache.length;
-        for (i = 0; i < len; i = i + 1) {
-            a = _suggestedAddressesCache[i];
+        for (i = 0, l = addresses.length; i < l; i = i + 1) {
+            a = addresses[i];
             if (a.address === address) {
                 if (a.path) {
                     return a.path;
@@ -31,6 +29,21 @@ angular.module('webwalletApp').controller('AccountSignCtrl', function (
         return null;
     }
 
+    $scope.signSaveAddress = function () {
+        if (!$scope.sign.address) {
+            $scope.sign.address_n = null;
+            $scope.sign.address_status = null;
+            return false;
+        }
+        $scope.sign.address_n = getAddressPath($scope.sign.address);
+        if (!$scope.sign.address_n) {
+            $scope.sign.address_status = 'error';
+            return false;
+        }
+        $scope.sign.address_status = 'success';
+        return true;
+    };
+
     $scope.sign = function () {
         var message,
             address_n,
@@ -39,24 +52,12 @@ angular.module('webwalletApp').controller('AccountSignCtrl', function (
         message = utils.bytesToHex(utils.stringToBytes(
             $scope.sign.message
         ));
-        address_n = getAddressPath($scope.sign.address);
+        address_n = $scope.sign.address_n;
         coin = $scope.device.defaultCoin();
-
-        if (!address_n) {
-            $scope.sign.res = {
-                status: 'error',
-                message: [
-                    'myTREZOR was not able to sign the message with this ',
-                    'address. Make sure the address is valid and belongs to ',
-                    'your Trezor.'
-                ].join('')
-            };
-            return;
-        }
 
         $scope.device.signMessage(address_n, message, coin).then(
             function (res) {
-                $scope.hideAlert('sign');
+                $scope.sign.res = null;
                 $scope.sign.signature =
                     utils.bytesToBase64(utils.hexToBytes(
                         res.message.signature
@@ -153,6 +154,7 @@ angular.module('webwalletApp').controller('AccountSignCtrl', function (
                     return {
                         label: label + ': ' + address.address,
                         address: address.address,
+                        path: address.path,
                         tx: address.tx,
                         acc: acc,
                         source: 'Account'
@@ -161,37 +163,32 @@ angular.module('webwalletApp').controller('AccountSignCtrl', function (
             });
         });
 
-        _suggestedAddressesCache = addresses;
         return addresses;
     };
 
     $scope.suggestAddressesWithCache = function () {
-        if (_suggestedAddressesCache.length) {
-            return _suggestedAddressesCache;
-        } else {
-            return $scope.suggestAddresses();
+        if (!_suggestedAddressesCache.length) {
+            _suggestedAddressesCache = $scope.suggestAddresses();
         }
-    };
-
-    $scope.isAlertVisible = function (type) {
-        return $scope[type] && $scope[type].res &&
-            ($scope[type].res.status === 'success' ||
-             $scope[type].res.status === 'error');
+        return _suggestedAddressesCache;
     };
 
     $scope.resetSign = function () {
         $scope.sign.signature = '';
-        $scope.hideAlert('sign');
+        $scope.sign.res = null;
     };
 
     $scope.resetVerify = function () {
-        $scope.hideAlert('verify');
+        $scope.verify.res = null;
     };
 
-    $scope.hideAlert = function (type) {
-        if ($scope[type] && $scope[type].res) {
-            $scope[type].res.status = null;
-        }
+    $scope.isSignValid = function () {
+        return $scope.sign.message && $scope.sign.address_n;
+    };
+
+    $scope.hasErrorMessage = function (type) {
+        return $scope[type] && $scope[type].res &&
+            $scope[type].res.message;
     };
 
     $scope.getAlertClass = function (type) {
@@ -202,6 +199,15 @@ angular.module('webwalletApp').controller('AccountSignCtrl', function (
             if ($scope[type].res.status === 'success') {
                 return 'alert-success';
             }
+        }
+    };
+
+    $scope.getSignAddressClass = function () {
+        if ($scope.sign.address_status === 'error') {
+            return 'has-error';
+        }
+        if ($scope.sign.address_status === 'success') {
+            return 'has-success';
         }
     };
 });

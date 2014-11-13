@@ -694,3 +694,17 @@ body {
   word-break: break-all;
   word-wrap: break-word;
 }
+
+
+/* Sign */
+
+.sign .form-group .glyphicon-ok,
+.sign .form-group .glyphicon-remove {
+  display: none;
+}
+.sign .has-success .glyphicon-ok {
+  display: inline-block;
+}
+.sign .has-error .glyphicon-remove {
+  display: inline-block;
+}
