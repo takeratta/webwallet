@@ -8,9 +8,10 @@ angular.module('webwalletApp').controller('DeviceRecoveryCtrl', function (
 
     'use strict';
 
+    $scope.recovering = false;
     $scope.seedFocus = false;
     $scope.seedWord = '';
-    $scope.seedWords = [];
+    $scope.seedWords = null;
     $scope.seedWordlist = bip39.english;
     $scope.settings = {
         pin_protection: true
@@ -24,8 +25,13 @@ angular.module('webwalletApp').controller('DeviceRecoveryCtrl', function (
     };
 
     $scope.recoverDevice = function () {
-        if ($scope.settings.label)
+        if ($scope.settings.label) {
             $scope.settings.label = $scope.settings.label.trim();
+        }
+
+        // Reset previous attempt to restore device.
+        $scope.seedWords = [];
+        flash.clear();
 
         $scope.recovering = true;
         $scope.device.recover($scope.settings).then(
@@ -46,8 +52,9 @@ angular.module('webwalletApp').controller('DeviceRecoveryCtrl', function (
     };
 
     function promptWord(event, dev, callback) {
-        if (dev.id !== $scope.device.id)
+        if (dev.id !== $scope.device.id) {
             return;
+        }
 
         $scope.seedFocus = true;
         $scope.seedWord = '';
@@ -58,5 +65,4 @@ angular.module('webwalletApp').controller('DeviceRecoveryCtrl', function (
             callback(null, word);
         };
     }
-
 });

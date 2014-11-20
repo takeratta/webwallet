@@ -96,6 +96,10 @@ angular.module('webwalletApp')
       };
     });
 
+    flash.clear = function () {
+      emit(null);
+    };
+
     return flash;
   })
 
