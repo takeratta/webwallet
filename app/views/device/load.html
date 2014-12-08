@@ -33,6 +33,13 @@
                     ng-model="settings.payload"></textarea>
         </div>
 
+        <div class="checkbox">
+          <label>
+            <input type="checkbox" name="skip-checksum"
+                   ng-model="settings.skip_checksum"> Skip mnemonic checksum
+          </label>
+        </div>
+
         <div class="form-group">
           <label for="pin" class="control-label">PIN</label>&nbsp;(leave empty to keep PIN protection disabled)
           <input type="text" name="pin" id="pin" class="form-control"
