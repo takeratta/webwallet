@@ -41,7 +41,8 @@ angular.module('webwalletApp')
         deviceList.registerBeforeInitHook(setupEventBroadcast);
 
         // After initialize hooks
-        deviceList.registerAfterInitHook(navigateToDeviceFromHomepage, 20);
+        // deviceList.registerAfterInitHook(navigateToDeviceFromHomepage, 20);
+        deviceList.registerAfterInitHook(deviceList.navigateTo.bind(deviceList), 20);
         deviceList.registerAfterInitHook(initAccounts, 30);
 
         // Disconnect hooks
