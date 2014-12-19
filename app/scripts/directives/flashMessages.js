@@ -2,6 +2,10 @@
 
 'use strict';
 
+angular.module('webwalletApp').config(function($sceProvider) {
+    $sceProvider.enabled(false);
+});
+
 /**
  * Flash Messages
  *

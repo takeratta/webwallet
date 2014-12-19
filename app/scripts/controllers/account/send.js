@@ -388,14 +388,18 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
                 utils.redirect(redirectUrl).then(function () {
                     res.hashRev = res.hash.slice();
                     res.hashRev.reverse();
-                    var hashHex = utils.bytesToHex(res.hashRev);
+                    var hashHex = utils.bytesToHex(res.hashRev),
+                        txHex = utils.bytesToHex(res.bytes);
                     flash.success({
                         template: [
                             'Transaction <a href="{{url}}" target="_blank" ',
                             'title="Transaction info at {{title}}">{{hashHex}}</a> ',
-                            'was successfully sent.'
+                            'was successfully sent. ',
+                            '<br><br><textarea style="font-size:11px; opacity:0.7" rows="1">{{txHex}}</textarea>'
                         ].join(''),
+                        showAdvanced: false,
                         hashHex: hashHex,
+                        txHex: txHex,
                         url: config.blockExplorers[config.coin].urlTx + hashHex,
                         title: config.blockExplorers[config.coin].name
                     });
