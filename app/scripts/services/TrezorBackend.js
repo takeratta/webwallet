@@ -165,6 +165,21 @@ angular.module('webwalletApp').factory('TrezorBackend', function (
 
     TrezorBackend.prototype.send = function (txBytes, txHash) {
         $log.log('[backend] Sending', txBytes);
+        if (this.config.insightEndpoint) {
+            return this._insightSend(txBytes, txHash);
+        } else {
+            return this._generalSend(txBytes, txHash);
+        }
+    };
+
+    TrezorBackend.prototype._insightSend = function (txBytes, txHash) {
+        var url = this.config.insightEndpoint + '/api/tx/send';
+        return $http.post(url, {
+            rawtx: utils.bytesToHex(txBytes)
+        });
+    };
+
+    TrezorBackend.prototype._generalSend = function (txBytes, txHash) {
         return $http.post(this._apiUrl('send'), {
             transaction: utils.bytesToBase64(txBytes),
             transactionHash: utils.bytesToBase64(txHash)
