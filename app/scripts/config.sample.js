@@ -36,6 +36,7 @@ angular.module('webwalletApp').constant('config', {
       firstIndex: 0
     },
     Testnet: {
+      insightEndpoint: 'https://test-insight.bitpay.com',
       endpoint: 'https://test.mytrezor.com',
       after: '2014-01-01',
       lookAhead: 40,
