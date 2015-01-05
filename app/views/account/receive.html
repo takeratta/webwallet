@@ -65,19 +65,25 @@
 
                 <!-- Address verification -->
                 <span class="pull-right"
-                      ng-if="enabledFeatures.addressVerification">
-                  <span class="icon-loading"
-                        title="Verifying address with TREZOR"
-                        ng-if="address.verification"></span>
+                      ng-init="showTooltip=false"
+                      ng-if="
+                      device.supports('addressVerification') &&
+                      device.isConnected() &&
+                      activeAddress.address === address.address
+                      ">
                   <button class="btn btn-lg btn-link btn-verifyaddress"
-                          title="Verify with TREZOR"
-                          ng-if="
-                          !address.verification &&
-                          device.isConnected() &&
-                          activeAddress.address === address.address"
+                          ng-disabled="address.verification"
+                          ng-mouseenter="showTooltip=true"
+                          ng-mouseleave="showTooltip=false"
                           ng-click="verify()">
                     <span class="glyphicon glyphicon-eye-open"></span>
                   </button>
+                  <div class="tooltip bottom in"
+                       ng-show="address.verification || showTooltip"
+                       style="margin-left: -23px; margin-top: -1px">
+                    <div class="tooltip-arrow"></div>
+                    <div class="tooltip-inner">Check on TREZOR</div>
+                  </div>
                 </span>
               </a>
               <div class="line-divider"

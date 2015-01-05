@@ -4,6 +4,12 @@ angular.module('webwalletApp').constant('config', {
   // show debug information in the interface
   debug: false,
 
+  // minimal versions of firmare supporting given feature
+  // use version string or false for disabling everywhere
+  features: {
+    addressVerification: '1.3.0'
+  },
+
   bridge: {
     // address that the bridge is available on
     url: 'https://localback.net:21324',

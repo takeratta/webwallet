@@ -140,6 +140,18 @@ angular.module('webwalletApp').factory('TrezorDevice', function (
         return _.find(this.features.coins, { coin_name: config.coin });
     };
 
+    TrezorDevice.prototype.supports = function (key) {
+        if (this.features && config.features[key]) {
+            return [
+                this.features.major_version,
+                this.features.minor_version,
+                this.features.patch_version,
+            ].join('.') >= config.features[key];
+        } else {
+            return false;
+        }
+    };
+
     //
     // Passphrase
     //
