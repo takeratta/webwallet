@@ -490,9 +490,19 @@ body {
   display: block;
 }
 
+.address-verify {
+  display: inline-block;
+  margin-left: 8px;
+}
+
 .btn-verifyaddress {
   padding: 0;
   opacity: 0.6;
+  line-height: 1;
+}
+
+.btn-verifyaddress[disabled] {
+  opacity: 0.3;
 }
 
 /* Send */

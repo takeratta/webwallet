@@ -45,6 +45,30 @@
               <span class="address-list-address">{{address.address}}</span>
               <small class="address-list-balance text-success pull-right"
                 >({{address.balance | amount}} {{account.coin.coin_shortcut}})</small>
+
+              <!-- Address verification -->
+              <span class="address-verify"
+                    ng-if="
+                    device.supports('addressVerification') &&
+                    activeAddress.address === address.address
+                    ">
+                <div ng-if="device.isConnected()"
+                     ng-hide="address.verification">
+                  <button class="btn btn-link btn-verifyaddress"
+                          ng-click="verify()"
+                          tooltip="Check on TREZOR"
+                          tooltip-placement="bottom">
+                    <span class="glyphicon glyphicon-eye-open"></span>
+                  </button>
+                </div>
+                <div ng-if="!device.isConnected()"
+                     tooltip="Connect your device to verify this address"
+                     tooltip-placement="bottom">
+                  <button class="btn btn-link btn-verifyaddress" disabled>
+                    <span class="glyphicon glyphicon-eye-open"></span>
+                  </button>
+                </div>
+              </span>
             </a>
             <hr>
           </div>
@@ -64,28 +88,30 @@
                       >{{address.address}}</span>
 
                 <!-- Address verification -->
-                <span class="pull-right"
-                      ng-init="showTooltip=false"
+                <span class="address-verify"
                       ng-if="
                       device.supports('addressVerification') &&
-                      device.isConnected() &&
                       activeAddress.address === address.address
                       ">
-                  <button class="btn btn-lg btn-link btn-verifyaddress"
-                          ng-disabled="address.verification"
-                          ng-mouseenter="showTooltip=true"
-                          ng-mouseleave="showTooltip=false"
-                          ng-click="verify()">
-                    <span class="glyphicon glyphicon-eye-open"></span>
-                  </button>
-                  <div class="tooltip bottom in"
-                       ng-show="address.verification || showTooltip"
-                       style="margin-left: -23px; margin-top: -1px">
-                    <div class="tooltip-arrow"></div>
-                    <div class="tooltip-inner">Check on TREZOR</div>
+                  <div ng-if="device.isConnected()"
+                       ng-hide="address.verification">
+                    <button class="btn btn-link btn-verifyaddress"
+                            ng-click="verify()"
+                            tooltip="Check on TREZOR"
+                            tooltip-placement="bottom">
+                      <span class="glyphicon glyphicon-eye-open"></span>
+                    </button>
+                  </div>
+                  <div ng-if="!device.isConnected()"
+                       tooltip="Connect your device to verify this address"
+                       tooltip-placement="bottom">
+                    <button class="btn btn-link btn-verifyaddress" disabled>
+                      <span class="glyphicon glyphicon-eye-open"></span>
+                    </button>
                   </div>
                 </span>
               </a>
+
               <div class="line-divider"
                    ng-show="$first">
                 <hr>
