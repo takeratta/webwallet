@@ -45,6 +45,24 @@
     <h4>Please write down the recovery seed from your device.</h4>
   </div>
 
+  <div ng-switch-when="ButtonRequest_Address"
+       class="address-modal">
+    <h5>Check address on TREZOR display</h5>
+    <p class="text-muted">If the addresses and the QR codes match your
+    TREZOR display, you can be sure this address is genuine.</p>
+    <div class="list-group address-list">
+      <span class="list-group-item address-list-item active">
+        <span class="address-list-index"
+              >/{{address.path[address.path.length-1]}}</span>
+        <span class="address-list-address"
+              >{{address.address}}</span>
+      </span>
+    </div>
+    <div class="address-qr">
+      <qr size="210" text="'bitcoin:' + address.address"></qr>
+    </div>
+  </div>
+
   <div ng-switch-when="ButtonRequest_WipeDevice"
        class="alert alert-warning alert-withicon alert-lg text-left">
     <span class="glyphicon glyphicon-warning-sign alert-icon"></span>

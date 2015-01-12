@@ -423,8 +423,7 @@ angular.module('webwalletApp').controller('DeviceCtrl', function (
             return;
         }
 
-        if (code !== 'ButtonRequest_ConfirmWord' &&
-            code !== 'ButtonRequest_Address') {
+        if (code !== 'ButtonRequest_ConfirmWord') {
             promptButton(code);
         }
     }
@@ -439,7 +438,7 @@ angular.module('webwalletApp').controller('DeviceCtrl', function (
 
         modal = $modal.open({
             templateUrl: 'views/modal/button.html',
-            size: 'lg',
+            size: buttonModalSize(code),
             windowClass: 'buttonmodal',
             backdrop: 'static',
             keyboard: false,
@@ -458,5 +457,13 @@ angular.module('webwalletApp').controller('DeviceCtrl', function (
         $scope.device.once(TrezorDevice.EVENT_ERROR, function () {
             modal.close();
         });
+    }
+
+    function buttonModalSize(code) {
+        if (code === 'ButtonRequest_Address') {
+            return 'md';
+        } else {
+            return 'lg';
+        }
     }
 });

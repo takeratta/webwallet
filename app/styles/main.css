@@ -444,20 +444,37 @@ body {
   opacity: 0.5;
 }
 
-.address-list .list-group-item.active {
+.address-modal {
+  text-align: left;
+}
+
+.address-modal h5 {
+  margin-top: 0;
+}
+
+.address-modal .address-list {
+  margin-bottom: 0;
+}
+
+.address-modal .address-qr {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.address-list-item.active {
   color: hsl(208, 40%, 43%);
   background-color: hsla(208, 56%, 53%, 0.1);
   border-color: hsla(208, 56%, 53%, 0.4);
 }
 
-.address-list .list-group-item.active:hover {
+.address-list-item.active:hover {
   color: hsl(208, 40%, 43%);
   background-color: hsla(208, 56%, 53%, 0.2);
   border-color: hsla(208, 56%, 53%, 0.5);
 }
 
-.address-list .list-group-item.invalid,
-.address-list .list-group-item.invalid:hover {
+.address-list-item.invalid,
+.address-list-item.invalid:hover {
   color: #A94442;
   background-color: #F2DEDE;
   border-color: #EBCCD1;

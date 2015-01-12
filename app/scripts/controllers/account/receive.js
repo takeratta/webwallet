@@ -3,6 +3,7 @@
 angular.module('webwalletApp').controller('AccountReceiveCtrl', function (
     flash,
     $document,
+    $rootScope,
     $scope,
     $timeout) {
 
@@ -72,6 +73,26 @@ angular.module('webwalletApp').controller('AccountReceiveCtrl', function (
             selection.addRange(range);
             return;
         }
+    }
+
+    // Address verification
+
+    $rootScope.$on('modal.button.show', modalShown);
+
+    function modalShown(event, code) {
+        if (code === 'ButtonRequest_Address') {
+            injectAddressInfo(event.targetScope);
+            $timeout(function () {
+                var addr = $scope.activeAddress.address,
+                    elem = $document.find('.address-modal .address-list-address:contains('+addr+')');
+                if (elem.length)
+                    selectRange(elem[0]);
+            }, 100);
+        }
+    }
+
+    function injectAddressInfo(scope) {
+        scope.address = $scope.activeAddress;
     }
 
 });
