@@ -12,6 +12,7 @@ angular.module('webwalletApp').controller('DeviceSetupCtrl', function (
 
     $scope.advanced = false;
     $scope.settings = {
+        strength: 256,
         pin_protection: true
     };
 

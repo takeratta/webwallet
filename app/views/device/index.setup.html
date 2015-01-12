@@ -30,6 +30,7 @@
   </div>
 
   <div ng-show="advanced">
+    <!--
     <div class="form-group">
       <hr>
       <h4>Recovery seed length</h4>
@@ -78,6 +79,7 @@
                ng-model="settings.pin_protection"> Enable PIN protection
       </label>
     </div>
+    -->
 
     <hr>
     <h4>Additional passphrase encryption</h4>
@@ -95,13 +97,13 @@
       <p>If you choose to use passphrase encryption now, you cannot turn it
       off later and vice versa (if you choose not to use it, you cannot turn it
       on later).</p>
-    </div>
-    <div class="checkbox">
-      <label>
-        <input type="checkbox" name="passphrase-protection"
-               ng-model="settings.passphrase_protection">
-        I've read all the information above and I want to enable passphrase encryption.
-      </label>
+      <div class="checkbox">
+        <label>
+          <input type="checkbox" name="passphrase-protection"
+                 ng-model="settings.passphrase_protection">
+          I understand all the information above and I want to enable passphrase encryption.
+        </label>
+      </div>
     </div>
     <hr>
 
