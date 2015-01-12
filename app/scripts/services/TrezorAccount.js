@@ -7,6 +7,7 @@ angular.module('webwalletApp').factory('TrezorAccount', function (
     _,
     BigInteger,
     Bitcoin,
+    $timeout,
     $log,
     $q) {
 
@@ -595,12 +596,21 @@ angular.module('webwalletApp').factory('TrezorAccount', function (
             function () {
                 self._backend.subscribe(
                     self.node,
-                    self._processBalanceDetailsUpdate.bind(self));
+                    self._processBalanceDetailsUpdate.bind(self)
+                ).catch(function (err) {
+                    self._deferred.reject(err);
+                });
             },
             function (err) {
                 self._deferred.reject(err);
             }
         );
+
+        $timeout(function () {
+            if (self.balance === null) {
+                self.subscribingIsSlow = true;
+            }
+        }, 30 * 1000);
 
         return this._deferred.promise;
     };

@@ -352,6 +352,12 @@ angular.module('webwalletApp').factory('TrezorDevice', function (
 
     // Account discovery
 
+    TrezorDevice.prototype.discoveryIsSlow = function () {
+        return this.accounts.some(function (account) {
+            return account.balance === null && account.subscribingIsSlow;
+        });
+    };
+
     TrezorDevice.prototype.discoverAccounts = function () {
         var self = this,
             start = this.accounts.length;

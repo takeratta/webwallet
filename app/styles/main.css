@@ -314,6 +314,13 @@ body {
   width: 200px;
 }
 
+.dev-slowdiscovery {
+  position: absolute;
+  top: -30px;
+  left: 0;
+  width: 150px;
+}
+
 .dev-acc-info {
   white-space: nowrap;
 }

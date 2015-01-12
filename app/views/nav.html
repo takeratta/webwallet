@@ -38,6 +38,14 @@
        tooltip-trigger="mouseenter"
        ng-click="forget(device)">&times;</a>
 
+    <div class="dev-slowdiscovery tooltip in top"
+         ng-show="device.discoveryIsSlow()">
+      <div class="tooltip-inner">
+        Still loading, just a moment&hellip;
+      </div>
+      <div class="tooltip-arrow"></div>
+    </div>
+
     <div class="dev-blocked tooltip tooltip-danger in right"
          ng-show="device.error">
       <div class="tooltip-inner"
