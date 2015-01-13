@@ -509,7 +509,7 @@ angular.module('webwalletApp').factory('TrezorAccount', function (
 
             if (fee > space) {
                 $log.log('[account] Fee is too high for current inputs, measuring again');
-                return tryToBuild(fee); // try again with more inputs
+                return tryToBuild(utxos, fee); // try again with more inputs
             }
             if (fee === tx.fee) {
                 $log.log('[account] Estimated fee matches');
