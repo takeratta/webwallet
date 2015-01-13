@@ -206,6 +206,20 @@ angular.module('webwalletApp').factory('TrezorBackend', function (
         });
     };
 
+    TrezorBackend.prototype.currentHeight =  function () {
+        var url = this.config.insightEndpoint + '/api/status?q=getInfo';
+
+        $log.log('[backend] Looking up current block height');
+        return $http.get(url).then(function (res) {
+            var blocks = res.data.info.blocks;
+            if (typeof blocks !== 'number') {
+                throw new TypeError('Expected number of blocks');
+            } else {
+                return blocks - 1; // blocks are indexed from zero
+            }
+        });
+    };
+
     return TrezorBackend;
 
 });

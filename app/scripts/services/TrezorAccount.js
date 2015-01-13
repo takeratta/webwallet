@@ -459,10 +459,44 @@ angular.module('webwalletApp').factory('TrezorAccount', function (
     TrezorAccount.prototype.buildTx = function (outputs) {
         var self = this;
 
-        return $q.when(tryToBuild(0));
+        return findUnspents().then(function (utxos) {
+            return tryToBuild(utxos, 0);
+        });
 
-        function tryToBuild(feeAttempt) {
-            var tx = self._constructTx(outputs, feeAttempt);
+        function findUnspents() {
+            return self._backend.currentHeight().then(
+                function (height) {
+                    return self.utxos.filter(function (o) {
+                        var tx = lookupTx(o.transactionHash);
+                        if (tx && isCoinbase(tx)) {
+                            // coinbase outputs need at least 100 blocks above
+                            return (height - tx.block) > 100;
+                        } else {
+                            return true;
+                        }
+                    });
+                },
+                function (error) {
+                    console.warn('[account] Error while retrieving ' +
+                                 'current height, immature coinbase inputs will be ' +
+                                 'included in the UTXO set', error);
+                    return self.utxos;
+                }
+            );
+        }
+
+        function lookupTx(hash) {
+            return _.find(self.transactions, { hash: hash });
+        }
+
+        function isCoinbase(tx) {
+            return tx.ins.some(function (i) {
+                return i.isCoinbase();
+            });
+        }
+
+        function tryToBuild(utxos, feeAttempt) {
+            var tx = self._constructTx(utxos, outputs, feeAttempt);
 
             if (!tx)
                 return $q.reject(new Error('Not enough funds'));
@@ -482,7 +516,7 @@ angular.module('webwalletApp').factory('TrezorAccount', function (
                 return tx;
             }
             $log.log('[account] Re-constructing with final fee');
-            return self._constructTx(outputs, fee);
+            return self._constructTx(utxos, outputs, fee);
         }
     };
 
@@ -492,7 +526,7 @@ angular.module('webwalletApp').factory('TrezorAccount', function (
             + tx.outputs.length * 35;
     };
 
-    TrezorAccount.prototype._constructTx = function (outputs, fee)  {
+    TrezorAccount.prototype._constructTx = function (unspents, outputs, fee)  {
         var chindex = (this._changeNode.offset || 0),
             chpath = this._changeNode.path.concat([chindex]),
             utxos,
@@ -503,7 +537,7 @@ angular.module('webwalletApp').factory('TrezorAccount', function (
         $log.log('[account] Constructing tx with fee attempt', fee, 'for', outputs);
 
         outputSum = outputs.reduce(function (a, out) { return a + out.amount; }, 0);
-        utxos = this._selectUtxos(outputSum + fee);
+        utxos = this._selectUtxos(unspents, outputSum + fee);
         if (!utxos)
             return null;
         inputSum = utxos.reduce(function (a, utxo) { return a + utxo.value; }, 0);
@@ -548,21 +582,15 @@ angular.module('webwalletApp').factory('TrezorAccount', function (
 
     // selects utxos for a tx
     // sorted by block # asc, value asc
-    TrezorAccount.prototype._selectUtxos = function (amount) {
+    TrezorAccount.prototype._selectUtxos = function (unspents, amount) {
         var self = this,
-            utxos = this.utxos.slice(),
             ret = [],
             retval = 0,
+            utxos = unspents.slice(),
             i;
 
-        utxos = utxos.filter(function (out) {
-            var txHash =
-                    '3c7bcbec143f28b405b53fd12be9a888a9072c09ca8cf10260027dec689862b5';
-            return !(out.transactionHash === txHash && out.ix === 0);
-        });
-
         // sort utxos (by block, by value, unconfirmed last)
-        utxos = utxos.sort(function (a, b) {
+        utxos.sort(function (a, b) {
             var txa = self._wallet.txIndex[a.transactionHash],
                 txb = self._wallet.txIndex[b.transactionHash],
                 hd = txa.block - txb.block, // order by block
@@ -829,8 +857,9 @@ angular.module('webwalletApp').factory('TrezorAccount', function (
             });
     };
 
-    // Decorator around Bitcoin.Transaction, contains tx index and BIP32 path
-
+    /**
+     * Decorator around Bitcoin.Transaction
+     */
     function TrezorTransactionOut(data) {
         Bitcoin.TransactionOut.call(this, data);
         this.index = data.index;
@@ -846,6 +875,9 @@ angular.module('webwalletApp').factory('TrezorAccount', function (
         return val;
     };
 
+    /**
+     * Error thrown from the signing process.
+     */
     function TrezorAccountException(value) {
         this.value = value;
         this.message = value.message;
