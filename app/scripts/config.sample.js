@@ -63,6 +63,9 @@ angular.module('webwalletApp').constant('config', {
   scriptTypes: {
     Bitcoin: {
       5: 'PAYTOSCRIPTHASH'
+    },
+    Testnet: {
+      196: 'PAYTOSCRIPTHASH'
     }
   },
 
