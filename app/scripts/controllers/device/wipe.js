@@ -2,6 +2,7 @@
 
 angular.module('webwalletApp').controller('DeviceWipeCtrl', function (
     $scope,
+    $rootScope,
     flash,
     deviceList,
     $modal) {
@@ -99,7 +100,7 @@ angular.module('webwalletApp').controller('DeviceWipeCtrl', function (
         var modal,
             scope;
 
-        scope = angular.extend($scope.$new(), {
+        scope = angular.extend($rootScope.$new(), {
             hideSuccessMsg: hideSuccessMsg
         });
 
