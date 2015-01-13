@@ -83,7 +83,7 @@ angular.module('webwalletApp').controller('DeviceCtrl', function (
     function askToDisconnectOnForget(e, param) {
         promptDisconnect(param.requireDisconnect)
             .then(function () {
-                deviceList.forget();
+                deviceList.forget(param.dev, param.requireDisconnect);
             }, function () {
                 deviceService.forgetRequestCancelled();
             });
