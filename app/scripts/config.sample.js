@@ -36,12 +36,15 @@ angular.module('webwalletApp').constant('config', {
   // coin name -> backend config
   backends: {
     Bitcoin: {
+      sendWithInsight: false,
+      insightEndpoint: 'https://insight.bitpay.com',
       endpoint: 'https://mytrezor.com',
       after: '2014-01-01',
       lookAhead: 40,
       firstIndex: 0
     },
     Testnet: {
+      sendWithInsight: false,
       insightEndpoint: 'https://test-insight.bitpay.com',
       endpoint: 'https://test.mytrezor.com',
       after: '2014-01-01',

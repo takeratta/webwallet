@@ -165,7 +165,7 @@ angular.module('webwalletApp').factory('TrezorBackend', function (
 
     TrezorBackend.prototype.send = function (txBytes, txHash) {
         $log.log('[backend] Sending', txBytes);
-        if (this.config.insightEndpoint) {
+        if (this.config.insightEndpoint && this.config.sendWithInsight) {
             return this._insightSend(txBytes, txHash);
         } else {
             return this._generalSend(txBytes, txHash);
