@@ -56,13 +56,13 @@
                      ng-hide="address.verification">
                   <button class="btn btn-link btn-verifyaddress"
                           ng-click="verify()"
-                          tooltip="Check on TREZOR"
+                          tooltip="Show on TREZOR"
                           tooltip-placement="bottom">
                     <span class="glyphicon glyphicon-eye-open"></span>
                   </button>
                 </div>
                 <div ng-if="!device.isConnected()"
-                     tooltip="Connect your device to check this address"
+                     tooltip="Connect your device to display this address"
                      tooltip-placement="bottom">
                   <button class="btn btn-link btn-verifyaddress" disabled>
                     <span class="glyphicon glyphicon-eye-open"></span>
@@ -97,13 +97,13 @@
                        ng-hide="address.verification">
                     <button class="btn btn-link btn-verifyaddress"
                             ng-click="verify()"
-                            tooltip="Check on TREZOR"
+                            tooltip="Show on TREZOR"
                             tooltip-placement="bottom">
                       <span class="glyphicon glyphicon-eye-open"></span>
                     </button>
                   </div>
                   <div ng-if="!device.isConnected()"
-                       tooltip="Connect your device to verify this address"
+                       tooltip="Connect your device to display this address"
                        tooltip-placement="bottom">
                     <button class="btn btn-link btn-verifyaddress" disabled>
                       <span class="glyphicon glyphicon-eye-open"></span>
@@ -142,7 +142,11 @@
             <a class="address-qr-link"
                href="{{blockExplorer.urlAddress}}{{activeAddress.address}}"
                target="_blank" title="Address info at {{blockExplorer.name}}">
-              <qr size="210" text="'bitcoin:' + activeAddress.address"></qr>
+              <qr size="210"
+                  text="activeAddress.address"
+                  correction-level="'M'"
+                  type-number="0"
+                  input-mode="'8bit'"></qr>
             </a>
           </div>
 

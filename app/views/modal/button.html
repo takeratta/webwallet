@@ -48,8 +48,8 @@
   <div ng-switch-when="ButtonRequest_Address"
        class="address-modal">
     <h5>Check address on TREZOR display</h5>
-    <p class="text-muted">If the addresses and the QR codes match your
-    TREZOR display, you can be sure this address is genuine.</p>
+    <p class="text-muted">If the address matches your TREZOR display,
+    you can be sure it is genuine.</p>
     <div class="list-group address-list">
       <span class="list-group-item address-list-item active">
         <span class="address-list-index"
@@ -59,7 +59,11 @@
       </span>
     </div>
     <div class="address-qr">
-      <qr size="210" text="'bitcoin:' + address.address"></qr>
+      <qr size="210"
+          text="address.address"
+          correction-level="'M'"
+          type-number="0"
+          input-mode="'8bit'"></qr>
     </div>
   </div>
 
