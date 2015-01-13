@@ -7,7 +7,8 @@ cd `dirname $0`
 
 git pull --ff-only
 git submodule update --recursive
-git rev-parse HEAD > app/revision.txt
+GITREV=$(git rev-parse HEAD)
+echo $GITREV > app/revision.txt
 
 cd app/data
 ./check_releases.py
@@ -19,6 +20,7 @@ bower install || $(npm bin)/bower install
 
 grunt build || $(npm bin)/grunt build
 cp -r app/data dist/data
+sed -i "s:@@GITREV@@:$GITREV:" dist/index.html
 
 echo "DONE. Please run ./deploy.sh"
 exit 0
