@@ -15,7 +15,8 @@ angular.module('webwalletApp').service('firmwareService', function FirmwareServi
 
     'use strict';
 
-    var _firmwareList = $http.get(FIRMWARE_LIST_URL),
+    var _timestamp = new Date().getTime(),
+        _firmwareList = $http.get(FIRMWARE_LIST_URL + '?' + _timestamp),
         _modalOpen = false;
 
     this.EVENT_CONNECT = 'firmware.connect';
