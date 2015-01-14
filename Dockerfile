@@ -16,9 +16,6 @@ WORKDIR /srv/webwallet
 RUN cp app/scripts/config.sample.js app/scripts/config.js
 RUN bower --allow-root install
 RUN npm install
-RUN grunt build
-RUN sed -i "s:@@GITREV@@:$(git rev-parse HEAD):" dist/index.html
-RUN cp -a app/data/ dist/data/
 
 WORKDIR /srv/webwallet/app/
 RUN touch is_cloned

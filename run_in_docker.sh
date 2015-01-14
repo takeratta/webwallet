@@ -7,24 +7,22 @@ if [ -e /srv/webwallet/app/is_cloned ] ; then
     cd /srv/webwallet
     git pull --ff-only
     cd /
-else
-    GRUNT_BUILD=1
-
 fi
 
 if [ "$RUN_TEST" == "1"  ] ; then
     sed -i 's/coin: '"'"'Bitcoin/coin: '"'"'Testnet/' \
         /srv/webwallet/app/scripts/config.js
-    GRUNT_BUILD=1
 else
     sed -i 's/coin: '"'"'Testnet/coin: '"'"'Bitcoin/' \
         /srv/webwallet/app/scripts/config.js
 fi
 
-if [ "$GRUNT_BUILD" == "1"  ] ; then
-    cd /srv/webwallet
-    grunt build
-fi
+cd /srv/webwallet
+grunt build
+sed -i "s:@@GITREV@@:$(git rev-parse HEAD):" dist/index.html
+cp -a app/data/ dist/data/
+
+
 
 cd /srv/webwallet/dist
 echo "Starting the server!"
