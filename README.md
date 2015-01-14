@@ -24,9 +24,6 @@ If you want to run grunt server instead of python http server, just run it like 
 
 (Grunt server automatically reloads changes in app, python's server does not; however, due to some grunt bug, the .deb packages with the plugins are transferred wrong)
 
-If you want to use your `app` directory instead of repo, mount it like this (note that the git submodules are cloned correctly and `app/data` is not empty; if it is, fetch submodules with `git submodule update --init`)
-
-    docker run -p 8000:8000 -v $(pwd)/app:/srv/webwallet/app mytrezor-webwallet
 
 ## Installation option 2
 
