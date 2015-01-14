@@ -20,6 +20,9 @@ RUN grunt build
 RUN sed -i "s:@@GITREV@@:$(git rev-parse HEAD):" dist/index.html
 RUN cp -a app/data/ dist/data/
 
-WORKDIR /srv/webwallet/dist
+WORKDIR /srv/webwallet/app/
+RUN touch is_cloned
+
 EXPOSE 8000
-CMD python -m SimpleHTTPServer
+ADD run_in_docker.sh  /
+CMD /run_in_docker.sh
