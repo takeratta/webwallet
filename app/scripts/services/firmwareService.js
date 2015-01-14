@@ -86,7 +86,9 @@ angular.module('webwalletApp').service('firmwareService', function FirmwareServi
                     if (!firmware) {
                         return;
                     }
-                    _modalOpen = true;
+                    if (firmware.required) {
+                        _modalOpen = true;
+                    }
                     $rootScope.$broadcast(
                         this.EVENT_OUTDATED,
                         {
@@ -95,7 +97,9 @@ angular.module('webwalletApp').service('firmwareService', function FirmwareServi
                             version: _getVersion(dev.features)
                         }
                     );
-                    deviceList.abortHook();
+                    if (firmware.required) {
+                        deviceList.abortHook();
+                    }
                 }.bind(this));
         }
     }.bind(this), 10);

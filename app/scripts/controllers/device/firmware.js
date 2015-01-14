@@ -89,9 +89,9 @@ angular.module('webwalletApp').controller('FirmwareCtrl', function (
         };
     }
 
-    function resetOutdatedFirmwareBar(e, devId) {
+    function resetOutdatedFirmwareBar(e, dev) {
         if ($rootScope.optionalFirmware &&
-            $rootScope.optionalFirmware.device.id === devId &&
+            $rootScope.optionalFirmware.device.id === dev.id &&
             !firmwareService.isModalOpen()) {
             delete $rootScope.optionalFirmware;
         }
