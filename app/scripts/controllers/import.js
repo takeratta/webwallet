@@ -65,7 +65,7 @@ angular.module('webwalletApp').controller('ImportCtrl', function (
             device;
 
         console.log('[import] Importing device', id);
-        device = new TrezorDevice(id);
+        device = new TrezorDevice({ id: id });
         device.features = {
             'device_id': id,
             'coins': $scope.coins,
