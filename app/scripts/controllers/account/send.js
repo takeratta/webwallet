@@ -186,6 +186,8 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
         var preparedOuts = [],
             outsOk = true;
 
+        cancel(); // reset already prepared tx
+
         if (!vals) {
             return;
         }
