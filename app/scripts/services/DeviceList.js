@@ -174,8 +174,14 @@ angular.module('webwalletApp').factory('deviceList', function (
      * @param {TrezorDevice} dev  Device to remove
      */
     DeviceList.prototype.remove = function (dev) {
+        var search = {};
         dev.destroy();
-        _.remove(this._devices, { id: dev.id });
+        if (dev.id) {
+            search.id = dev.id;
+        } else if (dev.path) {
+            search.path = dev.path;
+        }
+        _.remove(this._devices, search);
     };
 
     /**
@@ -276,13 +282,8 @@ angular.module('webwalletApp').factory('deviceList', function (
 
         this._enumerateInProgress = true;
         trezor.enumerate(this._enumerateCanWait)
-            .then(function (devices) {
-                deferred.notify(devices.map(function (dev) {
-                    if (!dev.id && dev.serialNumber) {
-                        dev.id = dev.serialNumber;
-                    }
-                    return dev;
-                }));
+            .then(function (descriptors) {
+                deferred.notify(descriptors);
                 this._enumerateCanWait = true;
                 this._enumerateInProgress = false;
             }.bind(this));
@@ -336,10 +337,10 @@ angular.module('webwalletApp').factory('deviceList', function (
     DeviceList.prototype._computeDescriptorDelta = function (xs, ys) {
         return {
             added: _.filter(ys, function (y) {
-                return !_.find(xs, { id: y.id });
+                return !_.find(xs, { path: y.path });
             }),
             removed: _.filter(xs, function (x) {
-                return !_.find(ys, { id: x.id });
+                return !_.find(ys, { path: x.path });
             })
         };
     };
@@ -352,49 +353,53 @@ angular.module('webwalletApp').factory('deviceList', function (
      *                       {id: String, path: String}
      */
     DeviceList.prototype._connect = function (desc) {
-        // Get device object...
-        var dev = this.get(desc);
-        // or create a new one.
-        if (!dev) {
-            dev = this._create(desc);
-            this.add(dev);
-        }
+        // Create a temporary device object
+        var dev = new TrezorDevice({ path: desc.path });
 
         dev.withLoading(function () {
-            return trezor.acquire(desc)
-            // Run low-level connect routine.
+            // Run low-level connect routine and initialize the device.
+            trezor.acquire(desc)
                 .then(function (res) {
-                    // TODO Too complicated, move to trezor.js
                     dev.connect(
                         new trezorApi.Session(trezor, res.session)
                     );
-                    return dev;
+                    return dev.initializeDevice()
                 })
-
-            // Execute before initialize hooks.
-                .then(this._execHooks(this._beforeInitHooks))
-
-            // Run low-level initialize routine.
-                .then(function (dev) {
-                    return dev.initializeDevice();
-                })
-
-            // Was low-level initialization succesfull?
+            // Try to find existing device by acquired ID and patch it
+            // with the running session, otherwise add the device to
+            // the list
                 .then(
-                    // If it was, then set params for the following hooks.
                     function () {
-                        return dev;
-                    },
-                    // If it wasn't, then disconnect the device.
+                        var id,
+                            old;
+                        if (dev.features) {
+                            id = dev.features.device_id;
+                            if (id == null) {
+                                id = dev.path;
+                            } else {
+                                old = this.get(id);
+                                if (old) {
+                                    old.connect(dev._session);
+                                    dev = old;
+                                }
+                            }
+                            dev.id = id;
+                            this.add(dev);
+                            return dev;
+                        } else {
+                            throw new Error('Missing features');
+                        }
+                    }.bind(this),
                     function (e) {
                         dev.disconnect();
                         throw e;
                     }
                 )
-
+            // Execute before initialize hooks.
+            // TODO: get rid of beforeInitHooks
+                .then(this._execHooks(this._beforeInitHooks))
             // Execute after initialize hooks.
                 .then(this._execHooks(this._afterInitHooks))
-
             // Show error message if something failed.
                 .catch(function (err) {
                     if (!err instanceof this.DeviceListException) {
@@ -450,12 +455,14 @@ angular.module('webwalletApp').factory('deviceList', function (
 
                 res = hooks[i].fn.apply(window, [param]);
                 if (res !== undefined) {
-                    $q.when(res).then(function () {
-                        next(i + 1);
-                    },
-                                      function (e) {
-                                          deferred.reject(e);
-                                      });
+                    $q.when(res).then(
+                        function () {
+                            next(i + 1);
+                        },
+                        function (e) {
+                            deferred.reject(e);
+                        }
+                    );
                 } else {
                     next(i + 1);
                 }
@@ -574,17 +581,6 @@ angular.module('webwalletApp').factory('deviceList', function (
         function (fn, priority, name) {
             this._registerHook(this._afterForgetHooks, fn, priority, name);
         };
-
-    /**
-     * Create new device (instantiate `TrezorDevice`) from passed descriptor.
-     *
-     * @param {Object} desc    Device descriptor in format
-     *                         {id: String, path: String}
-     * @return {TrezorDevice}  Created device instance
-     */
-    DeviceList.prototype._create = function (desc) {
-        return new TrezorDevice(desc.id || desc.path);
-    };
 
     /**
      * Marks a device of the passed descriptor as disconnected.
