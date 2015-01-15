@@ -66,7 +66,9 @@ angular.module('webwalletApp').factory('TrezorAccount', function (
     };
 
     TrezorAccount.prototype.address = function (n) {
-        var index = (this._externalNode.offset || 0) + n,
+        var offset = Math.max(this._externalNode.offset || 0,
+                              this._externalNode.unconfirmedOffset || 0),
+            index = offset + n,
             addressNode = utils.deriveChildNode(this._externalNode, index),
             address = utils.node2address(addressNode, this.coin.address_type);
 
@@ -75,6 +77,10 @@ angular.module('webwalletApp').factory('TrezorAccount', function (
             address: address,
             index: index
         };
+    };
+
+    TrezorAccount.prototype.maxLiveAddressIndex = function (gapLength) {
+        return (this._externalNode.offset || 0) + gapLength;
     };
 
     TrezorAccount.prototype.publicKey = function () {
@@ -832,29 +838,34 @@ angular.module('webwalletApp').factory('TrezorAccount', function (
     TrezorAccount.prototype._incrementOffsets = function (txs) {
         var self = this;
 
-        txs
-            .filter(function (tx) { return !!tx.block; }) // only confirmed txs
-            .forEach(function (tx) {
-                tx.outs
-                    .filter(function (out) { return out.path; }) // only our outputs
-                    .forEach(function (out) {
-                        var id = out.path[out.path.length-1],
-                            branch = out.path[out.path.length-2],
-                            node;
+        txs.forEach(function (tx) {
+            tx.outs
+                .filter(function (out) { return out.path; }) // only our outputs
+                .forEach(function (out) {
+                    var id = out.path[out.path.length-1],
+                        branch = out.path[out.path.length-2],
+                        node;
 
-                        if (branch === 0)
-                            node = self._externalNode;
-                        else if (branch === 1)
-                            node = self._changeNode;
-                        else {
-                            $log.warn('[account] Tx with unknown branch', tx);
-                            return;
-                        }
+                    if (branch === 0)
+                        node = self._externalNode;
+                    else if (branch === 1)
+                        node = self._changeNode;
+                    else {
+                        $log.warn('[account] Tx with unknown branch', tx);
+                        return;
+                    }
 
-                        if (id >= (node.offset || 0))
+                    if (tx.block) { // confirmed tx
+                        if (id >= (node.offset || 0)) {
                             node.offset = id + 1;
-                    });
-            });
+                        }
+                    } else {
+                        if (id >= (node.unconfirmedOffset || 0)) {
+                            node.unconfirmedOffset = id + 1;
+                        }
+                    }
+                });
+        });
     };
 
     /**
