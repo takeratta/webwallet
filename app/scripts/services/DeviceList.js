@@ -94,12 +94,7 @@ angular.module('webwalletApp').factory('deviceList', function (
         if (desc.id) {
             search = {id: desc.id};
         } else if (desc.path) {
-            /*
-             * The TrezorDevice object is structured in such a way that
-             * the descriptor path is stored in the `id` property, that is
-             * why we are assigning `desc.path` to `id` here.
-             */
-            search = {id: desc.path};
+            search = {path: desc.path};
         } else if (desc) {
             search = {id: desc};
         } else {
