@@ -351,57 +351,51 @@ angular.module('webwalletApp').factory('deviceList', function (
         // Create a temporary device object
         var dev = new TrezorDevice({ path: desc.path });
 
-        dev.withLoading(function () {
-            // Run low-level connect routine and initialize the device.
-            trezor.acquire(desc)
-                .then(function (res) {
-                    dev.connect(
-                        new trezorApi.Session(trezor, res.session)
-                    );
-                    return dev.initializeDevice()
-                })
-            // Try to find existing device by acquired ID and patch it
-            // with the running session, otherwise add the device to
-            // the list
-                .then(
-                    function () {
-                        var id,
-                            old;
-                        if (!dev.features) {
-                            throw new Error('Missing features');
-                        }
-                        id = dev.features.device_id;
-                        if (!id) { // bootloader mode
-                            id = dev.path;
-                        }
-                        old = this.get(id);
-                        if (old) { // existing device remembered
-                            old.connect(dev._session);
-                            old.path = dev.path;
-                            dev = old;
-                        } else {
-                            dev.id = id;
-                            this.add(dev);
-                        }
-                        return dev;
-                    }.bind(this),
-                    function (e) {
-                        dev.disconnect();
-                        throw e;
-                    }
-                )
-            // Execute before initialize hooks.
-            // TODO: get rid of beforeInitHooks
-                .then(this._execHooks(this._beforeInitHooks))
-            // Execute after initialize hooks.
-                .then(this._execHooks(this._afterInitHooks))
-            // Show error message if something failed.
-                .catch(function (err) {
-                    if (!err instanceof this.DeviceListException) {
-                        flash.error(err.message || 'Loading device failed');
-                    }
-                }.bind(this));
-        }.bind(this));
+        // Run low-level connect routine and initialize the device.
+        trezor.acquire(desc)
+            .then(function (res) {
+                dev.connect(new trezorApi.Session(trezor, res.session));
+                return dev.initializeDevice();
+            })
+        // Try to find existing device by acquired ID and patch it
+        // with the running session, otherwise add the device to
+        // the list
+            .then(function () {
+                var id,
+                    old;
+                if (!dev.features) {
+                    throw new Error('Missing features');
+                }
+                id = dev.features.device_id;
+                if (!id) { // bootloader mode
+                    id = dev.path;
+                }
+                old = this.get(id);
+                if (old) { // existing device remembered, patch
+                    old.connect(dev._session);
+                    old.path = dev.path;
+                    dev = old;
+                } else { // new device, add to the list
+                    dev.id = id;
+                    this.add(dev);
+                }
+                return dev;
+            }.bind(this))
+        // Execute initialization hooks.
+            .then(function (dev) {
+                return dev.withLoading(function () {
+                    return $q.when(dev)
+                        .then(this._execHooks(this._beforeInitHooks))
+                        .then(this._execHooks(this._afterInitHooks));
+                }.bind(this))
+            }.bind(this))
+        // Show error message if something failed.
+            .catch(function (err) {
+                dev.disconnect();
+                if (!err instanceof this.DeviceListException) {
+                    flash.error(err.message || 'Loading device failed');
+                }
+            }.bind(this));
     };
 
     /**
