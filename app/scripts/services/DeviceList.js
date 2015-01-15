@@ -372,23 +372,23 @@ angular.module('webwalletApp').factory('deviceList', function (
                     function () {
                         var id,
                             old;
-                        if (dev.features) {
-                            id = dev.features.device_id;
-                            if (id == null) {
-                                id = dev.path;
-                            } else {
-                                old = this.get(id);
-                                if (old) {
-                                    old.connect(dev._session);
-                                    dev = old;
-                                }
-                            }
-                            dev.id = id;
-                            this.add(dev);
-                            return dev;
-                        } else {
+                        if (!dev.features) {
                             throw new Error('Missing features');
                         }
+                        id = dev.features.device_id;
+                        if (!id) { // bootloader mode
+                            id = dev.path;
+                        }
+                        old = this.get(id);
+                        if (old) { // existing device remembered
+                            old.connect(dev._session);
+                            old.path = dev.path;
+                            dev = old;
+                        } else {
+                            dev.id = id;
+                            this.add(dev);
+                        }
+                        return dev;
                     }.bind(this),
                     function (e) {
                         dev.disconnect();
