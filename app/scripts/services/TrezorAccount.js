@@ -66,16 +66,20 @@ angular.module('webwalletApp').factory('TrezorAccount', function (
     };
 
     TrezorAccount.prototype.address = function (n) {
-        var offset = Math.max(this._externalNode.offset || 0,
-                              this._externalNode.unconfirmedOffset || 0),
-            index = offset + n,
-            addressNode = utils.deriveChildNode(this._externalNode, index),
-            address = utils.node2address(addressNode, this.coin.address_type);
+        var offset = Math.max(
+            this._externalNode.offset || 0,
+            this._externalNode.unconfirmedOffset || 0);
+        return this._deriveAddress(this._externalNode, offset + n);
+    };
 
+    TrezorAccount.prototype._deriveAddress = function (node, i) {
+        console.log('[account] Deriving address', i);
+        var addressNode = utils.deriveChildNode(node, i);
+        var address = utils.node2address(addressNode, this.coin.address_type);
         return {
             path: addressNode.path,
             address: address,
-            index: index
+            index: i
         };
     };
 
@@ -92,87 +96,66 @@ angular.module('webwalletApp').factory('TrezorAccount', function (
      *
      * TODO Rewrite this completely when we get rid of Bitcoin.Transaction.
      *
-     * TODO Consider taking utxos directly from the tx by looking
-     * up in the wallet, instead of loading from the balance.
-     *
      * @return {Array}  Addresses in format
      *                    [{
      *                      path: Array,
+     *                      index: Number,
      *                      address: String,
-     *                      timestamp: String,
-     *                      balance: BigNumber,
-     *                      tx: Object
+     *                      received: Number
      *                    }]
      */
     TrezorAccount.prototype.usedAddresses = function () {
-        var self = this,
-            ret = [];
+        var addresses = [];
+        var path;
+        var i;
 
-        if (!self.transactions) {
-            return ret;
+        if (!this.transactions) {
+            return addresses;
         }
 
-        // zip with summed matching utxos
-        self.transactions.forEach(function (tx) {
-            // credit outputs
-            if (tx.analysis.type === 'recv') {
-
-                self.getTxOuts(tx).map(function (out) {
-                    var utxos,
-                        balance;
-
-                    utxos = (self.utxos || []).filter(function (utxo) {
-                        return utxo.transactionHash === tx.hash && utxo.ix === out.ix;
-                    });
-
-                    balance = utxos.reduce(function (bal, utxo) {
-                        return bal.add(new BigInteger(
-                            utxo.value.toString()
-                        ));
-                    }, BigInteger.ZERO);
-
-                    ret.push({
-                        path: out.path,
-                        address: out.address,
-                        timestamp: tx.timestamp,
-                        balance: balance,
-                        tx: tx
-                    });
-                });
+        // gather addresses from tx history
+        this.transactions.forEach(function (tx) {
+            if (tx.analysis.type !== 'recv') {
+                return; // receiving transactions only
             }
-        });
 
-        // sort by address
-        ret = ret.sort(function (a, b) {
-            if (a.address > b.address) return 1;
-            if (a.address < b.address) return -1;
-            return 0;
-        });
+            this.getTxOuts(tx).forEach(function (out) {
+                var chainIx = out.path[out.path.length - 2];
+                var addressIx = out.path[out.path.length - 1];
 
-        // aggregate by address, sum balances
-        ret = ret.reduce(function (xs, x) {
-            var prev = xs[xs.length - 1];
-            if (prev && prev.address === x.address)
-                prev.balance = prev.balance.add(x.balance);
-            else
-                xs.push(x);
-            return xs;
-        }, []);
+                if (chainIx !== 0) {
+                    return; // external addresses only
+                }
+                if (addresses[addressIx]) { // already seen, sum the received amounts
+                    addresses[addressIx].received.add(
+                        new BigInteger(out.value));
+                } else { // seen for the first time
+                    addresses[addressIx] = {
+                        path: out.path,
+                        index: addressIx,
+                        address: out.address,
+                        received: new BigInteger(out.amount)
+                    };
+                }
+            });
+        }.bind(this));
 
-        // sort by timestamp in reverse
-        ret = ret.sort(function (a, b) {
-            if (a.timestamp > b.timestamp) return -1;
-            if (a.timestamp < b.timestamp) return 1;
-            return 0;
-        });
+        // fill in the gaps by deriving
+        for (i = 0; i < addresses.length; i++) {
+            if (!addresses[i]) {
+                addresses[i] = this._deriveAddress(this._externalNode, i);
+                addresses[i].received = null;
+            }
+        }
 
-        return ret;
+        return addresses;
     };
 
     /**
      * Get all used addresses on this account.
      *
-     * @return {Array}  Addresses in the same format as #usedAddresses(), sans tx info
+     * @return {Array} Addresses in the same format as
+     *                 #usedAddresses(), without the amount information
      */
     TrezorAccount.prototype.unusedAddresses = function (n) {
         var i,

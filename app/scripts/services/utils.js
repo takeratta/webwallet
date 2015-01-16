@@ -124,7 +124,7 @@ angular.module('webwalletApp').service('utils', function Utils(
     }
 
     function str2amount(s) {
-        return Math.round(s * 100000000);
+        return Math.round(s * 1e8);
     }
 
     this.amount2str = amount2str;

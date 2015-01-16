@@ -43,13 +43,20 @@
               <span class="address-list-index"
                     >/{{address.path[address.path.length-1]}}</span>
               <span class="address-list-address">{{address.address}}</span>
-              <div class="address-list-balance pull-right">
-                    Total recieved<br>
-                    <a href="{{blockExplorer.urlAddress}}{{address.address}}"
-                    target="_blank" title="Address info at {{blockExplorer.name}}">
-                        {{address.balance | amount}} {{account.coin.coin_shortcut}}
-                    </a>
-                </div> 
+
+              <div class="address-list-balance pull-right"
+                   ng-if="address.received">
+                Total recieved<br>
+                <a href="{{blockExplorer.urlAddress}}{{address.address}}"
+                   target="_blank" title="Address info at {{blockExplorer.name}}">
+                  {{address.received | amount}} {{account.coin.coin_shortcut}}
+                </a>
+              </div>
+
+              <div class="address-list-balance pull-right"
+                   ng-if="!address.received">
+                Unused address
+              </div>
 
               <!-- Address verification -->
               <span class="address-verify"
@@ -167,10 +174,10 @@
                 <span class="h6">BIP32 Path:</span>
                 <small class="text-monospace">{{ activeAddress.path | bip32Path }}</small>
               </li>
-              <li ng-if="activeAddress.balance">
-                <span class="h6">Balance:</span>
+              <li ng-if="activeAddress.received">
+                <span class="h6">Total Received:</span>
                 <small class="text-success"
-                  >{{ activeAddress.balance | amount }} {{account.coin.coin_shortcut}}</small>
+                  >{{ activeAddress.received | amount }} {{account.coin.coin_shortcut}}</small>
               </li>
             </ul>
           </div>
