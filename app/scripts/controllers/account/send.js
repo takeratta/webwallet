@@ -45,21 +45,22 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
             if (!$scope.tx.values && $scope.tx.values.outputs) {
                 return $q.when([]);
             }
-            var wanted_currencies={};
+            
+            var wantedCurrencies={};
             $scope.tx.values.outputs.forEach(function(output) {
-                wanted_currencies[output.currencyAlt]=1;
+                wantedCurrencies[output.currencyAlt]=1;
             });
 
-            var currency_promises={}
+            var currencyPromises={}
 
-            for (var currency in wanted_currencies) {
-                currency_promises[currency]=getConversionRate(currency)
+            for (var currency in wantedCurrencies) {
+                currencyPromises[currency]=getConversionRate(currency)
             }
-            var outputs_promises = $scope.tx.values.outputs.map(function (output) {
-                var currency=currency_promises[output.currencyAlt];
+            var outputsPromises = $scope.tx.values.outputs.map(function (output) {
+                var currency=currencyPromises[output.currencyAlt];
                 return convertToAltCurrencyToCopied(output,currency);
             });
-            return $q.all(outputs_promises)
+            return $q.all(outputsPromises)
         }).then(function(outputs){
             $scope.tx.values.outputs=outputs;
         });
