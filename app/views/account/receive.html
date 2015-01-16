@@ -22,18 +22,18 @@
           <button class="address-list-toggleused btn btn-sm btn-link pull-right"
                   ng-show="!usedAddresses.length && account.transactions.length"
                   ng-click="usedAddresses = account.usedAddresses()">
-            <span class="glyphicon glyphicon-chevron-up"></span> Show used
+            <span class="glyphicon glyphicon-chevron-up"></span> Show previous
           </button>
 
           <button class="address-list-toggleused btn btn-sm btn-link pull-right"
                   ng-show="usedAddresses.length && account.transactions.length"
                   ng-click="usedAddresses = []">
-            <span class="glyphicon glyphicon-chevron-down"></span> Hide used
+            <span class="glyphicon glyphicon-chevron-down"></span> Hide previous
           </button>
 
           <h5>Address</h5>
 
-          <!-- Used addresses -->
+          <!-- Previous addresses -->
           <div class="list-group address-list address-list-used"
                ng-show="usedAddresses.length">
             <span class="list-group-item address-list-item"
