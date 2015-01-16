@@ -765,6 +765,10 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
         var copiedOutput=_deepCopyOutput(output);
 
 
+        copiedOutput.currencyAlt =
+                    copiedOutput.currencyAlt || DEFAULT_ALT_CURRENCY;
+
+
         var amount = +copiedOutput.amount;
         if (!amount) {
             copiedOutput.amountAlt = '';
