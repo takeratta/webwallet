@@ -12,6 +12,7 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
     $routeParams,
     $q,
     $modal,
+    $log,
     $http) {
 
     'use strict';
@@ -44,10 +45,21 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
             if (!$scope.tx.values && $scope.tx.values.outputs) {
                 return $q.when([]);
             }
-            var promises = $scope.tx.values.outputs.map(function (output) {
-                return convertToAltCurrencyToCopied(output);
+            var wanted_currencies={};
+            $scope.tx.values.outputs.forEach(function(output) {
+                wanted_currencies[output.currencyAlt]=1;
             });
-            return $q.all(promises)
+
+            var currency_promises={}
+
+            for (var currency in wanted_currencies) {
+                currency_promises[currency]=getConversionRate(currency)
+            }
+            var outputs_promises = $scope.tx.values.outputs.map(function (output) {
+                var currency=currency_promises[output.currencyAlt];
+                return convertToAltCurrencyToCopied(output,currency);
+            });
+            return $q.all(outputs_promises)
         }).then(function(outputs){
             $scope.tx.values.outputs=outputs;
         });
@@ -725,9 +737,11 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
      * @return {Promise}       Fulfilled when finished
      */
     $scope.convertToAltCurrency = function (output) {
+
+        var currency = getConversionRate(output.currencyAlt||DEFAULT_ALT_CURRENCY)
         //convertToAltCurrencyToCopied does not convert input, only returns a copy
         //so we need to copy it back
-        convertToAltCurrencyToCopied(output).then(function(copied){
+        convertToAltCurrencyToCopied(output,currency).then(function(copied){
             _copyOutputFrom(copied,output)
         })
     };
@@ -743,9 +757,10 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
      *
      * @param {Object} output  Output in format:
      *              {amount: String, amountAlt: String, currencyAlt: String...}
+     *                currency: promise for currency
      * @return {Promise}       Fulfilled when finished
      */
-    function convertToAltCurrencyToCopied(output) {
+    function convertToAltCurrencyToCopied(output, currency) {
         var copiedOutput=_deepCopyOutput(output);
 
         copiedOutput.currencyAlt =
@@ -756,7 +771,8 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
             copiedOutput.amountAlt = '';
             return $q.when(copiedOutput)
         } else {
-            return getConversionRate(copiedOutput.currencyAlt).then(function (rate) {
+            return currency.then(function (rate) {
+            //return getConversionRate(copiedOutput.currencyAlt).then(function (rate) {
                 copiedOutput.amountAlt = Math.round10(amount * rate, -2).toString();
                 return copiedOutput;
             });
@@ -770,13 +786,16 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
      * @return {Float}           Convertsion rate
      */
     function getConversionRate(currency) {
+        $log.log("Getting conversion rate for currency "+currency)
         var url = [
             'https://api.coindesk.com/v1/bpi/currentprice/',
             currency,
             '.json'
         ].join('');
         return $http.get(url).then(function (res) {
-            return res.data.bpi[currency].rate_float;
+            var rate = res.data.bpi[currency].rate_float;
+            $log.log("Conversion rate for currency "+currency+" is "+rate)
+            return rate;
         });
     }
 
