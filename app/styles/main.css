@@ -448,10 +448,12 @@ body {
 /* Receive */
 
 .address-list-balance{
-    font-size:smaller;
-    margin-top: -8px;
+    font-size:80%;
     text-align: right;
     color:#555;
+    position: absolute;
+    right: 10px;
+    top: 4px;
 }
 
 .address-list-address{
