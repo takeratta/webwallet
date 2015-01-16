@@ -447,6 +447,17 @@ body {
 
 /* Receive */
 
+.address-list-balance{
+    font-size:smaller;
+    margin-top: -8px;
+    text-align: right;
+    color:#555;
+}
+
+.address-list-address{
+    color:#555;
+}
+
 .address-list .badge {
   opacity: 0.5;
 }
@@ -472,6 +483,10 @@ body {
   color: hsl(208, 40%, 43%);
   background-color: hsla(208, 56%, 53%, 0.1);
   border-color: hsla(208, 56%, 53%, 0.4);
+}
+
+.address-list-item:hover {
+  background-color: #f5f5f5
 }
 
 .address-list-item.active:hover {

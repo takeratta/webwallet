@@ -36,15 +36,20 @@
           <!-- Used addresses -->
           <div class="list-group address-list address-list-used"
                ng-show="usedAddresses.length">
-            <a class="list-group-item address-list-item"
+            <span class="list-group-item address-list-item"
                ng-repeat="address in usedAddresses"
                ng-class="{ active: activeAddress.address === address.address }"
                ng-click="activate(address)">
               <span class="address-list-index"
                     >/{{address.path[address.path.length-1]}}</span>
               <span class="address-list-address">{{address.address}}</span>
-              <small class="address-list-balance text-success pull-right"
-                     >({{address.balance | amount}} {{account.coin.coin_shortcut}})</small>
+              <div class="address-list-balance pull-right">
+                    Total recieved<br>
+                    <a href="{{blockExplorer.urlAddress}}{{address.address}}"
+                    target="_blank" title="Address info at {{blockExplorer.name}}">
+                        {{address.balance | amount}} {{account.coin.coin_shortcut}}
+                    </a>
+                </div> 
 
               <!-- Address verification -->
               <span class="address-verify"
@@ -69,7 +74,7 @@
                   </button>
                 </div>
               </span>
-            </a>
+            </span>
             <hr>
           </div>
 
