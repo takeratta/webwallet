@@ -640,7 +640,8 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
             }
             addedOutputs.push({
                     address: line[colAddress].toString(),
-                    amount: line[colAmount].toString()
+                    amount: line[colAmount].toString(),
+                    currencyAlt: DEFAULT_ALT_CURRENCY
             });
         }
 
@@ -763,8 +764,6 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
     function convertToAltCurrencyToCopied(output, currency) {
         var copiedOutput=_deepCopyOutput(output);
 
-        copiedOutput.currencyAlt =
-                    copiedOutput.currencyAlt || DEFAULT_ALT_CURRENCY;
 
         var amount = +copiedOutput.amount;
         if (!amount) {
