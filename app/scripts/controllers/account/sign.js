@@ -210,4 +210,24 @@ angular.module('webwalletApp').controller('AccountSignCtrl', function (
             return 'has-success';
         }
     };
+
+    $scope.isUnicode = function(s) {
+        if (typeof s === "undefined") {
+            return false
+        }
+        return s.split("").some(function(char) { return char.charCodeAt(0) > 127 });
+    }
+
+    $scope.nonAsciiCharacter = function(s) {
+        if (typeof s === "undefined") {
+            return "";
+        }
+
+        var arr= s.split("").filter(function(char) { return char.charCodeAt(0) > 127 });
+        if (arr.length==0) {
+            return "";
+        }
+        return arr[0]
+    }
+
 });

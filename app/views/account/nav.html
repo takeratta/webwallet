@@ -16,12 +16,9 @@
         </a>
     </li>
     <li ng-class="{ active: isActive('/device/{{device.id}}/account/{{account.id}}/sign$') }"
-        tooltip="Please connect your device to sign a message."
-        tooltip-trigger="{{ device.isConnected() ? 'manual' : 'mouseenter'}}"
-        tooltip-placement="bottom"
         class="nav-tab-small">
         <a class="btn" href="#/device/{{device.id}}/account/{{account.id}}/sign"
-           ng-disabled="!device.isConnected()">
+           >
             <span class="glyphicon glyphicon-lock"></span> Sign & Verify
         </a>
     </li>

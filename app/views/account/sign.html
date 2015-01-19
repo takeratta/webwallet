@@ -24,8 +24,36 @@
                 <textarea class="form-control"
                           name="message" id="sign-message"
                           ng-model="sign.message"
-                          ng-change="resetSign()"></textarea>
+                          ng-change="resetSign()"
+                          maxlength="255"
+                          rows="4"
+                          ></textarea>
               </div>
+              <div class="alert alert-warning" 
+                    role="alert"
+                    ng-show="sign.message.length>245 && !(isUnicode(sign.message)) "
+                   ng-class="{'alert-danger': sign.message.length==255}"
+              >
+                    <strong>Warning:</strong> 
+                    Maximal message length is 255 letters long.
+                    Your message is {{sign.message.length}} letters long.
+              </div>
+              <div class="alert alert-warning" 
+                    role="alert"
+                    ng-show="sign.message.length>54 && sign.message.length<=245 && !(isUnicode(sign.message))"
+              >
+                    <strong>Warning:</strong> 
+                    Trezor can show only 64 letters on the display.
+                    Your message is {{sign.message.length}} letters long.
+              </div>
+              <div class="alert alert-danger" 
+                    role="alert"
+                    ng-show="isUnicode(sign.message)"
+              >
+                    Trezor cannot sign non-ASCII characters. "{{nonAsciiCharacter(sign.message)}}" in your message is not an ASCII character.
+              </div>
+
+
 
               <div class="form-group has-feedback"
                   ng-class="getSignAddressClass()">
@@ -48,11 +76,19 @@
                           rows="4" readonly="readonly"
                           ng-model="sign.signature"></textarea>
               </div>
+              <div class="pull-left"
+                       tooltip="Please connect your device to sign messages."
+                        tooltip-trigger="{{ device.isConnected() ? 'manual' : 'mouseenter'}}"
+                       tooltip-placement="bottom"
+                       >
 
-              <button type="submit" class="btn btn-primary"
-                  ng-disabled="!isSignValid()">
-                Sign
-              </button>
+                    <button type="submit" class="btn btn-primary"
+                        ng-disabled="!isSignValid() || device.status() !== 'connected'"
+                        ng-hide="isUnicode(sign.message)"
+                    >
+                        Sign
+                    </button>
+             </div>
             </fieldset>
           </form>
         </div>
@@ -76,8 +112,35 @@
                           required
                           ng-model="verify.message"
                           ng-change="verify.res.status = null"
+                          maxlength="255"
+                          rows="4"
                           ></textarea>
               </div>
+              <div class="alert alert-warning" 
+                    role="alert"
+                    ng-show="verify.message.length>245 && !(isUnicode(verify.message)) "
+                   ng-class="{'alert-danger': verify.message.length==255}"
+              >
+                    <strong>Warning:</strong> 
+                    Maximal message length is 255 letters long.
+                    Your message is {{verify.message.length}} letters long.
+              </div>
+              <div class="alert alert-warning" 
+                    role="alert"
+                    ng-show="verify.message.length>54 && verify.message.length<=245 && !(isUnicode(verify.message))"
+              >
+                    <strong>Warning:</strong> 
+                    Trezor can show only 64 letters on the display.
+                    Your message is {{verify.message.length}} letters long.
+              </div>
+              <div class="alert alert-danger" 
+                    role="alert"
+                    ng-show="isUnicode(verify.message)"
+              >
+                    Trezor cannot verify non-ASCII characters. "{{nonAsciiCharacter(verify.message)}}" in your message is not an ASCII character.
+              </div>
+
+
 
               <div class="form-group">
                 <label for="verify-address">Address</label>
@@ -98,10 +161,22 @@
                           ng-change="resetVerify()"
                           ></textarea>
               </div>
+              <div class="pull-left"
+                        tooltip="Please connect your device to verify messages."
+                        tooltip-trigger="{{ device.isConnected() ? 'manual' : 'mouseenter'}}"
+                       tooltip-placement="bottom"
+                       >
 
-              <button type="submit" class="btn btn-primary">
-                Verify
-              </button>
+
+                    <button type="submit" class="btn btn-primary"
+                        ng-hide="isUnicode(verify.message)"
+                        ng-disabled="device.status() !== 'connected'"
+                    >
+                        Verify
+                    </button>
+
+               </div>
+
             </fieldset>
           </form>
         </div>
