@@ -605,6 +605,10 @@ angular.module('webwalletApp').factory('TrezorAccount', function (
     // Backend communication
     //
 
+    TrezorAccount.prototype.isLoading = function () {
+        return this.balance===null;
+    }
+
     TrezorAccount.prototype.subscribe = function () {
         var self = this;
 
@@ -624,7 +628,7 @@ angular.module('webwalletApp').factory('TrezorAccount', function (
         );
 
         $timeout(function () {
-            if (self.balance === null) {
+            if (self.isLoading()) {
                 self.subscribingIsSlow = true;
             }
         }, 30 * 1000);

@@ -93,7 +93,7 @@ angular.module('webwalletApp').factory('TrezorDevice', function (
     //
 
     TrezorDevice.prototype.isLoading = function () {
-        return !!this._loadingLevel;
+        return (!!this._loadingLevel) || this.areAccountsLoading();
     };
 
     TrezorDevice.prototype.withLoading = function (fn) {
@@ -356,9 +356,15 @@ angular.module('webwalletApp').factory('TrezorDevice', function (
 
     TrezorDevice.prototype.discoveryIsSlow = function () {
         return this.accounts.some(function (account) {
-            return account.balance === null && account.subscribingIsSlow;
+            return account.isLoading() && account.subscribingIsSlow;
         });
     };
+
+    TrezorDevice.prototype.areAccountsLoading = function() {
+        return this.accounts.some(function (account) {
+            return account.isLoading()
+        });
+    }
 
     TrezorDevice.prototype.discoverAccounts = function () {
         var self = this,
