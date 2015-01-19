@@ -5,8 +5,15 @@
     <span class="glyphicon glyphicon-pencil"></span> Change label
   </button>
 </h3>
-<p class="lead">
+<p class="lead"
+   ng-hide="device.isLoading()"
+ >
   <strong>{{device.balance() | amount}} {{device.defaultCoin().coin_shortcut}}</strong> total balance
+</p>
+<p class="lead"
+   ng-show="device.isLoading()"
+ >
+  <i>Loading balance....</i>
 </p>
 
 <h5>
