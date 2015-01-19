@@ -196,7 +196,7 @@ angular.module('webwalletApp').controller('DeviceCtrl', function (
      */
     function promptForget() {
         var modal = $modal.open({
-            templateUrl: 'views/modal/forget.html',
+            templateUrl: 'views/modal/forget.disconnected.html',
             backdrop: 'static',
             keyboard: false
         });
