@@ -20,9 +20,7 @@
   </fieldset>
 
   <div class="row"
-       ng-if="device.accounts.length"
        ng-controller="DeviceInfoCtrl">
-
     <div class="col-xs-12">
       <div class="line-divider"
            ng-hide="advanced">
@@ -38,7 +36,19 @@
 
       <div ng-show="advanced">
         <hr>
-        <div class="row">
+        <div class="row"
+            ng-if="!(device.accounts.length)"
+            >
+            <div class="col-md-4">
+                <p class="alert alert-warning alert-withicon">
+                <span class="glyphicon glyphicon-info-sign alert-icon"></span>
+                    This Trezor has no loaded accounts. Connect it to load them.
+                </p>
+            </div>
+        </div>
+        <div class="row"
+            ng-if="device.accounts.length"
+            >
           <div class="col-md-8">
             <h4>Account public keys (XPUB)</h4>
             <p>
