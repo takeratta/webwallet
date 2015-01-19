@@ -291,16 +291,14 @@ body {
 }
 
 .nav-devices > li > .dev-forget {
-  display: none;
+  display: block;
   padding: 2px 6px;
   position: absolute;
   top: 38px;
   right: 6px;
+  font-size:1em;
 }
 
-.nav-devices > li:hover > .dev-forget {
-  display: block;
-}
 
 .dev-status {
   display: block;
@@ -771,3 +769,46 @@ body {
 .sign .has-error .glyphicon-remove {
   display: inline-block;
 }
+
+
+/*Rotation tricks*/
+
+
+.rotate-animation {
+  -webkit-animation: rotate 1s linear 0 infinite normal;
+  -o-animation: rotate 1s linear 0 infinite normal;
+  -ms-animation: rotate 1s linear 0 infinite normal;
+  animation: rotate 1s linear 0s infinite normal;
+  line-height:0px;
+}
+
+@-webkit-keyframes rotate {
+  50% { -webkit-transform: rotate(0deg); } 
+  50.001% { -webkit-transform: rotate(90deg); }
+
+
+  99.998% { -webkit-transform:rotate(90deg); } 
+  99.999% { -webkit-transform:rotate(0deg); }
+
+}
+
+@-ms-keyframes rotate {
+  50% { -ms-transform: rotate(0deg); } 
+  50.001% { -ms-transform: rotate(90deg); }
+
+
+  99.998% { -ms-transform:rotate(90deg); } 
+  99.999% { -ms-transform:rotate(0deg); }
+
+}
+
+@keyframes rotate {
+  50% { transform: rotate(0deg); } 
+  50.001% { transform: rotate(90deg); }
+
+
+  99.998% { transform:rotate(90deg); } 
+  99.999% { transform:rotate(0deg); }
+
+}
+
