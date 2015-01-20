@@ -20,7 +20,9 @@
   </fieldset>
 
   <div class="row"
-       ng-controller="DeviceInfoCtrl">
+       ng-controller="DeviceInfoCtrl"
+       ng-hide="device.isEmpty()"
+       >
     <div class="col-xs-12">
       <div class="line-divider"
            ng-hide="advanced">
