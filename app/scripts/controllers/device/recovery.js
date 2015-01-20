@@ -14,7 +14,8 @@ angular.module('webwalletApp').controller('DeviceRecoveryCtrl', function (
     $scope.seedWords = null;
     $scope.seedWordlist = bip39.english;
     $scope.settings = {
-        pin_protection: true
+        pin_protection: true,
+        word_count: 24
     };
 
     $scope.$on('device.word', promptWord);
