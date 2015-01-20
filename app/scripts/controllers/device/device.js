@@ -4,7 +4,6 @@
  * Device Controller
  */
 angular.module('webwalletApp').controller('DeviceCtrl', function (
-    $modal,
     $scope,
     $location,
     $routeParams,
@@ -12,6 +11,7 @@ angular.module('webwalletApp').controller('DeviceCtrl', function (
     flash,
     TrezorDevice,
     deviceList,
+    modalOpener,
     deviceService) {
 
     'use strict';
@@ -148,31 +148,12 @@ angular.module('webwalletApp').controller('DeviceCtrl', function (
      * @return {Promise}
      */
     function promptDisconnect(disableCancel) {
-        var scope,
-            modal;
 
-        scope = angular.extend($scope.$new(), {
-            disableCancel: disableCancel
-        });
+        var opened = modalOpener.openModal($scope,'disconnect',"sm",{disableCancel:disableCancel});
 
-        modal = $modal.open({
-            templateUrl: 'views/modal/disconnect.html',
-            size: 'sm',
-            backdrop: 'static',
-            keyboard: false,
-            scope: scope
-        });
+        disconnectModal = opened.modal;
 
-        modal.opened.then(function () {
-            $scope.$emit('modal.disconnect.show');
-        });
-        modal.result.finally(function () {
-            $scope.$emit('modal.disconnect.hide');
-        });
-
-        disconnectModal = modal;
-
-        return modal.result;
+        return opened.result;
     }
 
     /**
@@ -195,48 +176,17 @@ angular.module('webwalletApp').controller('DeviceCtrl', function (
      * @return {Promise}
      */
     function promptForget() {
-        var modal = $modal.open({
-            templateUrl: 'views/modal/forget.disconnected.html',
-            backdrop: 'static',
-            keyboard: false
-        });
-        modal.opened.then(function () {
-            $scope.$emit('modal.forget.show');
-        });
-        modal.result.finally(function () {
-            $scope.$emit('modal.forget.hide');
-        });
-
-        return modal.result;
+        return modalOpener.openModal($scope, 'forget.disconnected').result;
     }
 
     /**
      * Ask the user to set the device label.
      */
     function promptLabel() {
-        var scope,
-            modal;
 
-        scope = angular.extend($scope.$new(), {
+        return modalOpener.openModal($scope, 'label','sm', {
             label: $scope.device.features.label || ''
-        });
-
-        modal = $modal.open({
-            templateUrl: 'views/modal/label.html',
-            size: 'sm',
-            windowClass: 'labelmodal',
-            backdrop: 'static',
-            keyboard: false,
-            scope: scope,
-        });
-        modal.opened.then(function () {
-            scope.$emit('modal.label.show');
-        });
-        modal.result.finally(function () {
-            scope.$emit('modal.label.hide');
-        });
-
-        return modal.result;
+        }).result;
     }
 
     /**
@@ -254,18 +204,18 @@ angular.module('webwalletApp').controller('DeviceCtrl', function (
      * @param {Function} callback  Called as `callback(err, res)`
      */
     function promptPin(e, dev, type, callback) {
-        var scope, modal;
 
         if (dev.id !== $scope.device.id)
             return;
 
-        scope = angular.extend($scope.$new(), {
+        var modal=modalOpener.openModal($scope, 'pin','sm',{
             pin: '',
-            type: type
-        });
+            type: type 
+        },true);
 
-        scope.addPin = function (num) {
-            scope.pin = scope.pin + num.toString();
+
+        modal.scope.addPin = function (num) {
+            modal.scope.pin = modal.scope.pin + num.toString();
             /*
              * When the user clicks a number button, the button gets focus.
              * Then when the user presses Enter it triggers another click on the
@@ -275,28 +225,14 @@ angular.module('webwalletApp').controller('DeviceCtrl', function (
             $document.focus();
         };
 
-        scope.delPin = function () {
-            scope.pin = scope.pin.slice(0, -1);
+        modal.scope.delPin = function () {
+            modal.scope.pin = modal.scope.pin.slice(0, -1);
         };
 
-        scope.isPinSet = function () {
-            return scope.pin.length > 0;
+        modal.scope.isPinSet = function () {
+            return modal.scope.pin.length > 0;
         };
 
-        modal = $modal.open({
-            templateUrl: 'views/modal/pin.html',
-            size: 'sm',
-            windowClass: 'pinmodal',
-            backdrop: 'static',
-            keyboard: false,
-            scope: scope
-        });
-        modal.opened.then(function () {
-            scope.$emit('modal.pin.show', type);
-        });
-        modal.result.finally(function () {
-            scope.$emit('modal.pin.hide');
-        });
 
         $document.on('keydown', _pinKeydownHandler);
         $document.focus();
@@ -316,16 +252,16 @@ angular.module('webwalletApp').controller('DeviceCtrl', function (
             var k = e.which,
                 num;
             if (k === 8) { // Backspace
-                scope.delPin();
-                scope.$digest();
+                modal.scope.delPin();
+                modal.scope.$digest();
                 return false;
             } else if (k === 13) { // Enter
-                modal.close(scope.pin);
+                modal.modal.close(scope.pin);
                 return false;
             } else if (_isNumericKey(k)) {
                 num = _getNumberFromKey(k);
-                scope.addPin(String.fromCharCode(num));
-                scope.$digest();
+                modal.scope.addPin(String.fromCharCode(num));
+                modal.scope.$digest();
             }
         }
 
@@ -339,14 +275,12 @@ angular.module('webwalletApp').controller('DeviceCtrl', function (
     }
 
     function promptPassphrase(e, dev, callback) {
-        var scope,
-            modal;
 
         if (dev.id !== $scope.device.id) {
             return;
         }
 
-        scope = angular.extend($scope.$new(), {
+        var modal=modalOpener.openModal($scope, 'passphrase', 'sm', {
             check: !$scope.device.hasSavedPassphrase(),
             checkCorrect: false,
             values: {
@@ -354,21 +288,6 @@ angular.module('webwalletApp').controller('DeviceCtrl', function (
                 passphraseCheck: ''
             },
             installHandler: installSubmitHandlers
-        });
-
-        modal = $modal.open({
-            templateUrl: 'views/modal/passphrase.html',
-            size: 'sm',
-            windowClass: 'passphrasemodal',
-            backdrop: 'static',
-            keyboard: false,
-            scope: scope
-        });
-        modal.opened.then(function () {
-            scope.$emit('modal.passphrase.show');
-        });
-        modal.result.finally(function () {
-            scope.$emit('modal.passphrase.hide');
         });
 
         modal.result.then(
@@ -384,16 +303,16 @@ angular.module('webwalletApp').controller('DeviceCtrl', function (
             }
         );
 
-        scope.$watch('values.passphrase', checkPassphrase);
-        scope.$watch('values.passphraseCheck', checkPassphrase);
+        modal.scope.$watch('values.passphrase', checkPassphrase);
+        modal.scope.$watch('values.passphraseCheck', checkPassphrase);
 
         function checkPassphrase() {
-            var v = scope.values;
-            if (!scope.check) {
-                scope.checkCorrect = true;
+            var v = modal.scope.values;
+            if (!modal.scope.check) {
+                modal.scope.checkCorrect = true;
                 return;
             }
-            scope.checkCorrect =
+            modal.scope.checkCorrect =
                 (v.passphrase === v.passphraseCheck) &&
                 (v.passphrase.length <= 50);
         }
@@ -406,13 +325,13 @@ angular.module('webwalletApp').controller('DeviceCtrl', function (
             submit.addEventListener('click', submitModal, false);
             form.addEventListener('submit', submitModal, false);
             form.addEventListener('keypress', function (e) {
-                if (e.keyCode === 13 && scope.checkCorrect) {
+                if (e.keyCode === 13 && modal.scope.checkCorrect) {
                     submitModal();
                 }
             }, true);
 
             function submitModal () {
-                modal.close(scope.values.passphrase);
+                modal.modal.close(modal.scope.values.passphrase);
                 return false;
             }
         }
@@ -429,35 +348,22 @@ angular.module('webwalletApp').controller('DeviceCtrl', function (
     }
 
     function promptButton(code) {
-        var scope,
-            modal;
 
-        scope = angular.extend($scope.$new(), {
-            code: code
+        var modal = modalOpener.openModal($scope, 'button', buttonModalSize(code), {
+            code:code
         });
-
-        modal = $modal.open({
-            templateUrl: 'views/modal/button.html',
-            size: buttonModalSize(code),
-            windowClass: 'buttonmodal',
-            backdrop: 'static',
-            keyboard: false,
-            scope: scope
+        modal.modal.opened.then(function () {
+            modal.scope.$emit('modal.button.show', code);
         });
-        modal.opened.then(function () {
-            scope.$emit('modal.button.show', code);
-        });
-        modal.result.finally(function () {
-            scope.$emit('modal.button.hide');
-        });
-
+ 
         $scope.device.once(TrezorDevice.EVENT_RECEIVE, function () {
-            modal.close();
+            modal.modal.close();
         });
         $scope.device.once(TrezorDevice.EVENT_ERROR, function () {
-            modal.close();
+            modal.modal.close();
         });
     }
+
 
     function buttonModalSize(code) {
         if (code === 'ButtonRequest_Address') {

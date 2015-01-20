@@ -11,7 +11,7 @@ angular.module('webwalletApp').controller('NavCtrl', function (
     $scope,
     $location,
     deviceList,
-    $modal,
+    modalOpener,
     flash) {
 
     'use strict';
@@ -54,7 +54,7 @@ angular.module('webwalletApp').controller('NavCtrl', function (
      * @param {TrezorDevice} device  Device that was disconnected
      */
     $scope.forget = function (device) {
-        promptForget()
+        promptForget(device)
             .then(function () {
                 device.forgetOnDisconnect = true;
                 deviceList.forget(device);
@@ -73,20 +73,8 @@ angular.module('webwalletApp').controller('NavCtrl', function (
      *
      * @return {Promise}
      */
-    function promptForget() {
-        var modal = $modal.open({
-            templateUrl: 'views/modal/forget.requested.html',
-            backdrop: 'static',
-            keyboard: false
-        });
-        modal.opened.then(function () {
-            $scope.$emit('modal.forget.show');
-        });
-        modal.result.finally(function () {
-            $scope.$emit('modal.forget.hide');
-        });
-
-        return modal.result;
+    function promptForget(device) {
+        return modalOpener.openModal($scope, "forget.requested",undefined,{device:device}).result;
     }
 
 

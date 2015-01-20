@@ -5,7 +5,8 @@ angular.module('webwalletApp').controller('DeviceWipeCtrl', function (
     $rootScope,
     flash,
     deviceList,
-    $modal) {
+    modalOpener
+    ) {
 
     'use strict';
 
@@ -70,20 +71,9 @@ angular.module('webwalletApp').controller('DeviceWipeCtrl', function (
      * Ask user to disconnect the device.
      */
     function promptDisconnect() {
-        var modal = $modal.open({
-            templateUrl: 'views/modal/disconnect.wipe.html',
-            size: 'sm',
-            backdrop: 'static',
-            keyboard: false
-        });
-        modal.opened.then(function () {
-            $scope.$emit('modal.disconnect.wipe.show');
-        });
-        modal.result.finally(function () {
-            $scope.$emit('modal.disconnect.wipe.hide');
-        });
+        var modal=modalOpener.openModal($scope, 'disconnect.wipe', 'sm');
 
-        _disconnectModal = modal;
+        _disconnectModal = modal.modal;
 
         return modal.result;
     }
@@ -97,26 +87,7 @@ angular.module('webwalletApp').controller('DeviceWipeCtrl', function (
      *                                  shown).
      */
     function promptForget(hideSuccessMsg) {
-        var modal,
-            scope;
-
-        scope = angular.extend($rootScope.$new(), {
-            hideSuccessMsg: hideSuccessMsg
-        });
-
-        modal = $modal.open({
-            templateUrl: 'views/modal/forget.wipe.html',
-            backdrop: 'static',
-            keyboard: false,
-            scope: scope
-        });
-        modal.opened.then(function () {
-            $scope.$emit('modal.forget.wipe.show');
-        });
-        modal.result.finally(function () {
-            $scope.$emit('modal.forget.wipe.hide');
-        });
-
-        return modal.result;
+        
+        return modalOpener.openModal($scope, 'forget.wipe', null, {hideSuccessMsg: hideSuccessMsg}).result;
     }
 });
