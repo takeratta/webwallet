@@ -7,6 +7,9 @@
   <p class="text-muted">Forgetting only removes the device from the list 
   on the left, your bitcoins are still safe and you can access them by 
   reconnecting your Trezor again.</p>
+ <p ng-show="device.features.passphrase_protection">
+ You will have to enter your passphrase next time you connect your Trezor.
+ </p>
 
 </div>
 <div class="modal-footer">
