@@ -479,10 +479,15 @@ body {
   text-align: center;
 }
 
+.address-list-address{
+    font-family:monospace;
+}
+
 .address-list-item.active {
-  color: hsl(208, 40%, 43%);
-  background-color: hsla(208, 56%, 53%, 0.1);
-  border-color: hsla(208, 56%, 53%, 0.4);
+  color: hsl(208, 40%, 43%) !important;
+  background-color: hsla(208, 56%, 53%, 0.1) !important;
+  border-color: hsla(208, 56%, 53%, 0.4) !important;
+  /*if not important, list-group.less overloads it for some reason*/
 }
 
 .address-list-item:hover {
@@ -490,9 +495,10 @@ body {
 }
 
 .address-list-item.active:hover {
-  color: hsl(208, 40%, 43%);
-  background-color: hsla(208, 56%, 53%, 0.2);
-  border-color: hsla(208, 56%, 53%, 0.5);
+  color: hsl(208, 40%, 43%) !important;
+  background-color: hsla(208, 56%, 53%, 0.2) !important;
+  border-color: hsla(208, 56%, 53%, 0.5) !important;
+  /*if not important, list-group.less overloads it for some reason*/
 }
 
 .address-list-item.invalid,
@@ -534,6 +540,13 @@ body {
   margin-left: 8px;
 }
 
+.address-verify.nonactive{
+    opacity:0.3    
+}
+
+.address-verify.nonactive:hover{
+    opacity:0.6    
+}
 .btn-verifyaddress {
   padding: 0;
   opacity: 0.6;
@@ -604,6 +617,7 @@ body {
 .pinmodal .col-sm-4 .btn:focus {
   outline: 0;
 }
+
 
 .pinmodal-dial .form-group {
   margin-left: -5px;
@@ -692,7 +706,7 @@ body {
   width: 1.5em;
   font-size: 150%;
   text-align: center;
-  padding: 0;
+  padding: 0 !important;
   margin: 0;
   line-height: 1.5;
 }
