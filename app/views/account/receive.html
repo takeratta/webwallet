@@ -136,8 +136,8 @@
                 <div class="line-divider-content text-center">
                   <button class="btn btn-xs btn-default"
                           ng-disabled="
-                          addresses[addresses.length - 1].index >=
-                          account.maxLiveAddressIndex(lookAhead)"
+                          enoughAddresses()
+                          "
                           ng-click="more()">
                     More please
                     <span class="glyphicon glyphicon-plus"></span>
@@ -148,8 +148,8 @@
           </div>
 
           <div ng-show="
-               addresses[addresses.length - 1].index >=
-               account.maxLiveAddressIndex(lookAhead)">
+                enoughAddresses()
+               ">
             <p class="text-danger">
               To access subsequent addresses, please use some of the
               listed addresses in a transaction.

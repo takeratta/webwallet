@@ -14,6 +14,12 @@ angular.module('webwalletApp').controller('AccountReceiveCtrl', function (
     $scope.addresses = [];
     $scope.lookAhead = 20;
 
+    $scope.enoughAddresses=function(){
+        return $scope.addresses[$scope.addresses.length - 1].index >=
+                $scope.account.maxLiveAddressIndex($scope.lookAhead);
+    }
+    
+
     $scope.activate = function (address) {
         $scope.activeAddress = address;
 

@@ -84,7 +84,7 @@ angular.module('webwalletApp').factory('TrezorAccount', function (
     };
 
     TrezorAccount.prototype.maxLiveAddressIndex = function (gapLength) {
-        return (this._externalNode.offset || 0) + gapLength;
+        return (this._externalNode.offset || 0) + gapLength - 1;
     };
 
     TrezorAccount.prototype.publicKey = function () {
