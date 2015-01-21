@@ -20,7 +20,7 @@ angular.module('webwalletApp').service('modalOpener', function (
     this.openModal=function(scope, name,size,extendScope,allowBackspace) {
 
         
-        var windowClass=name+"modal";
+        var windowClass=name.replace(".","-","g")+"modal";
         if (typeof extendScope==="undefined") {
             extendScope={};
         }
