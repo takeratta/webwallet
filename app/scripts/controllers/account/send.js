@@ -13,6 +13,7 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
     $q,
     $modal,
     $log,
+    modalOpener,
     $http) {
 
     'use strict';
@@ -551,22 +552,7 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
      * Prompt QR
      */
     function promptQr() {
-        var scope,
-            modal;
-
-        scope = angular.extend($scope.$new(), {});
-
-        modal = $modal.open({
-            templateUrl: 'views/modal/qr.html',
-            size: 'lg',
-            backdrop: 'static',
-            keyboard: false,
-            scope: scope
-        });
-        modal.opened.then(function () { scope.$emit('modal.qr.show'); });
-        modal.result.finally(function () { scope.$emit('modal.qr.hide'); });
-
-        return modal.result;
+        return modalOpener.openModal($scope, 'qr','lg').result;
     }
 
     /**
@@ -668,10 +654,8 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
      * Open a CSV import modal dialog.
      */
     $scope.promptCsv = function () {
-        var scope,
-            modal;
 
-        scope = angular.extend($scope.$new(), {
+        var modal= modalOpener.openModal($scope, 'csv','lg',{
             values: {
                 data: '',
                 delimiter: ',',
@@ -680,25 +664,15 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
             submit: function (form) {
                 var errMsg = importCsv(form);
                 if (!errMsg) {
-                    modal.close();
+                    modal.modal.close();
                 } else {
                     scope.errMsg = errMsg;
                 }
             }
         });
 
-        modal = $modal.open({
-            templateUrl: 'views/modal/csv.html',
-            size: 'lg',
-            backdrop: 'static',
-            keyboard: false,
-            scope: scope
-        });
-        modal.opened.then(function () { scope.$emit('modal.csv.show'); });
-        modal.result.finally(function () { scope.$emit('modal.csv.hide'); });
-
         $scope.$on('qr.address', function () {
-            modal.close();
+            modal.modal.close();
         });
 
         return modal.result;

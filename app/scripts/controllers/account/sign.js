@@ -182,7 +182,7 @@ angular.module('webwalletApp').controller('AccountSignCtrl', function (
         $scope.verify.res = null;
     };
 
-    $scope.isSignValid = function () {
+    $scope.isSignInputValid = function () {
         return $scope.sign.message && $scope.sign.address_n;
     };
 

@@ -26,8 +26,7 @@ angular.module('webwalletApp').controller('AccountReceiveCtrl', function (
         });
     };
 
-    $scope.verify = function () {
-        var address = $scope.activeAddress;
+    $scope.verify = function (address) {
 
         address.verification = true;
         $scope.device.verifyAddress(address.path, address.address).then(

@@ -4,6 +4,7 @@ angular.module('webwalletApp').controller('DeviceSetupCtrl', function (
     utils,
     flash,
     $scope,
+    modalOpener,
     $modal) {
 
     'use strict';
@@ -113,5 +114,6 @@ angular.module('webwalletApp').controller('DeviceSetupCtrl', function (
             keyboard: false,
             scope: $scope
         });
+        modalOpener.stopBackpaceOnModal(modal);
     }
 });

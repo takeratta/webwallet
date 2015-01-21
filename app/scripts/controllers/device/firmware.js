@@ -6,6 +6,7 @@ angular.module('webwalletApp').controller('FirmwareCtrl', function (
     $rootScope,
     deviceList,
     firmwareService,
+    modalOpener,
     TrezorDevice) {
 
     'use strict';
@@ -123,6 +124,8 @@ angular.module('webwalletApp').controller('FirmwareCtrl', function (
             keyboard: false,
             scope: _modalScope
         });
+
+        modalOpener.stopBackpaceOnModal(_modal);
 
         _modal.result.then(function () {
             firmwareService.setModalOpen(false);
