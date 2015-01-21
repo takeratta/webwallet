@@ -14,6 +14,17 @@
         <div class="tab-content tx-send">
           <fieldset class="overlay-container">
 
+            <div class="tx-removeall" 
+                ng-show="tx.values.outputs.length > 5"
+                ng-disabled="qr.scanning"
+                >
+                <a href=""
+                    ng-click="removeAllOutputs()"
+                    >
+                    Remove all outputs
+                </a>
+            </div>
+
             <!-- Transaction outputs -->
             <div class="tx-output"
                  ng-repeat="output in tx.values.outputs">

@@ -707,6 +707,20 @@ body {
   padding-top: 0.5em;
 }
 
+.tx-removeall {
+  margin-bottom: 25px;
+  text-align:right
+}
+.tx-removeall a {
+  color: #262626;
+}
+.tx-removeall a:hover {
+  color: #262626;
+  text-decoration:none;
+
+}
+
+
 .tx-output {
   margin-bottom: 25px;
 }

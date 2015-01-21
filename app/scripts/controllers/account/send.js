@@ -12,6 +12,7 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
     $routeParams,
     $q,
     $modal,
+    $log,
     $http) {
 
     'use strict';
@@ -42,13 +43,26 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
         getSupportedAltCurrencies().then(function (currencies) {
             $scope.currenciesAlt = currencies;
             if (!$scope.tx.values && $scope.tx.values.outputs) {
-                return;
+                return $q.when([]);
             }
-            $scope.tx.values.outputs.forEach(function (output) {
-                output.currencyAlt =
-                    output.currencyAlt || DEFAULT_ALT_CURRENCY;
-                $scope.convertToAltCurrency(output);
+            
+            var wantedCurrencies={};
+            $scope.tx.values.outputs.forEach(function(output) {
+                wantedCurrencies[output.currencyAlt]=1;
             });
+
+            var currencyPromises={}
+
+            for (var currency in wantedCurrencies) {
+                currencyPromises[currency]=getConversionRate(currency)
+            }
+            var outputsPromises = $scope.tx.values.outputs.map(function (output) {
+                var currency=currencyPromises[output.currencyAlt];
+                return convertToAltCurrencyToCopied(output,currency);
+            });
+            return $q.all(outputsPromises)
+        }).then(function(outputs){
+            $scope.tx.values.outputs=outputs;
         });
     }
 
@@ -97,6 +111,34 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
         });
     }
 
+    //-------------------------------------------------
+    // A few "stupid" functions for working with output objects
+
+    /**
+     * This just returns a copy of the output
+     */
+    function _deepCopyOutput(output) {
+        return {
+            address: output.address,
+            amount: output.amount,
+            amountAlt: output.amountAlt,
+            currencyAlt: output.currencyAlt
+        };
+    }
+
+    /**
+     * This copies all the information from one output to another output
+     */
+    function _copyOutputFrom(source, target) {
+        target.address = source.address;
+        target.amount = source.amount;
+        target.amountAlt = source.amountAlt;
+        target.currencyAlt = source.currencyAlt;
+    }
+
+    /**
+     * This returns outputs with some values pre-filled
+     */
     function _doFillOutput(output) {
         return {
             address: output.address,
@@ -545,7 +587,6 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
             lines,
             len,
             i,
-            outputs = $scope.tx.values.outputs,
             colAddress,
             colAmount;
 
@@ -577,6 +618,15 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
             colAddress = 0;
             colAmount = 1;
         }
+
+        //We don't push outputs into the scope directly one by one, but in batch,
+        //because otherwise we would compute and replace altcurrencies for each added
+        //output extra
+        //
+        //addedOutputs are the  ones we will be adding
+        var addedOutputs=[]
+
+
         /*
          * Can't use CSV#forEach() because of a bug in the library:
          * `data is undefined`.
@@ -589,21 +639,28 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
             if (!line[colAmount]) {
                 return 'Amount column not found in the CSV.';
             }
-            outputs.push(
-                fillOutput({
+            addedOutputs.push({
                     address: line[colAddress].toString(),
-                    amount: line[colAmount].toString()
-                })
-            );
+                    amount: line[colAmount].toString(),
+                    currencyAlt: DEFAULT_ALT_CURRENCY
+            });
         }
+
+        addedOutputs=fillOutputs(addedOutputs);
+
+        //newOutputs is what the new outputs will be
+        var newOutputs=$scope.tx.values.outputs.concat(addedOutputs);
+
 
         // Trim empty old outputs from the beginning
-        while (outputs.length > 1 &&
-               !outputs[0].amount &&
-               !outputs[0].address) {
-            outputs.shift();
+        while (newOutputs.length > 1 &&
+               !newOutputs[0].amount &&
+               !newOutputs[0].address) {
+            newOutputs.shift();
         }
 
+        //and here it is set in batch
+        $scope.tx.values.outputs = newOutputs
         return null;
     }
 
@@ -674,20 +731,57 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
      *
      * Fills the `amount` property on the passed tx output object.
      *
+     * convertToAltCurrency -> changes parameter directly
+     * convertToAltCurrencyToCopied -> returns a copy with changed object
+     *
      * @param {Object} output  Output in format:
      *              {amount: String, amountAlt: String, currencyAlt: String...}
      * @return {Promise}       Fulfilled when finished
      */
     $scope.convertToAltCurrency = function (output) {
-        var amount = +output.amount;
-        if (!amount) {
-            output.amountAlt = '';
-            return;
-        }
-        getConversionRate(output.currencyAlt).then(function (rate) {
-            output.amountAlt = Math.round10(amount * rate, -2).toString();
-        });
+
+        var currency = getConversionRate(output.currencyAlt||DEFAULT_ALT_CURRENCY)
+        //convertToAltCurrencyToCopied does not convert input, only returns a copy
+        //so we need to copy it back
+        convertToAltCurrencyToCopied(output,currency).then(function(copied){
+            _copyOutputFrom(copied,output)
+        })
     };
+
+    /**
+     * Convert amount on passed transaction output from another currency to
+     * BTC and returns the copy
+     *
+     * Fills the `amount` property on the passed tx output object.
+     *
+     * convertToAltCurrency -> changes parameter directly
+     * convertToAltCurrencyToCopied -> returns a copy with changed object
+     *
+     * @param {Object} output  Output in format:
+     *              {amount: String, amountAlt: String, currencyAlt: String...}
+     *                currency: promise for currency
+     * @return {Promise}       Fulfilled when finished
+     */
+    function convertToAltCurrencyToCopied(output, currency) {
+        var copiedOutput=_deepCopyOutput(output);
+
+
+        copiedOutput.currencyAlt =
+                    copiedOutput.currencyAlt || DEFAULT_ALT_CURRENCY;
+
+
+        var amount = +copiedOutput.amount;
+        if (!amount) {
+            copiedOutput.amountAlt = '';
+            return $q.when(copiedOutput)
+        } else {
+            return currency.then(function (rate) {
+            //return getConversionRate(copiedOutput.currencyAlt).then(function (rate) {
+                copiedOutput.amountAlt = Math.round10(amount * rate, -2).toString();
+                return copiedOutput;
+            });
+        }
+    }
 
     /**
      * Get conversion rate between BTC and passed currency.
@@ -696,13 +790,16 @@ angular.module('webwalletApp').controller('AccountSendCtrl', function (
      * @return {Float}           Convertsion rate
      */
     function getConversionRate(currency) {
+        $log.log("Getting conversion rate for currency "+currency)
         var url = [
             'https://api.coindesk.com/v1/bpi/currentprice/',
             currency,
             '.json'
         ].join('');
         return $http.get(url).then(function (res) {
-            return res.data.bpi[currency].rate_float;
+            var rate = res.data.bpi[currency].rate_float;
+            $log.log("Conversion rate for currency "+currency+" is "+rate)
+            return rate;
         });
     }
 
