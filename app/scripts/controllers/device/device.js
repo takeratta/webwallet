@@ -12,6 +12,7 @@ angular.module('webwalletApp').controller('DeviceCtrl', function (
     TrezorDevice,
     deviceList,
     modalOpener,
+    forgetModalService,
     deviceService) {
 
     'use strict';
@@ -53,13 +54,14 @@ angular.module('webwalletApp').controller('DeviceCtrl', function (
     function forgetOnDisconnect(e, device) {
         if (device.forgetOnDisconnect === null ||
             device.forgetOnDisconnect === undefined) {
-            promptForget()
+            forgetModalService.showDisconnectedModal($scope, device,deviceList);
+            /*promptForget()
                 .then(function () {
                     device.forgetOnDisconnect = true;
                     deviceList.forget(device);
                 }, function () {
                     device.forgetOnDisconnect = false;
-                });
+                });*/
         } else if (device.forgetOnDisconnect) {
             deviceList.forget(device);
         }
@@ -165,19 +167,6 @@ angular.module('webwalletApp').controller('DeviceCtrl', function (
         }
     }
 
-    /**
-     * Ask the user if he/she wants to forget or remember the device.
-     *
-     * Returns a promise that is resolved if the user chooses to forget the
-     * device and failed if the user chooses to remember it.
-     *
-     * @see  `forgetOnDisconnect()`
-     *
-     * @return {Promise}
-     */
-    function promptForget() {
-        return modalOpener.openModal($scope, 'forget.disconnected').result;
-    }
 
     /**
      * Ask the user to set the device label.
