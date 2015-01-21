@@ -38,8 +38,9 @@ angular.module('webwalletApp').controller('DeviceCtrl', function (
     $scope.$on(deviceService.EVENT_CLOSE_DISCONNECT, closeDisconnect);
 
     /**
-     * When a device is disconnected, ask the user if he/she wants to
-     * forget it or remember.
+     * When a initialized device is disconnected, ask the user if
+     * he/she wants to forget it or remember. Empty devices are
+     * forgotten right away.
      *
      * If the user chooses to forget the device, forget it immediately.
      *
@@ -52,18 +53,10 @@ angular.module('webwalletApp').controller('DeviceCtrl', function (
      * @param {TrezorDevice} device  Device that was disconnected
      */
     function forgetOnDisconnect(e, device) {
-        if (device.forgetOnDisconnect === null ||
-            device.forgetOnDisconnect === undefined) {
-            forgetModalService.showDisconnectedModal($scope, device,deviceList);
-            /*promptForget()
-                .then(function () {
-                    device.forgetOnDisconnect = true;
-                    deviceList.forget(device);
-                }, function () {
-                    device.forgetOnDisconnect = false;
-                });*/
-        } else if (device.forgetOnDisconnect) {
+        if (device.forgetOnDisconnect == null || device.isEmpty()) {
             deviceList.forget(device);
+        } else {
+            forgetModalService.showDisconnectedModal($scope, device,deviceList);
         }
     }
 
@@ -199,7 +192,7 @@ angular.module('webwalletApp').controller('DeviceCtrl', function (
 
         var modal=modalOpener.openModal($scope, 'pin','sm',{
             pin: '',
-            type: type 
+            type: type
         },true);
 
 
@@ -344,7 +337,7 @@ angular.module('webwalletApp').controller('DeviceCtrl', function (
         modal.modal.opened.then(function () {
             modal.scope.$emit('modal.button.show', code);
         });
- 
+
         $scope.device.once(TrezorDevice.EVENT_RECEIVE, function () {
             modal.modal.close();
         });

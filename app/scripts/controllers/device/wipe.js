@@ -52,13 +52,7 @@ angular.module('webwalletApp').controller('DeviceWipeCtrl', function (
         _wipeInProgress = true;
         $scope.device.wipe().then(
             function () {
-                /*
-                 * On Mac OS X, the disconnect event doesn't fire on HID ID
-                 * change, so we need to ask the user to disconnect the device.
-                 */
-                if (window.navigator.userAgent.match(/Mac/)) {
-                    promptDisconnect();
-                }
+                promptDisconnect();
             },
             function (err) {
                 _wipeInProgress = false;
@@ -71,10 +65,8 @@ angular.module('webwalletApp').controller('DeviceWipeCtrl', function (
      * Ask user to disconnect the device.
      */
     function promptDisconnect() {
-        var modal=modalOpener.openModal($scope, 'disconnect.wipe', 'sm');
-
+        var modal = modalOpener.openModal($scope, 'disconnect.wipe', 'sm');
         _disconnectModal = modal.modal;
-
         return modal.result;
     }
 
@@ -87,7 +79,8 @@ angular.module('webwalletApp').controller('DeviceWipeCtrl', function (
      *                                  shown).
      */
     function promptForget(hideSuccessMsg) {
-        
-        return modalOpener.openModal($scope, 'forget.wipe', null, {hideSuccessMsg: hideSuccessMsg}).result;
+        return modalOpener.openModal($scope, 'forget.wipe', null, {
+            hideSuccessMsg: hideSuccessMsg
+        }).result;
     }
 });
