@@ -77,13 +77,20 @@
                           ng-model="sign.signature"></textarea>
               </div>
               <div class="pull-left"
-                       tooltip="Please connect your device to sign messages."
-                        tooltip-trigger="{{ device.isConnected() ? 'manual' : 'mouseenter'}}"
-                       tooltip-placement="bottom"
+                       tooltip="{{ 
+                            !(device.isConnected()) ? 
+                                'Please connect your device to sign messages.'
+                                :
+                                (
+                                    !isSignInputValid() ? 'Please fill in message and address.' : null 
+                                )
+                                }}"
+                        tooltip-trigger="mouseenter"
+                        tooltip-placement="right"
                        >
 
                     <button type="submit" class="btn btn-primary"
-                        ng-disabled="!isSignValid() || device.status() !== 'connected'"
+                        ng-disabled="!isSignInputValid() || device.status() !== 'connected'"
                         ng-hide="isUnicode(sign.message)"
                     >
                         Sign
@@ -162,9 +169,9 @@
                           ></textarea>
               </div>
               <div class="pull-left"
-                        tooltip="Please connect your device to verify messages."
-                        tooltip-trigger="{{ device.isConnected() ? 'manual' : 'mouseenter'}}"
-                       tooltip-placement="bottom"
+                        tooltip="{{ !(device.isConnected()) ? 'Please connect your device to verify messages.':null}}"
+                        tooltip-trigger="mouseenter"
+                        tooltip-placement="right"
                        >
 
 
