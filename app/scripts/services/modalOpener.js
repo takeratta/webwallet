@@ -67,7 +67,7 @@ angular.module('webwalletApp').service('modalOpener', function (
     }
 
     function stopBackspace()  {
-        $(document).unbind('keydown').bind('keydown', function (event) { 
+        $(document).unbind('keydown.modalOpener').bind('keydown.modalOpener', function (event) { 
             var doPrevent = false;
             if (event.keyCode === 8) {
                 var d = event.srcElement || event.target;
@@ -95,7 +95,7 @@ angular.module('webwalletApp').service('modalOpener', function (
     }
 
     function resumeBackspace()  {
-        $(document).unbind('keydown').bind('keydown', function (event) { 
+        $(document).unbind('keydown.modalOpener').bind('keydown.modalOpener', function (event) { 
         })
     }
 });

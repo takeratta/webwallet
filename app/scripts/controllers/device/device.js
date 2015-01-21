@@ -245,7 +245,7 @@ angular.module('webwalletApp').controller('DeviceCtrl', function (
                 modal.scope.$digest();
                 return false;
             } else if (k === 13) { // Enter
-                modal.modal.close(scope.pin);
+                modal.modal.close(modal.scope.pin);
                 return false;
             } else if (_isNumericKey(k)) {
                 num = _getNumberFromKey(k);
