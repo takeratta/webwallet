@@ -2,7 +2,7 @@
 
 angular.module('webwalletApp').controller('AccountSignCtrl', function (
     utils,
-    deviceList,
+//    deviceList,
     $scope) {
 
     'use strict';
@@ -129,38 +129,25 @@ angular.module('webwalletApp').controller('AccountSignCtrl', function (
     };
 
     $scope.suggestAddresses = function () {
-        var UNUSED_COUNT = 10,
-            multipleDevices = deviceList.count() > 1,
+        var UNUSED_COUNT = 20,
             addresses = [];
 
-        deviceList.all().forEach(function (dev) {
-            dev.accounts.forEach(function (acc) {
-                var label;
+        $scope.device.accounts.forEach(function (acc) {
+            acc.usedAddresses()
 
-                if (multipleDevices) {
-                    label = [dev.label(), '/', acc.label()].join(' ');
-                } else {
-                    label = acc.label();
-                }
+                .map(_suggestAddress)
+                .forEach(function (a) { addresses.push(a); });
+            acc.unusedAddresses(UNUSED_COUNT)
+                .map(_suggestAddress)
+                .forEach(function (a) { addresses.push(a); });
 
-                acc.usedAddresses()
-                    .map(_suggestAddress)
-                    .forEach(function (a) { addresses.push(a); });
-                acc.unusedAddresses(UNUSED_COUNT)
-                    .map(_suggestAddress)
-                    .forEach(function (a) { addresses.push(a); });
-
-                function _suggestAddress(address) {
-                    return {
-                        label: label + ': ' + address.address,
-                        address: address.address,
-                        path: address.path,
-                        tx: address.tx,
-                        acc: acc,
-                        source: 'Account'
-                    };
-                }
-            });
+            function _suggestAddress(address) {
+                return {
+                    address: address.address,
+                    path: address.path,
+                    acc: acc
+                };
+            }
         });
 
         return addresses;
