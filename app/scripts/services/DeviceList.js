@@ -125,38 +125,19 @@ angular.module('webwalletApp').factory('deviceList', function (
 
     /**
      * Get all devices.
-     *
-     * If param `includeBootloader` is true, than include also devices that
-     * are in the bootloader mode.
-     *
-     * WARNING: Devices that don't have features yet are treated as if they
-     * were in the bootloader mode.
-     *
-     * @param {Boolean} [includeBootloader]  Include devices that are in the
-     *                                       bootloader mode.  Default: false.
+
      * @return {Array of TrezorDevice}       All devices
      */
-    DeviceList.prototype.all = function (includeBootloader) {
-        if (includeBootloader) {
-            return this._devices;
-        }
-        return this._devices.filter(function (dev) {
-            return dev.features && !dev.features.bootloader_mode;
-        });
+    DeviceList.prototype.all = function () {
+        return this._devices;
     };
 
     /**
      * Get the total number devices.
-     *
-     * If param `includeBootloader` is true, than include also devices that
-     * are in the bootloader mode.
-     *
-     * @param {Boolean} [includeBootloader]  Include devices that are in the
-     *                                       bootloader mode.  Default: false.
      * @return {Number}                      Number of devices
      */
-    DeviceList.prototype.count = function (includeBootloader) {
-        return this.all(includeBootloader).length;
+    DeviceList.prototype.count = function () {
+        return this.all().length;
     };
 
     /**

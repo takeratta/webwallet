@@ -47,8 +47,6 @@ angular.module('webwalletApp').controller('NavCtrl', function (
         return link;
     };
 
-
-
     /**
      * When user clicks on trash icon, ask again (to be sure).
      *
@@ -57,7 +55,5 @@ angular.module('webwalletApp').controller('NavCtrl', function (
     $scope.forget = function (device) {
         forgetModalService.showRequestedModal($scope, device,deviceList);
     }
-        
-
 
 });

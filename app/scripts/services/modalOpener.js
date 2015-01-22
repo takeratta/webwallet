@@ -5,9 +5,9 @@ angular.module('webwalletApp').service('modalOpener', function (
     $modal) {
 
     'use strict';
-    
+
     /**
-     * Opens modal window. 
+     * Opens modal window.
      *
      * Modal window should have options "yes" and "no" (or similar), where
      * "yes" is binded to "close()" and "no" to "dismiss()".
@@ -17,9 +17,7 @@ angular.module('webwalletApp').service('modalOpener', function (
      *
      * @return {Promise}
      */
-    this.openModal=function(scope, name,size,extendScope,allowBackspace) {
-
-        
+    this.openModal=function(scope, name, size, extendScope, allowBackspace, emitData) {
         var windowClass=name.replace(".","-","g")+"modal";
         if (typeof extendScope==="undefined") {
             extendScope={};
@@ -38,10 +36,10 @@ angular.module('webwalletApp').service('modalOpener', function (
             windowClass:windowClass
         });
         modal.opened.then(function () {
-            scope.$emit('modal.'+name+'.show');
+            scope.$emit('modal.'+name+'.show', emitData);
         });
         modal.result.finally(function () {
-            scope.$emit('modal.'+name+'.hide');
+            scope.$emit('modal.'+name+'.hide', emitData);
         });
 
         if (!allowBackspace) {
@@ -67,19 +65,19 @@ angular.module('webwalletApp').service('modalOpener', function (
     }
 
     function stopBackspace()  {
-        $(document).unbind('keydown.modalOpener').bind('keydown.modalOpener', function (event) { 
+        $(document).unbind('keydown.modalOpener').bind('keydown.modalOpener', function (event) {
             var doPrevent = false;
             if (event.keyCode === 8) {
                 var d = event.srcElement || event.target;
-                if ((d.tagName.toUpperCase() === 'INPUT' && 
+                if ((d.tagName.toUpperCase() === 'INPUT' &&
                     (
                         d.type.toUpperCase() === 'TEXT' ||
-                        d.type.toUpperCase() === 'PASSWORD' || 
-                        d.type.toUpperCase() === 'FILE' || 
-                        d.type.toUpperCase() === 'EMAIL' || 
-                        d.type.toUpperCase() === 'SEARCH' || 
+                        d.type.toUpperCase() === 'PASSWORD' ||
+                        d.type.toUpperCase() === 'FILE' ||
+                        d.type.toUpperCase() === 'EMAIL' ||
+                        d.type.toUpperCase() === 'SEARCH' ||
                         d.type.toUpperCase() === 'DATE' )
-                    ) || 
+                    ) ||
                     d.tagName.toUpperCase() === 'TEXTAREA') {
                     doPrevent = d.readOnly || d.disabled;
                 }
@@ -95,7 +93,7 @@ angular.module('webwalletApp').service('modalOpener', function (
     }
 
     function resumeBackspace()  {
-        $(document).unbind('keydown.modalOpener').bind('keydown.modalOpener', function (event) { 
+        $(document).unbind('keydown.modalOpener').bind('keydown.modalOpener', function (event) {
         })
     }
 });

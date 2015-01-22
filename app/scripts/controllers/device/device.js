@@ -53,7 +53,7 @@ angular.module('webwalletApp').controller('DeviceCtrl', function (
      * @param {TrezorDevice} device  Device that was disconnected
      */
     function forgetOnDisconnect(e, device) {
-        if (device.forgetOnDisconnect == null || device.isEmpty()) {
+        if (device.forgetOnDisconnect === true || device.isEmpty()) {
             deviceList.forget(device);
         } else {
             forgetModalService.showDisconnectedModal($scope, device,deviceList);
@@ -320,24 +320,22 @@ angular.module('webwalletApp').controller('DeviceCtrl', function (
     }
 
     function handleButton(event, dev, code) {
-        if (dev.id !== $scope.device.id) {
-            return;
-        }
+        var ignore = [
+            'ButtonRequest_ConfirmWord',
+            'ButtonRequest_FirmwareCheck'
+        ];
 
-        if (code !== 'ButtonRequest_ConfirmWord') {
+        if ((dev.id === $scope.device.id) &&
+            (ignore.indexOf(code) < 0)) {
+
             promptButton(code);
         }
     }
 
     function promptButton(code) {
-
         var modal = modalOpener.openModal($scope, 'button', buttonModalSize(code), {
-            code:code
-        });
-        modal.modal.opened.then(function () {
-            modal.scope.$emit('modal.button.show', code);
-        });
-
+            code: code
+        }, undefined, code);
         $scope.device.once(TrezorDevice.EVENT_RECEIVE, function () {
             modal.modal.close();
         });
@@ -345,7 +343,6 @@ angular.module('webwalletApp').controller('DeviceCtrl', function (
             modal.modal.close();
         });
     }
-
 
     function buttonModalSize(code) {
         if (code === 'ButtonRequest_Address') {
