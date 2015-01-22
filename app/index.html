@@ -41,26 +41,26 @@
 
     <!-- Webwallet Application -->
     <div id="webwalletApp-container"
-      ng-cloak>
+         ng-cloak>
 
       <!-- Error -->
       <div ng-controller="ErrorCtrl"
-        ng-cloak>
+           ng-cloak>
         <div class="page-container container"
-          ng-if="error">
+             ng-if="error">
           <ng-include src="'views/error.html'"></ng-include>
         </div>
 
       <div ng-if="!error">
         <!-- Bar shown if the plugin is used and is deprecated  -->
         <div class="alert alert-warning alertbar"
-          ng-if="usingPluginTransport && deprecatePlugin">
+             ng-if="usingPluginTransport && deprecatePlugin">
           <div class="container">
             <div class="form-inline">
               <strong>Plugin is deprecated.</strong>
               Long live the bridge! New and shiny, just for you.
               <a class="btn btn-warning"
-                ng-href="{{ selectedInstaller.url }}">
+                 ng-href="{{ selectedInstaller.url }}">
                 <span class="glyphicon glyphicon-download"></span>
                 Download
               </a>

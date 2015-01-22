@@ -4,6 +4,7 @@ angular.module('webwalletApp').controller('FirmwareCtrl', function (
     $modal,
     $scope,
     $rootScope,
+    $routeParams,
     deviceList,
     firmwareService,
     modalOpener,
@@ -24,11 +25,10 @@ angular.module('webwalletApp').controller('FirmwareCtrl', function (
         STATE_UPDATE_ERROR = 'update-error',
         STATE_UPDATE_CHECK = 'update-check';
 
-    // On device connect
     $scope.$on(firmwareService.EVENT_CONNECT, resetOutdatedFirmwareBar);
-
-    // On device disconnect
     $scope.$on(firmwareService.EVENT_DISCONNECT, resetOutdatedFirmwareBar);
+    $scope.$on(firmwareService.EVENT_DISCONNECT, resetOutdatedFirmwareBar);
+
     /**
      * onDisconnect() has high priority, because this hook must
      * execute even if the Firmware modal is opened.
@@ -132,7 +132,9 @@ angular.module('webwalletApp').controller('FirmwareCtrl', function (
             firmwareService.setModalOpen(false);
         }, function () {
             firmwareService.setModalOpen(false);
-            deviceList.forget(dev, true);
+            if (firmware.required) {
+                deviceList.forget(dev, true);
+            }
         });
 
         return _modal.result;
