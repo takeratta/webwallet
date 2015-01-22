@@ -56,7 +56,9 @@ angular.module('webwalletApp').controller('DeviceCtrl', function (
         if (device.forgetOnDisconnect === true || device.isEmpty()) {
             deviceList.forget(device);
         } else {
-            forgetModalService.showDisconnectedModal($scope, device,deviceList);
+            if (device.forgetOnDisconnect === null) {
+                forgetModalService.showDisconnectedModal($scope, device,deviceList);
+            }
         }
     }
 
