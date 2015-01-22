@@ -29,6 +29,7 @@ angular.module('webwalletApp').controller('DeviceRecoveryCtrl', function (
         if ($scope.settings.label) {
             $scope.settings.label = $scope.settings.label.trim();
         }
+        $scope.settings.word_count = +$scope.settings.word_count;
 
         // Reset previous attempt to restore device.
         $scope.seedWords = [];
