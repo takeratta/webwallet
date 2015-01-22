@@ -551,7 +551,8 @@ angular.module('webwalletApp').factory('deviceList', function (
      * @param {String} desc  Device descriptor
      */
     DeviceList.prototype._disconnect = function (desc) {
-        var dev = this.get(desc);
+        var path_desc={path:desc.path}
+        var dev = this.get(path_desc);
         if (!dev) {
             return;
         }
