@@ -354,29 +354,20 @@ angular.module('webwalletApp').factory('deviceList', function (
         // Run low-level connect routine and initialize the device.
         trezor.acquire(desc)
             .then(function (res) {
-                dev.connect(new trezorApi.Session(trezor, res.session));
+                var session = new trezorApi.Session(trezor, res.session);
+                dev.connect(session);
                 return dev.initializeDevice();
             })
         // Try to find existing device by acquired ID and patch it
         // with the running session, otherwise add the device to
         // the list
             .then(function () {
-                var id,
-                    old;
-                if (!dev.features) {
-                    throw new Error('Missing features');
-                }
-                id = dev.features.device_id;
-                if (!id) { // bootloader mode
-                    id = dev.path;
-                }
-                old = this.get(id);
+                var old = this.get(dev.id);
                 if (old) { // existing device remembered, patch
                     old.connect(dev._session);
                     old.path = dev.path;
                     dev = old;
                 } else { // new device, add to the list
-                    dev.id = id;
                     this.add(dev);
                 }
                 return dev;
@@ -391,8 +382,8 @@ angular.module('webwalletApp').factory('deviceList', function (
             }.bind(this))
         // Show error message if something failed.
             .catch(function (err) {
-                dev.disconnect();
                 if (!err instanceof this.DeviceListException) {
+                    dev.disconnect();
                     flash.error(err.message || 'Loading device failed');
                 }
             }.bind(this));
