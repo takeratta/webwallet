@@ -12,7 +12,7 @@
     "bootstrap": "~3.2.0",
     "bootstrap-slider": "seiyria/bootstrap-slider#~1.9.0",
     "bitcoinjs-lib": "trezor/bitcoinjs-lib",
-    "trezor.js": "trezor/trezor.js#trezord",
+    "trezor.js": "trezor/trezor.js",
     "jsqrcode": "LazarSoft/jsqrcode",
     "comma-separated-values": "~3.6.0"
   },
