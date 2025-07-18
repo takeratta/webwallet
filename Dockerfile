@@ -3,7 +3,7 @@
 # docker run -p 8000:8000 mytrezor-webwallet
 # $BROWSER http://localhost.mytrezor.com:8000/
 
-FROM ubuntu:latest
+FROM ubuntu:24.10
 
 RUN apt-get update
 RUN apt-get install -y git npm nodejs-legacy
